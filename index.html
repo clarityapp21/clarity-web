@@ -662,7 +662,8 @@ em.late,.pn-tile-b .late{color:var(--q-do);background:color-mix(in srgb,var(--q-
 .tru-ib{width:42px;height:42px;border-radius:50%;border:2px solid #B8913F;background:transparent;color:#E8C56A;font-size:22px;line-height:1;cursor:pointer}
 .tru-head{display:grid;grid-template-columns:1fr 1fr;margin:12px 16% 0;border-bottom:2px solid #B8913F}
 .tru-head>div{display:flex;flex-direction:column;align-items:center;padding:4px 4px 8px;min-width:0}.tru-head>div:first-child{border-right:2px solid #B8913F}
-.tru-head b{font-size:28px;font-weight:600;color:#FBF3E4;font-family:var(--font-body)}.tru-head small{font-size:12px;color:#D9C29B;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tru-head b{font-size:28px;font-weight:600;color:#FBF3E4;font-family:var(--font-body)}.tru-minus{margin-top:6px;font:inherit;font-size:13px;font-weight:700;border-radius:999px;border:1.5px solid #B8913F;background:rgba(28,16,8,.6);color:#E8C56A;padding:4px 14px;cursor:pointer}.tru-minus:disabled{opacity:.3}
+.tru-head small{font-size:12px;color:#D9C29B;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tru-board{flex:1;display:grid;grid-template-columns:1fr 1fr;margin:0 16%;min-height:0}
 .tru-col{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;background:transparent;border:0;padding:10px 0 0;cursor:pointer;color:inherit;font:inherit;-webkit-tap-highlight-color:rgba(242,194,48,.12)}
 .tru-col:first-child{border-right:2px solid #B8913F}.tru-col:active{background:rgba(242,194,48,.06)}
@@ -5711,7 +5712,7 @@ function openTruco(){const t=tru();const cur=t.cur;if(!cur){openTrucoSetup();ret
   const sc=()=>({n:cur.log.filter(x=>x==='n').length,e:cur.log.filter(x=>x==='e').length});
   const draw=(win)=>{const s2=sc();const usN='Vos'+(cur.us.length?' y '+truNames(cur.us):''),thN=truNames(cur.them)||'Ellos';
     openSheet(`<div class="tru-top"><button class="tru-ib" type="button" data-close aria-label="Salir">‹</button><h2 class="tru-title">Anotador</h2><button class="tru-ib" type="button" id="tru-menu" aria-label="Más opciones">≡</button></div>`+
-      `<div class="tru-head"><div><b>Nos:</b><small>${esc(usN)}</small></div><div><b>Ellos:</b><small>${esc(thN)}</small></div></div>`+
+      `<div class="tru-head"><div><b>Nos:</b><small>${esc(usN)}</small><button type="button" class="tru-minus" data-tm="n"${s2.n?'':' disabled'} aria-label="Borrar un punto de Nosotros">− 1</button></div><div><b>Ellos:</b><small>${esc(thN)}</small><button type="button" class="tru-minus" data-tm="e"${s2.e?'':' disabled'} aria-label="Borrar un punto de Ellos">− 1</button></div></div>`+
       `<div class="tru-board"><button type="button" class="tru-col" data-tp="n" aria-label="Sumar un punto a Nosotros (${s2.n})">${truCol(s2.n,cur.to)}<span class="tru-pts">${s2.n}</span></button><button type="button" class="tru-col" data-tp="e" aria-label="Sumar un punto a Ellos (${s2.e})">${truCol(s2.e,cur.to)}<span class="tru-pts">${s2.e}</span></button></div>`+
       `<div class="tru-foot"><button type="button" class="tru-btn" id="tru-undo"${cur.log.length?'':' disabled'}>↶ Deshacer</button><button type="button" class="tru-btn" id="tru-cantos">📜 Cantos</button><button type="button" class="tru-btn" id="tru-hist">🏆 Historial</button></div>`+
       `<p class="tru-hint">${cur.log.length?`A ${cur.to}${cur.flor?' · con flor':' · sin flor'} · ${cur.fmt} vs ${cur.fmt}`:'Tocá la columna del equipo que suma: cada toque es un fósforo.'}</p>`+
@@ -5723,6 +5724,7 @@ function openTruco(){const t=tru();const cur=t.cur;if(!cur){openTrucoSetup();ret
         truSave({cur:null,games});draw({w,n:s1.n,e:s1.e,rec});return}
       truSave({cur});draw()}));
     q('#tru-undo').addEventListener('click',()=>{if(win)return;cur.log.pop();truSave({cur});draw()});
+    sh.querySelectorAll('[data-tm]').forEach(b=>b.addEventListener('click',()=>{if(win)return;const i=cur.log.lastIndexOf(b.dataset.tm);if(i<0)return;cur.log.splice(i,1);try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}truSave({cur});draw()}));
     q('#tru-cantos').addEventListener('click',()=>openTrucoCantos(cur.flor,()=>draw(win)));q('#tru-hist').addEventListener('click',()=>openTrucoHist(()=>draw(win)));
     q('#tru-menu').addEventListener('click',()=>{openSheet(`<div class="sheet-head"><h2>Partida</h2>${closeBtn}</div><div class="stack"><button class="btn" type="button" id="tm-c">📜 Valores de los cantos</button><button class="btn" type="button" id="tm-h">Historial de enfrentamientos</button><button class="btn" type="button" id="tm-r">Empezar de nuevo (0 a 0)</button><button class="btn btn-danger" type="button" id="tm-x">Abandonar partida (no se guarda)</button></div>`);
       const s3=root.querySelector('.sheet');sheetBack=()=>draw(win);s3.querySelector('#tm-c').addEventListener('click',()=>openTrucoCantos(cur.flor,()=>draw(win)));s3.querySelector('#tm-h').addEventListener('click',()=>openTrucoHist(()=>draw(win)));
