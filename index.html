@@ -5808,7 +5808,8 @@ function renderFast(){const el=$('#cm-fast');if(!el)return;const af=activeFast()
     `<p class="status" style="margin:0">No es para todos: si estás embarazada, tenés diabetes o tuviste problemas con la alimentación, consultalo antes con un profesional.</p>`}
 
 /* ---------- plan semanal ---------- */
-const PLAN_K=()=>weekStartOf(todayStr());
+const PLAN_K=()=>weekStartOf(todayStr());let planOff=0;const PLAN_V=()=>shiftDay(PLAN_K(),7*planOff);
+const PLAN_WK=['Esta semana','La próxima','En 2 semanas'];
 const planSlots=()=>{const n=nutri()||{};return ['desayuno','almuerzo','merienda','cena'].concat(n.colacion?['colacion']:[])};
 const RECIPES=[
  ['desayuno','Avena con banana y maní',10,['Avena:50:g:Almacén','Leche descremada:200:ml:Lácteos','Banana:1:u:Verdulería','Mantequilla de maní:15:g:Almacén'],'Cociná la avena con la leche 3 minutos. Sumá la banana en rodajas y la mantequilla de maní.',480,20,68,15],
@@ -5852,21 +5853,23 @@ function planPrompt(nDays,slots,budgets,avoid,extra){const n=nutri(),t=nTargets(
     'Tiempo máximo de cocina por comida: '+n.cook+' minutos (desayuno y merienda, menos). Cocina para '+(n.people||1)+' persona(s): las cantidades de ingredientes son para todas, los macros por porción. '+
     'Usá ingredientes que se consiguen en cualquier supermercado o verdulería argentina, platos caseros y variados, y aprovechá ingredientes entre días para no desperdiciar. '+(avoid&&avoid.length?'No repitas estos platos: '+avoid.join('; ')+'. ':'')+(extra||'')+
     'Devolvé SOLO JSON: {"dias":[{"comidas":[{"momento":"'+slots.join('|')+'","nombre":"","minutos":0,"kcal":0,"proteinas":0,"carbohidratos":0,"grasas":0,"ingredientes":[{"item":"nombre genérico sin marca","cantidad":0,"unidad":"g|ml|u|paquete|lata|planta","categoria":"Verdulería|Carnicería|Pescadería|Lácteos|Almacén|Panadería|Fiambrería|Congelados|Otros"}],"pasos":["paso corto"]}]}]} con exactamente '+nDays+' día(s) y una comida por cada momento ('+slots.join(', ')+'), en ese orden.'}
-function openPlanGen(){const wk=PLAN_K(),all=Array.from({length:7},(_,i)=>shiftDay(wk,i)),plan=state.mplan[wk];const n=nutri();
-  let days=all.filter(d=>d>=todayStr()&&!(plan&&plan.days[d]));if(!days.length)days=all.filter(d=>d>=todayStr());
+function openPlanGen(off){if(off==null)off=planOff;let wk,all,plan,days;const n=nutri()||{};
+  const setWk=()=>{wk=shiftDay(PLAN_K(),7*off);all=Array.from({length:7},(_,i)=>shiftDay(wk,i)).filter(d=>d>=todayStr());plan=state.mplan[wk];days=all.filter(d=>!(plan&&plan.days[d]));if(!days.length)days=all.slice()};setWk();
   let slots=planSlots().slice();const bud={};SLOTS.forEach(([s])=>bud[s]=slotBudget(s));let cap=n.weekCap||'';
   const draw=()=>{openSheet(`<div class="sheet-head"><h2>Planificar comidas</h2>${closeBtn}</div>`+
+    `<div class="field"><span class="lbl">¿Qué semana?</span><div class="seg seg-sm" id="pg-w">${PLAN_WK.map((t,i)=>`<button type="button" data-w="${i}" aria-pressed="${off===i}">${t}</button>`).join('')}</div><span class="s">${esc(parseYmd(wk).toLocaleDateString('es-AR',{day:'numeric',month:'short'}))} al ${esc(parseYmd(shiftDay(wk,6)).toLocaleDateString('es-AR',{day:'numeric',month:'short'}))}</span></div>`+
     `<div class="field"><span class="lbl">Días</span><div class="cat-chips" id="pg-d">${all.map(d=>`<button type="button" data-v="${d}" aria-pressed="${days.includes(d)}">${['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][parseYmd(d).getDay()]} ${parseYmd(d).getDate()}${plan&&plan.days[d]?' ✓':''}</button>`).join('')}</div>${plan?'<span class="s">✓ = ya planificado. Si lo elegís, se rehace; los demás quedan como están.</span>':''}</div>`+
     `<div class="field"><span class="lbl">Comidas a planificar y presupuesto de cada una</span><div class="pg-slots">${SLOTS.map(([s,nm])=>`<div class="pg-slot${slots.includes(s)?'':' off'}"><button type="button" class="pg-chk" data-sl="${s}" aria-pressed="${slots.includes(s)}">${slots.includes(s)?'✓ ':''}${nm}</button>${budPicker('data-bs="'+s+'"',bud[s])}</div>`).join('')}</div></div>`+
     `<div class="row2"><div class="field"><label for="pg-cap">Tope de gasto semanal (opcional)</label><input type="text" inputmode="decimal" data-money="1" id="pg-cap" value="${cap||''}" placeholder="$"></div><div class="field"><span class="lbl">&nbsp;</span><span class="s">${days.length} día(s) · ${slots.length} comida(s) por día</span></div></div>`+
     `<div class="actions"><div class="right"><button class="btn btn-primary" type="button" id="pg-go"${days.length&&slots.length?'':' disabled'}>Generar</button></div></div>`);
     const sh=root.querySelector('.sheet');
+    sh.querySelector('#pg-w').addEventListener('click',e=>{const b=e.target.closest('[data-w]');if(!b)return;off=+b.dataset.w;cap=sh.querySelector('#pg-cap').value;setWk();draw()});
     sh.querySelector('#pg-d').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(!b)return;const v=b.dataset.v;days=days.includes(v)?days.filter(x=>x!==v):days.concat(v).sort();cap=sh.querySelector('#pg-cap').value;draw()});
     sh.querySelectorAll('[data-sl]').forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.sl;slots=slots.includes(v)?slots.filter(x=>x!==v):SLOTS.map(x=>x[0]).filter(x=>slots.includes(x)||x===v);cap=sh.querySelector('#pg-cap').value;draw()}));
     sh.querySelectorAll('[data-bs]').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(!b)return;bud[g.dataset.bs]=b.dataset.v;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
-    sh.querySelector('#pg-go').addEventListener('click',()=>{const c=parseMoney(sh.querySelector('#pg-cap').value)||null;setPrefs({nutri:Object.assign({},nutri(),{slotBudget:Object.assign({},bud),weekCap:c})});closeSheet();generatePlan(days,slots,bud)})};
+    sh.querySelector('#pg-go').addEventListener('click',()=>{const c=parseMoney(sh.querySelector('#pg-cap').value)||null;setPrefs({nutri:Object.assign({},nutri()||{},{slotBudget:Object.assign({},bud),weekCap:c})});closeSheet();planOff=off;renderPlan.touched=false;cmPlanDay=0;generatePlan(days,slots,bud,wk)})};
   draw()}
-async function generatePlan(days,slots,bud){if(cmBusy)return;const wk=PLAN_K();const plan=Object.assign({week:wk,days:{}},state.mplan[wk]||{});plan.days=Object.assign({},plan.days);plan.updatedAt=Date.now();
+async function generatePlan(days,slots,bud,wk){if(cmBusy)return;wk=wk||PLAN_V();const plan=Object.assign({week:wk,days:{}},state.mplan[wk]||{});plan.days=Object.assign({},plan.days);plan.updatedAt=Date.now();
   const local=(d)=>{const i=(parseYmd(d).getDay()+6)%7;const o={};slots.forEach(sl=>{const opts=RECIPES.filter(r=>r[0]===sl);o[sl]=recipeObj(opts[(i*3+sl.length)%opts.length],slotKcal(sl))});return o};
   if(!sampleFn){days.forEach(d=>plan.days[d]=local(d));put('mplan',wk,plan);toast('Plan armado con recetas base (la IA funciona dentro de la app de Claude).');return}
   cmBusy=true;const st=$('#plan-status');const avoid=Object.entries(plan.days).filter(([d])=>!days.includes(d)).flatMap(([,dm])=>Object.values(dm).map(m=>m.name));
@@ -5876,41 +5879,42 @@ async function generatePlan(days,slots,bud){if(cmBusy)return;const wk=PLAN_K();c
       ch.forEach((d,j)=>{const dd=r&&Array.isArray(r.dias)&&r.dias[j];const out={};slots.forEach((sl,k)=>{const cm=dd&&Array.isArray(dd.comidas)?(dd.comidas.find(x=>x.momento===sl)||dd.comidas[k]):null;out[sl]=cm?cleanMeal(cm,sl):local(d)[sl];out[sl].budget=bud[sl];avoid.push(out[sl].name)});plan.days[d]=out});
       put('mplan',wk,Object.assign({},plan,{days:Object.assign({},plan.days)}))}
     toast(days.length===1?'¡Día planificado!':'¡Listo: '+days.length+' días planificados!')}finally{cmBusy=false;st.hidden=true}}
-function openSwap(d,sl){const cur=state.mplan[PLAN_K()].days[d][sl];let mode='igual';
+function openSwap(d,sl){const cur=state.mplan[PLAN_V()].days[d][sl];let mode='igual';
   openSheet(`<div class="sheet-head"><h2>Cambiar ${SLOT_N[sl].toLowerCase()}</h2>${closeBtn}</div><p class="status" style="margin:0">Ahora: ${esc(cur.name)}${cur.budget?' · presupuesto '+BUD[cur.budget][1].toLowerCase():''}</p>`+
     `<div class="field"><span class="lbl">¿Cómo lo querés?</span><div class="pace-grid" id="sw-m">${[['barato','Más barato','Ingredientes más económicos'],['igual','Parecido','Otro plato, mismo presupuesto'],['caro','Más elaborado','Puede costar más']].map(([k,t,s])=>`<button type="button" class="pace-opt" data-v="${k}" aria-pressed="${k===mode}"><b>${t}</b><span>${s}</span></button>`).join('')}</div></div>`+
     `<div class="field"><label for="sw-x">Pedido especial (opcional)</label><input type="text" id="sw-x" maxlength="120" placeholder="Ej.: algo con pollo, sin horno, que sobre para mañana"></div>`+
     `<div class="actions"><div class="right"><button class="btn btn-primary" type="button" id="sw-go">Buscar otro</button></div></div>`);
   const sh=root.querySelector('.sheet');sh.querySelector('#sw-m').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(!b)return;mode=b.dataset.v;sh.querySelectorAll('#sw-m button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
   sh.querySelector('#sw-go').addEventListener('click',()=>{const x=sh.querySelector('#sw-x').value.trim();closeSheet();swapMeal(d,sl,mode,x)})}
-async function swapMeal(d,sl,mode,extra){const wk=PLAN_K(),plan=state.mplan[wk];if(!plan||cmBusy)return;const cur=plan.days[d][sl];let nm=null;
+async function swapMeal(d,sl,mode,extra){const wk=PLAN_V(),plan=state.mplan[wk];if(!plan||cmBusy)return;const cur=plan.days[d][sl];let nm=null;
   const order=BUDGETS.map(b=>b[0]),bi=order.indexOf(cur.budget||slotBudget(sl));const nb=mode==='barato'?order[Math.max(0,bi-1)]:mode==='caro'?order[Math.min(order.length-1,bi+1)]:order[bi];
   if(sampleFn){cmBusy=true;toast('Buscando otra opción…');try{const r=await sampleFn.json(planPrompt(1,[sl],{[sl]:nb},[cur.name],(mode==='barato'?'Tiene que salir más barato que "'+cur.name+'". ':mode==='caro'?'Puede ser más elaborado o con mejores ingredientes que "'+cur.name+'". ':'')+(extra?'Pedido del usuario: '+extra+'. ':'')),{cache:false});const m=r&&r.dias&&r.dias[0]&&r.dias[0].comidas&&r.dias[0].comidas[0];if(m)nm=cleanMeal(m,sl)}catch(e){}cmBusy=false}
   if(!nm){const opts=RECIPES.filter(r=>r[0]===sl&&r[1]!==cur.name);nm=recipeObj(opts[Math.floor(Math.random()*opts.length)],slotKcal(sl))}
   nm.budget=nb;const days=Object.assign({},plan.days,{[d]:Object.assign({},plan.days[d],{[sl]:nm})});put('mplan',wk,Object.assign({},plan,{days}));toast('Cambiado por '+nm.name)}
-function renderPlan(){const wk=PLAN_K(),plan=state.mplan[wk],el=$('#cm-plan');$('#plan-shop').hidden=!plan;$('#plan-gen').textContent=plan?'Planificar días':'Planificar semana';
-  if(!plan){el.innerHTML=`<p class="empty" style="margin:0">Generá tu semana: desayunos, almuerzos, meriendas y cenas según tu meta de ${fmtN(nTargets().kcal,0)} kcal, tus gustos y el tiempo que tenés para cocinar. Después cambiás cualquier plato con un toque y sale la lista de compras sola.</p>`;return}
+function renderPlan(){const wk=PLAN_V(),plan=state.mplan[wk],el=$('#cm-plan');$('#plan-shop').hidden=!plan;$('#plan-gen').textContent=plan?'Planificar días':'Planificar semana';
+  const nav=`<div class="seg seg-sm plan-wk" id="plan-wk">${PLAN_WK.map((t,i)=>{const w=shiftDay(PLAN_K(),7*i);return`<button type="button" data-pw="${i}" aria-pressed="${planOff===i}">${t}${state.mplan[w]?' ✓':''}</button>`}).join('')}</div>`;
+  if(!plan){el.innerHTML=nav+(planOff?`<p class="empty" style="margin:0">Todavía no planificaste la semana del ${esc(parseYmd(wk).toLocaleDateString('es-AR',{day:'numeric',month:'long'}))}. Tocá «Planificar semana» y elegí los días.</p>`:'')+(planOff?'':`<p class="empty" style="margin:0">Generá tu semana: desayunos, almuerzos, meriendas y cenas según tu meta de ${fmtN(nTargets().kcal,0)} kcal, tus gustos y el tiempo que tenés para cocinar. Después cambiás cualquier plato con un toque y sale la lista de compras sola.</p>`);return}
   const days=Object.keys(plan.days).sort();if(cmPlanDay>=days.length)cmPlanDay=0;const ti=days.indexOf(todayStr());if(cmPlanDay===0&&ti>0&&!renderPlan.touched)cmPlanDay=ti;
   const d=days[cmPlanDay],dm=plan.days[d]||{},tot=Object.values(dm).reduce((t,m)=>t+(+m.kcal||0),0);
-  el.innerHTML=`<div class="seg seg-sm plan-days" role="tablist">${days.map((x,i)=>`<button type="button" data-pd="${i}" aria-pressed="${i===cmPlanDay}">${['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][parseYmd(x).getDay()]} ${parseYmd(x).getDate()}</button>`).join('')}</div>`+
+  el.innerHTML=nav+`<div class="seg seg-sm plan-days" role="tablist">${days.map((x,i)=>`<button type="button" data-pd="${i}" aria-pressed="${i===cmPlanDay}">${['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][parseYmd(x).getDay()]} ${parseYmd(x).getDate()}</button>`).join('')}</div>`+
     `<p class="status" style="margin:0">${esc(longDate(d))} · ${fmtN(tot,0)} kcal planificadas</p><div class="plan-grid">${SLOTS.map(x=>x[0]).filter(sl=>dm[sl]).map(sl=>{const m=dm[sl],eaten=Object.values(state.meals).some(x=>x.date===d&&x.planRef===d+':'+sl);
       return `<div class="plan-card${eaten?' eaten':''}"><span class="lbl">${SLOT_N[sl]}</span><button type="button" class="link-plain plan-name" data-recipe="${d}|${sl}">${esc(m.name)}</button><span class="s">${fmtN(m.kcal,0)} kcal · P ${m.p} · C ${m.c} · G ${m.f}${m.min?' · '+m.min+' min':''}${m.budget&&BUD[m.budget]?' · <span class="bud-tag" title="Presupuesto '+esc(BUD[m.budget][1].toLowerCase())+'">'+BUD_IC[BUDGETS.findIndex(b=>b[0]===m.budget)]+'</span>':''}</span><div class="plan-acts">${eaten?'<span class="fg-ok" style="--cc:var(--c3)">✓ Comido</span>':`<button class="btn mini-btn btn-primary" type="button" data-eat="${d}|${sl}">Lo comí</button>`}<button class="btn mini-btn" type="button" data-swap-m="${d}|${sl}">Cambiar</button></div></div>`}).join('')}</div>`}
-function openRecipe(d,sl){const plan=state.mplan[PLAN_K()],m=plan&&plan.days[d]&&plan.days[d][sl];if(!m)return;
+function openRecipe(d,sl){const plan=state.mplan[PLAN_V()],m=plan&&plan.days[d]&&plan.days[d][sl];if(!m)return;
   openSheet(`<div class="sheet-head"><h2>${esc(m.name)}</h2>${closeBtn}</div><span class="s">${SLOT_N[sl]} · ${esc(longDate(d))}${m.min?' · '+m.min+' min':''}</span><div class="cm-total"><b>${fmtN(m.kcal,0)} kcal</b><span>P ${m.p} · C ${m.c} · G ${m.f} (por porción)</span></div>`+
     `<h4 style="margin:0">Ingredientes${(nutri().people||1)>1?' para '+nutri().people:''}</h4><ul class="ing-list">${m.ingredients.map(x=>`<li><span>${esc(x.item)}</span><b>${x.qty?fmtN(x.qty,x.qty%1?1:0)+' '+esc(x.unit):esc(x.unit)}</b></li>`).join('')}</ul>`+
     (m.steps&&m.steps.length?`<h4 style="margin:0">Preparación</h4><ol class="steps">${m.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:'')+
     `<div class="actions"><button class="btn" type="button" id="rc-save">Guardar receta</button><div class="right"><button class="btn btn-primary" type="button" id="rc-eat">Lo comí</button></div></div>`);
   const sh=root.querySelector('.sheet');sh.querySelector('#rc-eat').addEventListener('click',()=>{eatPlan(d,sl);closeSheet()});
   sh.querySelector('#rc-save').addEventListener('click',()=>{put('recipes',uid(),Object.assign({slot:sl,savedAt:Date.now()},m));toast('Receta guardada')})}
-function eatPlan(d,sl){const m=state.mplan[PLAN_K()].days[d][sl];put('meals',uid(),{date:d,slot:sl,name:m.name,qty:'1 porción',kcal:m.kcal,p:m.p,c:m.c,f:m.f,src:'plan',planRef:d+':'+sl,createdAt:Date.now()});toast('Anotado en '+SLOT_N[sl].toLowerCase())}
+function eatPlan(d,sl){const m=state.mplan[PLAN_V()].days[d][sl];put('meals',uid(),{date:d,slot:sl,name:m.name,qty:'1 porción',kcal:m.kcal,p:m.p,c:m.c,f:m.f,src:'plan',planRef:d+':'+sl,createdAt:Date.now()});toast('Anotado en '+SLOT_N[sl].toLowerCase())}
 
 /* ---------- lista de compras ---------- */
 const CATS_ORDER=['Verdulería','Carnicería','Pescadería','Fiambrería','Lácteos','Panadería','Almacén','Congelados','Otros'];
-function shopItems(from){const plan=state.mplan[PLAN_K()];if(!plan)return[];const agg={};
+function shopItems(from){const plan=state.mplan[PLAN_V()];if(!plan)return[];const agg={};
   Object.entries(plan.days).filter(([d])=>d>=from).forEach(([,dm])=>Object.values(dm).forEach(m=>(m.ingredients||[]).forEach(x=>{const k=x.item.toLowerCase().trim()+'|'+x.unit;const a=agg[k]=agg[k]||{item:x.item,unit:x.unit,qty:0,cat:CATS_ORDER.includes(x.cat)?x.cat:'Otros',key:k};a.qty+=+x.qty||0})));
   return Object.values(agg).sort((a,b)=>CATS_ORDER.indexOf(a.cat)-CATS_ORDER.indexOf(b.cat)||a.item.localeCompare(b.item))}
 const fmtQty=x=>{let q=x.qty,u=x.unit;if(u==='g'&&q>=1000){q=q/1000;u='kg'}if(u==='ml'&&q>=1000){q=q/1000;u='l'}if(q>1&&/^[a-záéíóú]{3,}$/i.test(u)&&!/s$/.test(u))u+=/[aeiouáéó]$/i.test(u)?'s':'es';if(u==='u')u=q===1?'unidad':'unidades';return(q?fmtN(Math.round(q*10)/10,q%1?1:0)+' ':'')+u};
-function openShop(){const wk=PLAN_K();let from=todayStr()>wk?todayStr():wk;
+function openShop(){const wk=PLAN_V();let from=todayStr()>wk?todayStr():wk;
   const draw=()=>{const plan=state.mplan[wk];if(!plan){closeSheet();return}const sh0=plan.shop||{};const chk=sh0.checked||{},pr=sh0.prices||{};const items=shopItems(from);
     const total=items.reduce((t,x)=>t+(+pr[x.key]||0),0),known=items.filter(x=>+pr[x.key]).length;let last='';
     openSheet(`<div class="sheet-head"><h2>Lista de compras</h2>${closeBtn}</div><div class="seg seg-sm" id="sp-from"><button type="button" data-v="${wk}" aria-pressed="${from===wk}">Toda la semana</button>${todayStr()>wk?`<button type="button" data-v="${todayStr()}" aria-pressed="${from===todayStr()}">Desde hoy</button>`:''}</div>`+
@@ -6257,6 +6261,7 @@ $('#view-comida').addEventListener('click',e=>{const b=e.target.closest('button'
   else if(b.id==='plan-gen')openPlanGen()
   else if(b.id==='plan-shop')openShop();
   else if(d.pd!=null){cmPlanDay=+d.pd;renderPlan.touched=true;renderPlan()}
+  else if(d.pw!=null){planOff=+d.pw;cmPlanDay=0;renderPlan.touched=planOff>0;renderPlan()}
   else if(d.eat){const [dd,sl]=d.eat.split('|');eatPlan(dd,sl)}else if(d.swapM){const [dd,sl]=d.swapM.split('|');openSwap(dd,sl)}else if(d.recipe){const [dd,sl]=d.recipe.split('|');openRecipe(dd,sl)}
   else if(d.fadd){const f=state.foods[d.fadd];addMeal(f,curSlot());put('foods',d.fadd,Object.assign({},f,{uses:(f.uses||0)+1}));toast('Agregado: '+f.name)}
   else if(d.fdel)remove('foods',d.fdel);else if(d.rdel)remove('recipes',d.rdel);else if(d.rsv)openSavedRecipe(d.rsv)});
