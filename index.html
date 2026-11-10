@@ -1596,6 +1596,11 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .plr-card.off .plr-txt{opacity:1}
 .pl-startbox{display:flex;flex-direction:column;gap:6px}
 .pl-st{border-top:0}
+.vs-more{align-self:flex-start;margin-top:6px}
+.vault-block .vs-more{display:inline-flex}
+.vs-month{display:flex;flex-direction:column}
+.vs-mh{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:10px 0 2px;border-bottom:1px solid var(--line);font-weight:700;font-size:14px}
+.vs-mh .s{font-weight:500;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 </style>
 
 <div class="app">
@@ -3149,6 +3154,22 @@ function renderFinance(){if(!renderFinance.mig&&loaded.has('movs')&&loaded.has('
 const norm2=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
 const goalSaved=id=>Object.values(state.movs).filter(m=>m.kind==='gasto'&&m.goalId===id).reduce((s,m)=>s+(+m.amount||0),0);
 
+const vMovLi=(mid,m)=>'<li><button class="mov" type="button" data-vmov="'+esc(mid)+'">'+chip(m.dir==='in'?'piggy':'wallet',m.dir==='in'?3:6,'sm')+'<span class="mov-txt"><span class="t">'+(m.dir==='in'?'Entró':'Salió')+(m.note?' · '+esc(m.note):'')+'</span><span class="s">'+esc(longDate(m.date))+' · '+esc(accName(m.account))+'</span></span><span class="amt">'+(m.dir==='in'?'+':'−')+money(m.amount)+'</span></button></li>';
+/* todos los movimientos de una sección de la caja fuerte, por mes */
+function openVaultAll(id,filt){const sc=state.vsecs[id];if(!sc)return;filt=filt||'';
+  const all=Object.entries(state.movs).filter(([,m])=>m.kind==='vault'&&m.section===id).sort((a,b)=>a[1].date<b[1].date?1:a[1].date>b[1].date?-1:(b[1].createdAt||0)-(a[1].createdAt||0));
+  const sum=(l,d)=>l.filter(([,m])=>m.dir===d).reduce((t,[,m])=>t+(+m.amount||0),0);const bal=sum(all,'in')-sum(all,'out');
+  const list=all.filter(([,m])=>!filt||m.dir===filt),byM={};list.forEach(e=>{const k=monthOf(e[1].date);(byM[k]=byM[k]||[]).push(e)});
+  openSheet(`<div class="sheet-head"><h2>${esc(sc.name)}</h2>${closeBtn}</div>`+
+    `<div class="pc-sum vs-all-sum"><div><span>Entró</span><b>+ ${money(sum(all,'in'))}</b></div><div><span>Salió</span><b>− ${money(sum(all,'out'))}</b></div><div class="pc-left"><span>Saldo</span><b>${money(bal)}</b></div></div>`+
+    `<div class="seg" role="group" id="va-f"><button type="button" data-v="" aria-pressed="${!filt}">Todos (${all.length})</button><button type="button" data-v="in" aria-pressed="${filt==='in'}">Entradas</button><button type="button" data-v="out" aria-pressed="${filt==='out'}">Salidas</button></div>`+
+    (list.length?Object.keys(byM).sort().reverse().map(k=>{const l=byM[k],ni=sum(l,'in'),no=sum(l,'out');return `<div class="vs-month"><div class="vs-mh"><span>${esc(monthLabel(k))}</span><span class="s">${ni?'+ '+money(ni):''}${ni&&no?' · ':''}${no?'− '+money(no):''}</span></div><ul class="mov-list">${l.map(([mid,m])=>vMovLi(mid,m)).join('')}</ul></div>`}).join(''):'<p class="empty">No hay movimientos con ese filtro.</p>')+
+    `<div class="actions"><button class="btn" type="button" data-vaout="1">Salida</button><div class="right"><button class="btn btn-primary" type="button" data-vain="1">Entrada</button></div></div>`);
+  const sh=root.querySelector('.sheet');const back=()=>openVaultAll(id,filt);
+  sh.addEventListener('click',e=>{const f=e.target.closest('#va-f [data-v]'),mv=e.target.closest('[data-vmov]'),vi=e.target.closest('[data-vain]'),vo=e.target.closest('[data-vaout]');
+    if(f){openVaultAll(id,f.dataset.v);return}
+    if(mv){openVmov(null,null,mv.dataset.vmov);sheetBack=back;return}
+    if(vi||vo){if(!accounts().length)return;openVmov(id,vi?'in':'out');sheetBack=back}})}
 function renderVault(vsec,total){
   $('#v-total').textContent=money(total);
   const secs=Object.entries(state.vsecs);
@@ -3156,7 +3177,7 @@ function renderVault(vsec,total){
     const ins=movs.filter(([,m])=>m.dir==='in').reduce((s,[,m])=>s+(+m.amount||0),0),outs=movs.filter(([,m])=>m.dir==='out').reduce((s,[,m])=>s+(+m.amount||0),0);
     return '<section class="fin-block vault-block"><div class="block-head"><button class="link-plain" type="button" data-vsec="'+esc(id)+'"><span class="t vs-title">'+esc(sc.name)+'</span><span class="s">Entró '+money(ins)+' · salió '+money(outs)+'</span></button><b class="vs-bal">'+money(vsec[id]||0)+'</b></div>'+
       '<div class="vsec-actions"><button class="btn btn-primary mini-btn" type="button" data-vin="'+esc(id)+'">Entrada</button><button class="btn mini-btn" type="button" data-vout="'+esc(id)+'">Salida</button></div>'+
-      (movs.length?'<ul class="mov-list">'+movs.map(([mid,m])=>'<li><button class="mov" type="button" data-vmov="'+esc(mid)+'">'+chip(m.dir==='in'?'piggy':'wallet',m.dir==='in'?3:6,'sm')+'<span class="mov-txt"><span class="t">'+(m.dir==='in'?'Entró':'Salió')+(m.note?' · '+esc(m.note):'')+'</span><span class="s">'+esc(longDate(m.date))+' · '+esc(accName(m.account))+'</span></span><span class="amt">'+(m.dir==='in'?'+':'−')+money(m.amount)+'</span></button></li>').join('')+'</ul>':'<p class="empty">Sin movimientos todavía.</p>')+'</section>'}).join('')
+      (movs.length?'<ul class="mov-list">'+movs.slice(0,4).map(([mid,m])=>vMovLi(mid,m)).join('')+'</ul>'+(movs.length>4?'<button class="btn vs-more" type="button" data-vall="'+esc(id)+'">Ver los '+movs.length+' movimientos</button>':''):'<p class="empty">Sin movimientos todavía.</p>')+'</section>'}).join('')
     :'<p class="empty">Creá una sección por cada situación, por ejemplo "Alquileres papá". Lo que entra y sale de acá no cuenta como tuyo.</p>';
 }
 
@@ -3604,6 +3625,7 @@ $('#view-finanzas').addEventListener('click',e=>{const b=e.target.closest('butto
   else if(d.vin){if(!accounts().length)return;openVmov(d.vin,'in')}
   else if(d.vout){if(!accounts().length)return;openVmov(d.vout,'out')}
   else if(d.vmov)openVmov(null,null,d.vmov);
+  else if(d.vall)openVaultAll(d.vall);
 });
 
 
