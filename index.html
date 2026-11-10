@@ -1586,6 +1586,16 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .pl-ev .v{text-align:right;font-weight:600}
 .pl-ev .b{grid-column:2/4;text-align:right;color:var(--muted);font-size:12px}
 .pl-ev.neg .b{color:var(--bad,#B3261E);font-weight:600}
+.plr-card{grid-template-columns:30px minmax(0,1fr) 118px}
+.plr-ic{font-size:18px;text-align:center;grid-row:1}
+.plr-card .plr-txt{display:contents}
+.plr-card .plr-txt .t{grid-column:2;grid-row:1}
+.plr-card .plr-amt{grid-column:3;grid-row:1}
+.plr-sel{grid-column:1/4;grid-row:2;width:100%;min-width:0;font-size:14px;padding:9px 10px}
+.pl-st .plr-txt .t{white-space:normal}
+.plr-card.off .plr-txt{opacity:1}
+.pl-startbox{display:flex;flex-direction:column;gap:6px}
+.pl-st{border-top:0}
 </style>
 
 <div class="app">
@@ -4023,17 +4033,19 @@ let pnM=null,pnD=null,pnT=null;
 function pnAuto(M){const now=thisMonth();
   const inc=(fin().fixedIn||[]).filter(x=>!(x.start&&M<x.start)).map(x=>{const f=+x.from||1,t=+x.to||f;return{k:'fi:'+x.id,name:x.name||'Ingreso fijo',amt:+x.amount||0,date:dayIn(M,f),when:f===t?'Cobrás el '+f:'Cobrás del '+f+' al '+t,sub:'Ingreso fijo',got:M<=now&&fixInGot(x,M)}});
   const fx=Object.entries(state.fixed).filter(([,f])=>!(f.start&&M<f.start)&&!(f.end&&M>f.end)).map(([id,f])=>({k:'fx:'+id,name:f.name||'Gasto fijo',amt:+f.amount||0,date:dayIn(M,+f.day||1),when:'Día '+(+f.day||1),sub:'Gasto fijo',paid:Object.values(state.movs).some(m=>m.fixedId===id&&monthOf(m.date)===M)}));
-  const cards=[];accounts().filter(([,a])=>a.type==='credito'&&a.dueDay).forEach(([id])=>[-2,-1,0].forEach(n=>{const mo=shiftMonth(M,n),d=cardDue(id,mo);
-    if(d&&d.amount>0&&monthOf(d.date)===M)cards.push({k:'cd:'+id+':'+mo,name:d.name,amt:Math.round(d.amount),date:d.date,when:'Vence el '+(+d.date.slice(8)),sub:d.sub,paid:d.paid,card:1})}));
-  return{inc,out:fx.concat(cards)}}
-function pnGet(M){const d=pnDoc().plans[M];if(d)return JSON.parse(JSON.stringify(Object.assign({start:'',weeks:4,ov:{},amt:{},inc:[],out:[],weekly:[]},d)));
+  const cards=accounts().filter(([,a])=>a.type==='credito'&&a.dueDay).map(([id,a])=>{const opts=[-3,-2,-1,0,1].map(n=>{const mo=shiftMonth(M,n),d=cardDue(id,mo);
+      return d&&d.amount>0?{mo,k:'cd:'+id+':'+mo,amt:Math.round(d.amount),date:d.date,sub:d.sub,paid:d.paid}:null}).filter(Boolean);
+    return{cardId:id,name:a.name||'Tarjeta',opts,card:1}}).filter(x=>x.opts.length);
+  return{inc,out:fx,cards}}
+function pnGet(M){const d=pnDoc().plans[M];if(d){const o=JSON.parse(JSON.stringify(Object.assign({start:'',weeks:4,ov:{},amt:{},inc:[],out:[],weekly:[],card:{}},d)));if(o.useStart==null)o.useStart=false;return o}
   const prev=Object.keys(pnDoc().plans).filter(k=>k<M).sort().pop();const pw=prev?(pnDoc().plans[prev].weekly||[]):[];
-  return{start:'',weeks:4,ov:{},amt:{},inc:[],out:[],weekly:pw.map(w=>({name:w.name,cat:w.cat||'',times:w.times,avg:w.avg}))}}
+  return{start:'',useStart:false,card:{},weeks:4,ov:{},amt:{},inc:[],out:[],weekly:pw.map(w=>({name:w.name,cat:w.cat||'',times:w.times,avg:w.avg}))}}
 function pnCalc(M,p){const A=pnAuto(M);const on=x=>p.ov&&p.ov[x.k]!=null?!!p.ov[x.k]:!(x.paid||x.got);const val=x=>p.amt&&p.amt[x.k]!=null&&p.amt[x.k]!==''?+p.amt[x.k]:x.amt;
   const inc=A.inc.map(x=>Object.assign({},x,{on:on(x),amt:val(x)})).concat((p.inc||[]).map((x,i)=>({k:'mi:'+i,name:x.name||'Ingreso',amt:+x.amt||0,date:x.date||'',on:true,man:i})));
-  const out=A.out.map(x=>Object.assign({},x,{on:on(x),amt:val(x)})).concat((p.out||[]).map((x,i)=>({k:'mo:'+i,name:x.name||'Gasto',amt:+x.amt||0,date:x.date||'',on:true,man:i})));
+  const cards=A.cards.map(c=>{const sel=(p.card||{})[c.cardId]||'',o=c.opts.find(x=>x.mo===sel);return o?Object.assign({},c,{k:o.k,sel,on:true,amt:val(o),date:o.date,sub:o.sub,paid:o.paid,when:'Vence el '+(+o.date.slice(8))}):Object.assign({},c,{k:'cd:'+c.cardId,sel:'',on:false,amt:0,date:''})});
+  const out=A.out.map(x=>Object.assign({},x,{on:on(x),amt:val(x)})).concat(cards,(p.out||[]).map((x,i)=>({k:'mo:'+i,name:x.name||'Gasto',amt:+x.amt||0,date:x.date||'',on:true,man:i})));
   const weeks=Math.max(1,+p.weeks||4);const wk=(p.weekly||[]).map((w,i)=>({i,name:w.name||'',times:+w.times||0,avg:+w.avg||0,tot:Math.round((+w.times||0)*(+w.avg||0)*weeks)}));
-  const start=+p.start||0,sm=l=>l.filter(x=>x.on).reduce((t,x)=>t+(+x.amt||0),0),ti=sm(inc),to=sm(out),tw=wk.reduce((t,w)=>t+w.tot,0),left=start+ti-to-tw;
+  const start=p.useStart?(+p.start||0):0,sm=l=>l.filter(x=>x.on).reduce((t,x)=>t+(+x.amt||0),0),ti=sm(inc),to=sm(out),tw=wk.reduce((t,w)=>t+w.tot,0),left=start+ti-to-tw;
   const ev=[];inc.filter(x=>x.on&&+x.amt).forEach(x=>ev.push({d:x.date||dayIn(M,1),n:x.name,v:+x.amt}));out.filter(x=>x.on&&+x.amt).forEach(x=>ev.push({d:x.date||dayIn(M,1),n:x.name,v:-x.amt}));
   if(tw)for(let w=0;w<weeks;w++)ev.push({d:dayIn(M,1+7*w),n:'Gastos de la semana '+(w+1),v:-tw/weeks,wk:1});
   ev.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:b.v-a.v);let bal=start,min=start,minD=null;ev.forEach(e=>{bal+=e.v;e.bal=bal;if(bal<min-0.5){min=bal;minD=e.d}});
@@ -4048,16 +4060,21 @@ const pnMIn=v=>v===''||v==null||isNaN(+v)?'':String(Math.round(+v));
 const pnDate=d=>{if(!d)return'Sin fecha';const x=parseYmd(d);return x.toLocaleDateString('es-AR',{weekday:'short',day:'numeric'}).replace('.','')};
 function openPlanner(M){const prevSh=root.querySelector('.pl-sheet'),prevSc=prevSh&&(!M||M===pnM)?prevSh.scrollTop:0;if(M)pnM=M;if(!pnM)pnM=thisMonth();if(!pnD||pnD.M!==pnM)pnD={M:pnM,p:pnGet(pnM)};const p=pnD.p,c=pnCalc(pnM,p);
   const autoRow=x=>`<div class="plr${x.on?'':' off'}"><button type="button" class="plr-chk" data-plon="${esc(x.k)}" aria-pressed="${x.on}" aria-label="Contar ${esc(x.name)}"></button><div class="plr-txt"><span class="t">${esc(x.name)}</span><span class="s">${esc(x.when)}${x.sub&&x.card?' · '+esc(x.sub):''}${x.paid?' · ya pagado':x.got?' · ya cobrado':''}</span></div><input type="text" inputmode="decimal" data-money class="plr-amt" data-plamt="${esc(x.k)}" value="${pnMIn(x.amt)}" aria-label="Monto de ${esc(x.name)}"></div>`;
+  const mN=mo=>monthLabel(mo).split(' ')[0].toLowerCase(),dS=d=>parseYmd(d).toLocaleDateString('es-AR',{day:'numeric',month:'short'}).replace('.','');
+  const cardRow=x=>`<div class="plr plr-card${x.on?'':' off'}"><span class="plr-ic" aria-hidden="true">💳</span><div class="plr-txt"><span class="t">${esc(x.name)}</span><select class="plr-sel" data-plcard="${esc(x.cardId)}" aria-label="Qué resumen de ${esc(x.name)} contás">`+
+    `<option value="">No contar esta tarjeta</option>${x.opts.map(o=>`<option value="${o.mo}"${o.mo===x.sel?' selected':''}>Resumen de ${mN(o.mo)} · vence ${dS(o.date)}${o.paid?' · pagado':''}</option>`).join('')}</select></div>`+
+    (x.on?`<input type="text" inputmode="decimal" data-money class="plr-amt" data-plamt="${esc(x.k)}" value="${pnMIn(x.amt)}" aria-label="Monto de ${esc(x.name)}">`:'<span></span>')+`</div>`;
   const manRow=(x,list,i)=>`<div class="plr man" data-list="${list}" data-i="${i}"><input type="text" class="plr-name" maxlength="40" value="${esc(x.name||'')}" placeholder="${list==='inc'?'Ej.: aguinaldo, un trabajo extra':'Ej.: regalo, patente, service'}" aria-label="Concepto"><button class="xbtn" type="button" data-plx="${list}:${i}" aria-label="Quitar">×</button><input type="date" class="plr-date" value="${esc(x.date||'')}" aria-label="Fecha"><input type="text" inputmode="decimal" data-money class="plr-amt" value="${pnMIn(x.amt)}" placeholder="$ 0" aria-label="Monto"></div>`;
   const wkRow=(w,i)=>`<div class="plw" data-i="${i}"><input type="text" class="plw-name" maxlength="40" value="${esc(w.name||'')}" placeholder="Ej.: salidas a comer" aria-label="Gasto"><button class="xbtn" type="button" data-plx="weekly:${i}" aria-label="Quitar">×</button>`+
     `<div class="plw-calc"><input type="text" inputmode="decimal" class="plw-times" value="${w.times===''||w.times==null?'':String(w.times).replace('.',',')}" placeholder="0" aria-label="Veces por semana"><span>por sem. ×</span><input type="text" inputmode="decimal" data-money class="plw-avg" value="${pnMIn(w.avg)}" placeholder="$ promedio" aria-label="Promedio por vez"></div><span class="plw-tot" data-plwt="${i}"></span></div>`;
   const sug=pnSuggest(p);
   openSheet(`<div class="sheet-head"><h2>Planificador de gastos</h2>${closeBtn}</div>`+
     `<div class="daynav pl-mnav"><button class="iconbtn" type="button" data-plm="-1" aria-label="Mes anterior">‹</button><strong>${esc(monthLabel(pnM))}</strong><button class="iconbtn" type="button" data-plm="1" aria-label="Mes siguiente">›</button></div>`+
-    `<div class="field"><label for="pl-start">Arranco el mes con (opcional)</label><input type="text" inputmode="decimal" data-money id="pl-start" value="${pnMIn(p.start)}" placeholder="$ 0"><button class="link-btn" type="button" id="pl-mine" style="align-self:flex-start">Usar lo mío de hoy: ${money(pcSources()[0].v)}</button></div>`+
+    `<div class="pl-startbox"><div class="plr pl-st"><button type="button" class="plr-chk" data-plstart="1" aria-pressed="${!!p.useStart}" aria-label="Contar con la plata que ya tengo"></button><div class="plr-txt"><span class="t">Contar con la plata que ya tengo</span><span class="s">Opcional. Si no lo tildás, el plan arranca en $ 0.</span></div><span></span></div>`+
+      (p.useStart?`<div class="field"><label for="pl-start">Arranco el mes con</label><input type="text" inputmode="decimal" data-money id="pl-start" value="${pnMIn(p.start)}" placeholder="$ 0"><button class="link-btn" type="button" id="pl-mine" style="align-self:flex-start">Poner lo mío de hoy: ${money(pcSources()[0].v)}</button></div>`:'')+`</div>`+
     `<section class="pl-sec"><div class="pl-sec-h"><h3>1 · Ingresos</h3><b class="c-g" id="pl-ti"></b></div>${c.inc.filter(x=>x.man==null).map(autoRow).join('')}${(p.inc||[]).map((x,i)=>manRow(x,'inc',i)).join('')}`+
       `${!c.inc.length?'<p class="s">Tus ingresos fijos aparecen solos. Sumá los demás acá.</p>':''}<button class="btn" type="button" data-pladd="inc">+ Agregar ingreso</button></section>`+
-    `<section class="pl-sec"><div class="pl-sec-h"><h3>2 · Gastos a pagar</h3><b class="c-p" id="pl-to"></b></div>${c.out.filter(x=>x.man==null).sort((a,b)=>a.date<b.date?-1:1).map(autoRow).join('')}${(p.out||[]).map((x,i)=>manRow(x,'out',i)).join('')}`+
+    `<section class="pl-sec"><div class="pl-sec-h"><h3>2 · Gastos a pagar</h3><b class="c-p" id="pl-to"></b></div>${c.out.filter(x=>x.man==null&&!x.card).sort((a,b)=>a.date<b.date?-1:1).map(autoRow).join('')}${c.out.filter(x=>x.card).map(cardRow).join('')}${(p.out||[]).map((x,i)=>manRow(x,'out',i)).join('')}`+
       `${!c.out.length?'<p class="s">Tus gastos fijos y los resúmenes de tarjeta que vencen este mes aparecen solos.</p>':''}<button class="btn" type="button" data-pladd="out">+ Agregar gasto</button></section>`+
     `<section class="pl-sec"><div class="pl-sec-h"><h3>3 · Gastos por semana</h3><b class="c-p" id="pl-tw"></b></div>`+
       `<div class="pl-weeks"><span>Semanas del mes</span><div class="stepper"><button type="button" data-plwk="-1" aria-label="Menos semanas">−</button><span>${c.weeks}</span><button type="button" data-plwk="1" aria-label="Más semanas">+</button></div></div>`+
@@ -4068,8 +4085,8 @@ function openPlanner(M){const prevSh=root.querySelector('.pl-sheet'),prevSc=prev
     `<div class="actions"><span class="s" style="align-self:center">Se guarda solo.</span><div class="right"><button class="btn btn-primary" type="button" id="pl-img">📷 Imagen</button></div></div>`+
     `<span class="s">No crea gastos ni mueve plata: es para ver cómo viene el mes.</span>`);
   const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);sh.classList.add('pc-sheet','pl-sheet');if(prevSc)sh.scrollTop=prevSc;
-  const read=()=>{const v=parseMoney(q('#pl-start').value);p.start=isNaN(v)?'':v;p.amt=p.amt||{};
-    const au=pnAuto(pnM),base={};au.inc.concat(au.out).forEach(x=>base[x.k]=x.amt);
+  const read=()=>{if(q('#pl-start')){const v=parseMoney(q('#pl-start').value);p.start=isNaN(v)?'':v}p.amt=p.amt||{};
+    const au=pnAuto(pnM),base={};au.inc.concat(au.out,...au.cards.map(c=>c.opts)).forEach(x=>base[x.k]=x.amt);
     sh.querySelectorAll('[data-plamt]').forEach(i=>{const k=i.dataset.plamt;let a=parseMoney(i.value);if(isNaN(a))a=0;if(base[k]!=null&&Math.abs(a-base[k])<1)delete p.amt[k];else p.amt[k]=a});
     ['inc','out'].forEach(L=>{p[L]=[...sh.querySelectorAll('.plr.man[data-list="'+L+'"]')].map(el=>{const a=parseMoney(el.querySelector('.plr-amt').value);return{name:el.querySelector('.plr-name').value.trim(),date:el.querySelector('.plr-date').value,amt:isNaN(a)?'':a}})});
     p.weekly=[...sh.querySelectorAll('.plw')].map((el,i)=>{const t=parseFloat(String(el.querySelector('.plw-times').value).replace(',','.')),a=parseMoney(el.querySelector('.plw-avg').value);return{name:el.querySelector('.plw-name').value.trim(),cat:((p.weekly||[])[i]||{}).cat||'',times:isNaN(t)?'':t,avg:isNaN(a)?'':a}})};
@@ -4081,10 +4098,11 @@ function openPlanner(M){const prevSh=root.querySelector('.pl-sheet'),prevSc=prev
       (k.tw&&k.ti?`<p class="s" style="margin:0">Los gastos por semana se llevan el ${Math.round(k.tw/k.ti*100)} % de tus ingresos del mes.</p>`:'');
     q('#pl-tl').innerHTML=k.ev.length?`<div class="pl-tl-l">${(k.start?`<div class="pl-ev"><span class="d">Inicio</span><span class="n">Arranco con</span><span class="v"></span><span class="b">${money(k.start)}</span></div>`:'')+k.ev.map(e=>`<div class="pl-ev${e.bal<0?' neg':''}"><span class="d">${esc(pnDate(e.d))}</span><span class="n">${esc(e.n)}</span><span class="v ${e.v>=0?'c-g':'c-p'}">${e.v>=0?'+ ':'− '}${money(Math.abs(e.v))}</span><span class="b">${e.bal<0?'− '+money(-e.bal):money(e.bal)}</span></div>`).join('')}</div>`:'<p class="s">Todavía no hay movimientos en el plan.</p>';
     pnSave()};
-  sh.addEventListener('input',()=>upd());sh.addEventListener('change',e=>{if(e.target.matches('.plr-date'))upd()});
+  sh.addEventListener('input',e=>{if(!e.target.matches('select'))upd()});sh.addEventListener('change',e=>{if(e.target.matches('.plr-date'))upd();else if(e.target.matches('[data-plcard]')){read();p.card=Object.assign({},p.card,{[e.target.dataset.plcard]:e.target.value});pnSave();openPlanner()}});
   const re=()=>{pnSave();openPlanner()};
   sh.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
-    if(d.plon){read();p.ov=p.ov||{};const cur=b.getAttribute('aria-pressed')==='true';p.ov[d.plon]=!cur;re()}
+    if(d.plstart){read();p.useStart=!p.useStart;if(p.useStart&&(p.start===''||p.start==null))p.start='';re()}
+    else if(d.plon){read();p.ov=p.ov||{};const cur=b.getAttribute('aria-pressed')==='true';p.ov[d.plon]=!cur;re()}
     else if(d.plm){read();pnSave();clearTimeout(pnT);const plans=Object.assign({},pnDoc().plans);plans[pnD.M]=Object.assign({},p,{updatedAt:Date.now()});put('meta','planner',Object.assign({},pnDoc(),{plans}));openPlanner(shiftMonth(pnM,+d.plm))}
     else if(d.pladd){read();const L=d.pladd;p[L]=p[L]||[];p[L].push(L==='weekly'?{name:'',times:'',avg:''}:{name:'',date:'',amt:''});re();setTimeout(()=>{const l=root.querySelectorAll(L==='weekly'?'.plw-name':'.plr.man[data-list="'+L+'"] .plr-name');if(l.length)l[l.length-1].focus()},60)}
     else if(d.plx){read();const [L,i]=d.plx.split(':');p[L].splice(+i,1);re()}
