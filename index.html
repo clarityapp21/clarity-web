@@ -1519,6 +1519,34 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .pl-live .lv-kpis i{font-style:normal}
 .pl-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .tm-freq .pp-today{border-color:var(--hi)}
+
+/* cronograma */
+.cr-lead{margin:-4px 0 10px;color:var(--muted);font-size:13.5px}
+.cr-nav{margin-bottom:10px}
+.cr-label{flex:1;background:none;border:0;color:var(--ink);font:inherit;font-weight:700;font-size:16px;text-align:center;padding:6px}
+.cr-label span{font-weight:500;color:var(--muted);font-size:14px}
+.cr-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;position:relative}
+.cr-item{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 12px;color:var(--ink)}
+.cr-item.past{opacity:.5}
+.cr-item.now{border-color:var(--hi);box-shadow:var(--glow)}
+.cr-item em{font-style:normal;color:var(--hi);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
+.cr-time{display:flex;flex-direction:column;min-width:54px;padding-right:12px;border-right:2px solid color-mix(in srgb,var(--hi) 45%,transparent)}
+.cr-time b{font-family:var(--font-display);font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15}
+.cr-time small{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.cr-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cr-txt .t{font-weight:600;font-size:15px;overflow-wrap:anywhere}
+.cr-txt .s{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.cr-note{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cr-rem{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--hi);flex:none;max-width:64px}
+.cr-rem svg{width:18px;height:18px}
+.cr-rem small{font-size:10.5px;text-align:center;line-height:1.2;color:var(--muted)}
+.cr-rem.off{color:color-mix(in srgb,var(--muted) 45%,transparent)}
+.cr-empty{border:1px dashed var(--line);border-radius:14px;padding:16px;color:var(--muted);font-size:14px;text-align:center}
+.cr-rems{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cr-rems button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-weight:600;font-size:14px}
+.cr-rems button svg{width:16px;height:16px}
+.cr-rems button[aria-pressed="true"]{background:color-mix(in srgb,var(--hi) 18%,var(--surface));border-color:var(--hi);color:var(--ink)}
+.cr-rems button[aria-pressed="true"] svg{color:var(--hi)}
 </style>
 
 <div class="app">
@@ -1574,6 +1602,17 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
           <summary id="done-summary">Hechas</summary>
           <ul class="tasks" id="done-list"></ul>
         </details>
+      </div>
+
+      <div id="pane-crono" class="block">
+        <div class="pane-head"><h2>Cronograma</h2><button class="btn btn-primary" type="button" id="cr-add">+ Agregar</button></div>
+        <p class="cr-lead">Lo que tenés que hacer o dónde tenés que estar, con horario. Aparte de la matriz: acá no importa si es urgente o importante.</p>
+        <div class="daynav cr-nav">
+          <button class="iconbtn" type="button" id="cr-prev" aria-label="Día anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <button type="button" class="cr-label" id="cr-label"></button>
+          <button class="iconbtn" type="button" id="cr-next" aria-label="Día siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        </div>
+        <ol class="cr-list" id="cr-list"></ol>
       </div>
 
       <div id="pane-diario" class="block">
@@ -2141,7 +2180,7 @@ function render(){
 
   {const sc=document.getElementById('soon-cycle');if(sc)sc.hidden=!(profile()&&profile().sex==='f')}
   {const h=new Date().getHours(),st=state.meta.state||{};$('#open-review').classList.toggle('due',h>=20&&st.lastReview!==todayStr());$('#open-exp').classList.toggle('due',h>=23&&st.lastExpReview!==todayStr())}
-  renderNotes();renderDiary();renderDayRate();renderAssistant();renderVerse();if(view==='finanzas')renderFinance();if(view==='entreno')renderFisico();else{syncLive();updatePill();plSync();renderPLive()}if(view==='comida')renderComida();syncMealStatus();inAppReminder();renderIdle();maybeOnboard();
+  renderCrono();renderNotes();renderDiary();renderDayRate();renderAssistant();renderVerse();if(view==='finanzas')renderFinance();if(view==='entreno')renderFisico();else{syncLive();updatePill();plSync();renderPLive()}if(view==='comida')renderComida();syncMealStatus();inAppReminder();renderIdle();maybeOnboard();
   if(reviewOpen)renderReviewList();
 }
 
@@ -2171,6 +2210,69 @@ document.addEventListener('click',e=>{
   const note=e.target.closest('[data-note]');if(note){openNote(note.dataset.note);return}
   const day=e.target.closest('[data-day]');if(day){diaryDay=day.dataset.day;renderDiary();$('#pane-diario').scrollIntoView({behavior:'smooth',block:'start'})}
 });
+
+/* ---------- cronograma del día (actividades con hora, sin importancia ni urgencia) ---------- */
+const REM_OPTS=[[240,'4 h'],[120,'2 h'],[60,'1 h'],[30,'30 min']];
+const remTxt=m=>m>=60?(m/60)+' h':m+' min';
+const sch=()=>Object.assign({items:{},rem:null},state.meta.sched||{});
+const schSave=patch=>put('meta','sched',Object.assign({},sch(),patch));
+const schItems=()=>Object.entries(sch().items||{});
+const schAt=(it,k)=>new Date(it.date+'T'+((k&&it[k])||it.time||'00:00')+':00').getTime();
+let crDay=null;
+const crDefDay=()=>shiftDay(todayStr(),1);
+function crDayName(d){const t=todayStr();if(d===t)return'Hoy';if(d===shiftDay(t,1))return'Mañana';if(d===shiftDay(t,-1))return'Ayer';const s=longDate(d);return s.charAt(0).toUpperCase()+s.slice(1)}
+const CR_BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+function renderCrono(){const ul=$('#cr-list');if(!ul)return;if(!crDay)crDay=crDefDay();const d=crDay,nm=crDayName(d),now=Date.now();
+  $('#cr-label').innerHTML=esc(nm)+(['Hoy','Mañana','Ayer'].includes(nm)?' <span>· '+esc(parseYmd(d).toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}).replace(/\./g,''))+'</span>':'');
+  $('#cr-label').title=d===crDefDay()?'':'Volver a mañana';
+  const l=schItems().filter(([,it])=>it.date===d).sort((a,b)=>(a[1].time||'').localeCompare(b[1].time||'')||(a[1].title||'').localeCompare(b[1].title||''));
+  ul.innerHTML=l.length?l.map(([id,it])=>{const st=schAt(it),en=it.end?schAt(it,'end'):st+30*60000,past=it.time?en<now:d<todayStr(),nowOn=it.time&&st<=now&&now<en;const rem=(it.rem||[]).slice().sort((a,b)=>b-a);
+      return `<li><button type="button" class="cr-item${past?' past':''}${nowOn?' now':''}" data-cr="${id}"><span class="cr-time"><b>${it.time||'—'}</b>${it.end?`<small>a ${it.end}</small>`:it.time?'':'<small>sin hora</small>'}</span>`+
+        `<span class="cr-txt"><span class="t">${nowOn?'<em>Ahora</em> ':''}${esc(it.title)}</span>${it.place?`<span class="s">📍 ${esc(it.place)}</span>`:''}${it.note?`<span class="s cr-note">${esc(it.note)}</span>`:''}</span>`+
+        `<span class="cr-rem${rem.length&&it.time?'':' off'}" aria-label="${rem.length&&it.time?'Recordatorios: '+rem.map(remTxt).join(', ')+' antes':'Sin recordatorios'}">${CR_BELL}${rem.length&&it.time?`<small>${rem.map(remTxt).join(' · ')}</small>`:''}</span></button></li>`}).join('')
+    :`<li class="cr-empty">Nada cargado para ${nm==='Hoy'||nm==='Mañana'||nm==='Ayer'?nm.toLowerCase():'ese día'}. Anotá lo que tenés que hacer o dónde tenés que estar, con la hora.</li>`}
+function openSched(id){const it=id?sch().items[id]:null;if(id&&!it)return;
+  const v=Object.assign({date:crDay||crDefDay(),time:'',end:'',title:'',place:'',note:'',rem:sch().rem||[]},it||{});let rem=(v.rem||[]).map(Number);
+  const native=!!window.ClarityNative;
+  openSheet(`<div class="sheet-head"><h2>${id?'Editar actividad':'Nueva actividad'}</h2>${closeBtn}</div>`+
+    `<div class="field"><label for="cr-t">Qué</label><input type="text" id="cr-t" maxlength="120" placeholder="Ej.: turno con el dentista, buscar el auto, reunión"></div>`+
+    `<div class="row2"><div class="field"><label for="cr-d">Día</label><input type="date" id="cr-d"></div>`+
+    `<div class="field"><label for="cr-h">Hora · hasta (opcional)</label><div class="dt-pair"><input type="time" id="cr-h" aria-label="Hora"><input type="time" id="cr-e" aria-label="Hasta (opcional)"></div></div></div>`+
+    `<div class="field"><label for="cr-p">Dónde (opcional)</label><input type="text" id="cr-p" maxlength="120" placeholder="Ej.: Belgrano 1250, consultorio 3"></div>`+
+    `<div class="field"><label for="cr-n">Nota (opcional)</label><textarea id="cr-n" rows="2" maxlength="500" placeholder="Ej.: llevar el DNI"></textarea></div>`+
+    `<div class="field"><span class="lbl">Recordatorios · tocá los que quieras</span><div class="cr-rems" id="cr-rems">${REM_OPTS.map(([m,n])=>`<button type="button" data-m="${m}" aria-pressed="${rem.includes(m)}">${CR_BELL}${n} antes</button>`).join('')}</div><span class="s" id="cr-remtxt"></span></div>`+
+    `<div class="actions">${id?'<button class="btn btn-danger" type="button" id="cr-del">Eliminar</button><button class="btn" type="button" id="cr-dup">Copiar a otro día</button>':''}<div class="right"><button class="btn btn-primary" type="button" id="cr-save">Guardar</button></div></div>`);
+  const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);
+  q('#cr-t').value=v.title;q('#cr-d').value=v.date;q('#cr-h').value=v.time||'';q('#cr-e').value=v.end||'';q('#cr-p').value=v.place||'';q('#cr-n').value=v.note||'';
+  const remInfo=()=>{const el=q('#cr-remtxt'),h=q('#cr-h').value,d=q('#cr-d').value;if(!rem.length){el.textContent='Sin recordatorios.';return}
+    if(!h||!d){el.textContent='Poné la hora para que pueda avisarte.';return}const at=new Date(d+'T'+h+':00').getTime(),now=Date.now();
+    const l=rem.slice().sort((a,b)=>b-a).map(m=>{const t=new Date(at-m*60000);return[pad(t.getHours())+':'+pad(t.getMinutes()),at-m*60000<=now]});
+    const fut=l.filter(x=>!x[1]).map(x=>x[0]),gone=l.filter(x=>x[1]).length;
+    const prevDay=new Date(at-Math.max(...rem)*60000).getDate()!==new Date(at).getDate();
+    el.textContent=(fut.length?'Te aviso a las '+(fut.length>1?fut.slice(0,-1).join(', ')+' y '+fut[fut.length-1]:fut[0])+(prevDay?' (alguno cae el día anterior)':'')+'.':'Esos horarios ya pasaron.')+(gone&&fut.length?' '+gone+(gone>1?' ya pasaron.':' ya pasó.'):'')+
+      (native?'':' En el iPhone o la web te aviso solo si CLARITY está abierta; con la app cerrada los avisos llegan en la versión de Android.')};
+  q('#cr-rems').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;const m=+b.dataset.m;rem=rem.includes(m)?rem.filter(x=>x!==m):rem.concat(m);b.setAttribute('aria-pressed',rem.includes(m));remInfo()});
+  ['#cr-h','#cr-d'].forEach(s=>q(s).addEventListener('input',remInfo));remInfo();
+  const read=()=>({title:q('#cr-t').value.trim().replace(/\s+/g,' '),date:q('#cr-d').value||v.date,time:q('#cr-h').value||'',end:q('#cr-e').value||'',place:q('#cr-p').value.trim(),note:q('#cr-n').value.trim(),rem:rem.slice().sort((a,b)=>b-a)});
+  q('#cr-save').addEventListener('click',()=>{const n=read();if(!n.title){toast('Escribí qué tenés que hacer.');q('#cr-t').focus();return}
+    if(n.end&&!n.time){toast('Poné también la hora de inicio.');return}if(n.end&&n.time&&n.end<=n.time){toast('La hora de fin tiene que ser después del inicio.');return}
+    if(n.rem.length&&!n.time){toast('Para los recordatorios, poné la hora.');return}
+    n.createdAt=(it&&it.createdAt)||Date.now();const items=Object.assign({},sch().items);items[id||uid()]=n;schSave({items,rem:n.rem});crDay=n.date;closeSheet();renderCrono();
+    toast(id?'Actividad actualizada':'Agregada al cronograma de '+crDayName(n.date).toLowerCase())});
+  const del=q('#cr-del');if(del)del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}
+    const items=Object.assign({},sch().items);delete items[id];schSave({items});closeSheet();renderCrono();toast('Actividad eliminada')});
+  const dup=q('#cr-dup');if(dup)dup.addEventListener('click',()=>{const n=read();n.date=shiftDay(n.date,1);n.createdAt=Date.now();const items=Object.assign({},sch().items),nid=uid();items[nid]=n;schSave({items});crDay=n.date;renderCrono();openSched(nid);toast('Copiada al día siguiente: cambiá el día si querés otro')})}
+$('#cr-add').addEventListener('click',()=>openSched());
+$('#cr-list').addEventListener('click',e=>{const b=e.target.closest('[data-cr]');if(b)openSched(b.dataset.cr)});
+$('#cr-prev').addEventListener('click',()=>{crDay=shiftDay(crDay||crDefDay(),-1);renderCrono()});
+$('#cr-next').addEventListener('click',()=>{crDay=shiftDay(crDay||crDefDay(),1);renderCrono()});
+$('#cr-label').addEventListener('click',()=>{crDay=crDefDay();renderCrono()});
+/* avisos dentro de la app (web e iPhone; en Android llegan como notificación aunque esté cerrada) */
+function crInApp(){if(window.ClarityNative)return;const now=Date.now();let seen={};try{seen=JSON.parse(localStorage.getItem('clarity-crseen')||'{}')}catch(e){}let ch=false;
+  schItems().forEach(([id,it])=>{if(!it.time||!it.date)return;const at=schAt(it);(it.rem||[]).forEach(m=>{const t=at-m*60000,k=id+'-'+m+'-'+at;if(now>=t&&now<t+15*60000&&!seen[k]){seen[k]=now;ch=true;
+    toast('⏰ En '+remTxt(m)+': '+it.title+(it.place?' · '+it.place:''));try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){}}})});
+  if(ch){Object.keys(seen).forEach(k=>{if(now-seen[k]>3*864e5)delete seen[k]});try{localStorage.setItem('clarity-crseen',JSON.stringify(seen))}catch(e){}}}
+setInterval(crInApp,30000);setTimeout(crInApp,4000);
 
 /* ---------- diario ---------- */
 let diaryTimer=null;
@@ -6791,7 +6893,7 @@ let nbTimer=null;
 function nbPush(){if(!NB||backend!=='local')return;clearTimeout(nbTimer);nbTimer=setTimeout(()=>{try{NB.setWidgetData(JSON.stringify(nbData()))}catch(e){}nbNotifPush()},300)}
 /* ---------- recordatorios con la app cerrada ---------- */
 const NB_MEALS=[['desayuno',10,'¿Ya desayunaste?','Anotalo en Comida así no se te pasa.'],['almuerzo',14,'Te falta cargar el almuerzo','Tocá para anotarlo en Comida.'],['merienda',18,'¿Merendaste?','Cargalo ahora que te acordás.'],['cena',21,'Antes de cerrar el día','Cargá la cena en Comida.']];
-const nbNP=()=>Object.assign({rev:true,exp:true,meals:true,tasks:true,dues:true,week:true,pantry:true,lead:30},prefs().notif||{});
+const nbNP=()=>Object.assign({rev:true,exp:true,meals:true,tasks:true,dues:true,week:true,pantry:true,sched:true,lead:30},prefs().notif||{});
 function nbNotifCfg(){const np=nbNP(),rules=[],once=[];
   if(np.rev)rules.push({id:'rev',h:20,m:0,title:'Revisión de las 20 h',body:'Tachá lo que hiciste y anotá lo que viene para mañana.',open:'review',cond:'review'});
   if(np.exp)rules.push({id:'exp',h:23,m:0,title:'¿Cargaste los gastos de hoy?',body:'Todavía no anotaste ningún gasto hoy. Hacelo ahora que está fresco.',open:'newgasto',cond:'gasto'});
@@ -6800,6 +6902,9 @@ function nbNotifCfg(){const np=nbNP(),rules=[],once=[];
   if(np.tasks){const now=Date.now(),lim=now+14*864e5,lead=(+np.lead||0)*60000;
     Object.entries(state.tasks).forEach(([id,t])=>{if(t.done||!t.due||!t.time)return;const at=new Date(t.due+'T'+t.time+':00').getTime();if(!(at>now&&at<lim))return;
       const pre=at-lead,early=lead>0&&pre>now;once.push({id:'task-'+id,at:early?pre:at,title:(early?'En '+(+np.lead>=60?(+np.lead/60)+' h':np.lead+' min')+': ':'Ahora: ')+t.title,body:'A las '+t.time+' h'+(t.note?' · '+String(t.note).slice(0,120):''),open:'task:'+id,cond:'task:'+id})})}
+  // cronograma: los recordatorios que eligió (4 h, 2 h, 1 h o 30 min antes)
+  if(np.sched&&typeof schItems==='function'){const now=Date.now();schItems().forEach(([id,it])=>{if(!it.date||!it.time)return;const at=new Date(it.date+'T'+it.time+':00').getTime();
+    (it.rem||[]).forEach(m=>{const t=at-m*60000;if(t>now&&t<now+30*864e5)once.push({id:'sch-'+id+'-'+m,at:t,title:'En '+remTxt(m)+': '+it.title,body:'A las '+it.time+' h'+(it.place?' · '+it.place:'')+(it.note?' · '+String(it.note).slice(0,120):''),open:'sched:'+id,cond:''})})})}
   // descanso entre series (solo avisa si la app no está a la vista)
   if(typeof restEnd!=='undefined'&&restEnd>Date.now()+3000&&live){const ci=liveCurIdx();const e=ci>=0&&live.exercises[ci];once.push({id:'rest',at:restEnd,title:'¡Descanso terminado!',body:e?'Sigue: '+exById(e.exId).name:'A la próxima serie.',open:'train',cond:'bg'})}
   // vencimientos: 2 días antes y el mismo día, a las 10 h (no avisa si ya está pagado)
@@ -6825,6 +6930,7 @@ function openNotifSettings(){const draw=()=>{const np=nbNP(),st=nbNotifStatus();
       sw('exp','Gastos de las 23 h','Solo si no anotaste ningún gasto en el día.')+
       sw('meals','Comidas','A las 10, 14, 18 y 21 h, si te falta cargar esa comida.'+(hasN?'':' Se activa cuando configurás Comida.'))+
       sw('tasks','Tareas con horario','Para turnos y entregas que tengan hora.')+
+      sw('sched','Cronograma','Los recordatorios que elegís en cada actividad: 4 h, 2 h, 1 h o 30 min antes.')+
       sw('dues','Vencimientos','Gastos fijos y tarjetas: 2 días antes y el mismo día, si no los pagaste.')+
       sw('pantry','Heladera y alacena','A las 10 h, el día antes y el mismo día en que vence o deja de ser recomendable cada alimento.')+
       sw('week','Informe semanal','Los domingos a las 21 h: al tocarlo, la IA arma tu informe de la semana.')+
@@ -6864,6 +6970,7 @@ function nbOpen(what){try{what=String(what||'');
   else if(what==='timer'){go('entreno');setTimeout(()=>{if(typeof iv!=='undefined'&&iv)ivShow()},150)}
   else if(what==='weekreport'){go('agenda');setTimeout(()=>{const fr=weekRange(0).from,rp=(state.meta.reports||{})[fr];if(rp&&Date.now()-rp.at<6*3600e3)showWeekReport(rp.md,fr,true);else if(sampleFn)weekReport(0,true,false);else openWeekSummary(0)},300)}
   else if(what==='week'){go('agenda');setTimeout(()=>{if(typeof openWeekSummary==='function')openWeekSummary()},150)}
+  else if(what.startsWith('sched:')){go('agenda');const id=what.slice(6);setTimeout(()=>{const it=sch().items[id];if(!it)return;crDay=it.date;renderCrono();const p=document.getElementById('pane-crono');if(p)p.scrollIntoView({block:'start'});openSched(id)},200)}
   else if(what==='newtask'){go('agenda');setTimeout(()=>openTask(),150)}
   else if(what==='newgasto'){go('finanzas');setTimeout(()=>openMov('gasto'),150)}
   else if(['agenda','finanzas','entreno','comida'].includes(what))go(what)}catch(e){}}
