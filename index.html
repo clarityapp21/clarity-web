@@ -1547,6 +1547,45 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .cr-rems button svg{width:16px;height:16px}
 .cr-rems button[aria-pressed="true"]{background:color-mix(in srgb,var(--hi) 18%,var(--surface));border-color:var(--hi);color:var(--ink)}
 .cr-rems button[aria-pressed="true"] svg{color:var(--hi)}
+/* planificador de gastos */
+.pl-mnav strong{flex:1;text-align:center;font-size:17px;text-transform:none}
+.pl-sec{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.pl-sec>.btn{align-self:flex-start}
+.pl-sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.pl-sec-h h3{margin:0;font-size:15px;letter-spacing:.04em}
+.pl-sec-h b{font-variant-numeric:tabular-nums;font-size:16px}
+.plr{display:grid;grid-template-columns:30px minmax(0,1fr) 118px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.plr.off .plr-txt,.plr.off .plr-amt{opacity:.45}
+.plr-chk{width:26px;height:26px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface-2);position:relative}
+.plr-chk[aria-pressed="true"]{background:var(--hi);border-color:var(--hi)}
+.plr-chk[aria-pressed="true"]::after{content:"";position:absolute;left:8px;top:3px;width:6px;height:12px;border:solid var(--bg);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.plr-txt{display:flex;flex-direction:column;min-width:0}
+.plr-txt .t{font-weight:600;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plr-txt .s{font-size:12.5px;color:var(--muted)}
+.plr-amt{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px!important;padding-left:8px!important;padding-right:8px!important;min-width:0}
+.plr.man{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 26px}
+.plr.man .plr-name{grid-column:1/3}
+.plr.man .xbtn{grid-column:3;grid-row:1}
+.plr.man .plr-date{grid-column:1;grid-row:2;min-width:0;font-size:14px}
+.plr.man .plr-amt{grid-column:2;grid-row:2}
+.plw{display:grid;grid-template-columns:minmax(0,1fr) 26px;gap:6px 8px;padding:8px 0;border-top:1px solid var(--line)}
+.plw-calc{grid-column:1/3;display:grid;grid-template-columns:62px auto minmax(0,1fr);gap:8px;align-items:center}
+.plw-calc span{font-size:13px;color:var(--muted);white-space:nowrap}
+.plw-times{text-align:center;font-weight:600}
+.plw-avg{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.plw-tot{grid-column:1/3;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.plw-tot b{color:var(--ink)}
+.pl-weeks{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;color:var(--muted)}
+.pl-sug button{font-size:13px}
+.pl-tl{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--surface)}
+.pl-tl summary{font-weight:600;cursor:pointer}
+.pl-tl-l{display:flex;flex-direction:column;margin-top:8px}
+.pl-ev{display:grid;grid-template-columns:62px minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px;font-variant-numeric:tabular-nums}
+.pl-ev .d{color:var(--muted);grid-row:1/3}
+.pl-ev .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-ev .v{text-align:right;font-weight:600}
+.pl-ev .b{grid-column:2/4;text-align:right;color:var(--muted);font-size:12px}
+.pl-ev.neg .b{color:var(--bad,#B3261E);font-weight:600}
 </style>
 
 <div class="app">
@@ -1719,6 +1758,7 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
         <div class="tools-grid">
           <button class="tool-card" type="button" data-tool="split"><span class="ichip" style="--cc:var(--c1)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5M14 15.5c2.6-.4 5.6.8 6.5 4.5"/></svg></span><span class="tool-txt"><span class="t">Dividir la cuenta</span><span class="s">Quién le transfiere a quién después de una comida</span></span></button>
           <button class="tool-card" type="button" data-tool="paycalc"><span class="ichip" style="--cc:var(--c2)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h8"/></svg></span><span class="tool-txt"><span class="t">Calculadora de pagos</span><span class="s">De dónde sale la plata, a quién le pagás y cuánto falta. Se manda como imagen</span></span></button>
+          <button class="tool-card" type="button" data-tool="plan"><span class="ichip" style="--cc:var(--c5)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h7"/></svg></span><span class="tool-txt"><span class="t">Planificador de gastos</span><span class="s">Ingresos, vencimientos y gastos por semana: cuánto te queda a fin de mes. Se manda como imagen</span></span></button>
           <button class="tool-card" type="button" data-tool="infl"><span class="ichip" style="--cc:var(--c6)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span><span class="tool-txt"><span class="t">Calculadora de inflación</span><span class="s">Cuánto vale hoy una plata de otra fecha (INDEC)</span></span></button>
           <button class="tool-card" type="button" data-tool="conv"><span class="ichip" style="--cc:var(--c4)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg></span><span class="tool-txt"><span class="t">Conversor de monedas</span><span class="s">Pesos a dólar oficial, blue, MEP u otra moneda</span></span></button>
           <button class="tool-card" type="button" data-tool="comp"><span class="ichip" style="--cc:var(--c3)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V6M16 20v-8M22 20H2"/></svg></span><span class="tool-txt"><span class="t">Interés compuesto</span><span class="s">Cuánto crece tu ahorro con aportes mensuales</span></span></button>
@@ -3519,7 +3559,7 @@ $('#view-finanzas').addEventListener('click',e=>{const b=e.target.closest('butto
   else if(d.qa==='split'||d.tool==='split')openSplit();
   else if(d.tool==='infl')openInflation();
   else if(d.tool==='conv')openConverter();
-  else if(d.tool==='comp')openCompound();else if(d.tool==='paycalc')openPayCalc();
+  else if(d.tool==='comp')openCompound();else if(d.tool==='paycalc')openPayCalc();else if(d.tool==='plan')openPlanner(pnM||thisMonth());
   else if(d.tool==='xlsx')exportXlsx();
   else if(b.id==='f-cats')openCats();else if(b.id==='f-cats2')openCatList();
   else if(d.rateadj)openRateAdj();
@@ -3977,6 +4017,110 @@ async function payCalcImage(c){const rows=c.rows.filter(r=>r.to||+r.amt>0),tot=r
   sh.querySelector('#pi-save').addEventListener('click',()=>{if(NBx&&typeof NBx.saveImage==='function'){try{const r=NBx.saveImage(b64,name);toast(r?'Guardada en '+r:'No pude guardar la imagen');return}catch(e){}}dl()});
   sh.querySelector('#pi-share').addEventListener('click',async()=>{if(NBx&&typeof NBx.shareImage==='function'){try{NBx.shareImage(b64,name);return}catch(e){}}
     try{const blob=await (await fetch(url)).blob();const file=new File([blob],name,{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:c.title||'Detalle de pagos'});return}}catch(e){if(e&&e.name==='AbortError')return}dl()})}
+/* ---------- planificador de gastos (ingresos, vencimientos y gastos por semana de un mes) ---------- */
+const pnDoc=()=>Object.assign({plans:{}},state.meta.planner||{});
+let pnM=null,pnD=null,pnT=null;
+function pnAuto(M){const now=thisMonth();
+  const inc=(fin().fixedIn||[]).filter(x=>!(x.start&&M<x.start)).map(x=>{const f=+x.from||1,t=+x.to||f;return{k:'fi:'+x.id,name:x.name||'Ingreso fijo',amt:+x.amount||0,date:dayIn(M,f),when:f===t?'Cobrás el '+f:'Cobrás del '+f+' al '+t,sub:'Ingreso fijo',got:M<=now&&fixInGot(x,M)}});
+  const fx=Object.entries(state.fixed).filter(([,f])=>!(f.start&&M<f.start)&&!(f.end&&M>f.end)).map(([id,f])=>({k:'fx:'+id,name:f.name||'Gasto fijo',amt:+f.amount||0,date:dayIn(M,+f.day||1),when:'Día '+(+f.day||1),sub:'Gasto fijo',paid:Object.values(state.movs).some(m=>m.fixedId===id&&monthOf(m.date)===M)}));
+  const cards=[];accounts().filter(([,a])=>a.type==='credito'&&a.dueDay).forEach(([id])=>[-2,-1,0].forEach(n=>{const mo=shiftMonth(M,n),d=cardDue(id,mo);
+    if(d&&d.amount>0&&monthOf(d.date)===M)cards.push({k:'cd:'+id+':'+mo,name:d.name,amt:Math.round(d.amount),date:d.date,when:'Vence el '+(+d.date.slice(8)),sub:d.sub,paid:d.paid,card:1})}));
+  return{inc,out:fx.concat(cards)}}
+function pnGet(M){const d=pnDoc().plans[M];if(d)return JSON.parse(JSON.stringify(Object.assign({start:'',weeks:4,ov:{},amt:{},inc:[],out:[],weekly:[]},d)));
+  const prev=Object.keys(pnDoc().plans).filter(k=>k<M).sort().pop();const pw=prev?(pnDoc().plans[prev].weekly||[]):[];
+  return{start:'',weeks:4,ov:{},amt:{},inc:[],out:[],weekly:pw.map(w=>({name:w.name,cat:w.cat||'',times:w.times,avg:w.avg}))}}
+function pnCalc(M,p){const A=pnAuto(M);const on=x=>p.ov&&p.ov[x.k]!=null?!!p.ov[x.k]:!(x.paid||x.got);const val=x=>p.amt&&p.amt[x.k]!=null&&p.amt[x.k]!==''?+p.amt[x.k]:x.amt;
+  const inc=A.inc.map(x=>Object.assign({},x,{on:on(x),amt:val(x)})).concat((p.inc||[]).map((x,i)=>({k:'mi:'+i,name:x.name||'Ingreso',amt:+x.amt||0,date:x.date||'',on:true,man:i})));
+  const out=A.out.map(x=>Object.assign({},x,{on:on(x),amt:val(x)})).concat((p.out||[]).map((x,i)=>({k:'mo:'+i,name:x.name||'Gasto',amt:+x.amt||0,date:x.date||'',on:true,man:i})));
+  const weeks=Math.max(1,+p.weeks||4);const wk=(p.weekly||[]).map((w,i)=>({i,name:w.name||'',times:+w.times||0,avg:+w.avg||0,tot:Math.round((+w.times||0)*(+w.avg||0)*weeks)}));
+  const start=+p.start||0,sm=l=>l.filter(x=>x.on).reduce((t,x)=>t+(+x.amt||0),0),ti=sm(inc),to=sm(out),tw=wk.reduce((t,w)=>t+w.tot,0),left=start+ti-to-tw;
+  const ev=[];inc.filter(x=>x.on&&+x.amt).forEach(x=>ev.push({d:x.date||dayIn(M,1),n:x.name,v:+x.amt}));out.filter(x=>x.on&&+x.amt).forEach(x=>ev.push({d:x.date||dayIn(M,1),n:x.name,v:-x.amt}));
+  if(tw)for(let w=0;w<weeks;w++)ev.push({d:dayIn(M,1+7*w),n:'Gastos de la semana '+(w+1),v:-tw/weeks,wk:1});
+  ev.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:b.v-a.v);let bal=start,min=start,minD=null;ev.forEach(e=>{bal+=e.v;e.bal=bal;if(bal<min-0.5){min=bal;minD=e.d}});
+  return{inc,out,wk,weeks,start,ti,to,tw,left,ev,min,minD}}
+/* sugerencias de gastos por semana según lo que gastaste en las últimas 8 semanas */
+function pnSuggest(p){const from=ymd(new Date(Date.now()-56*864e5)),by={};
+  Object.values(state.movs).forEach(m=>{if(m.kind!=='gasto'||m.fixedId||m.payCard||!m.cat||!m.date||m.date<from||m.date>todayStr())return;(by[m.cat]=by[m.cat]||[]).push(arsVal(m,+m.amount||0))});
+  const used=new Set((p.weekly||[]).map(w=>w.cat).filter(Boolean));
+  return Object.entries(by).filter(([c,l])=>!used.has(c)&&l.length>=2).map(([c,l])=>{const tot=l.reduce((a,b)=>a+b,0);return{cat:c,name:catName(c),times:Math.max(0.5,Math.round(l.length/8*2)/2),avg:Math.round(tot/l.length/500)*500||Math.round(tot/l.length),n:l.length}}).sort((a,b)=>b.n-a.n).slice(0,8)}
+const pnSave=()=>{clearTimeout(pnT);pnT=setTimeout(()=>{if(!pnD)return;const plans=Object.assign({},pnDoc().plans);plans[pnD.M]=Object.assign({},pnD.p,{updatedAt:Date.now()});put('meta','planner',Object.assign({},pnDoc(),{plans}))},500)};
+const pnMIn=v=>v===''||v==null||isNaN(+v)?'':String(Math.round(+v));
+const pnDate=d=>{if(!d)return'Sin fecha';const x=parseYmd(d);return x.toLocaleDateString('es-AR',{weekday:'short',day:'numeric'}).replace('.','')};
+function openPlanner(M){const prevSh=root.querySelector('.pl-sheet'),prevSc=prevSh&&(!M||M===pnM)?prevSh.scrollTop:0;if(M)pnM=M;if(!pnM)pnM=thisMonth();if(!pnD||pnD.M!==pnM)pnD={M:pnM,p:pnGet(pnM)};const p=pnD.p,c=pnCalc(pnM,p);
+  const autoRow=x=>`<div class="plr${x.on?'':' off'}"><button type="button" class="plr-chk" data-plon="${esc(x.k)}" aria-pressed="${x.on}" aria-label="Contar ${esc(x.name)}"></button><div class="plr-txt"><span class="t">${esc(x.name)}</span><span class="s">${esc(x.when)}${x.sub&&x.card?' · '+esc(x.sub):''}${x.paid?' · ya pagado':x.got?' · ya cobrado':''}</span></div><input type="text" inputmode="decimal" data-money class="plr-amt" data-plamt="${esc(x.k)}" value="${pnMIn(x.amt)}" aria-label="Monto de ${esc(x.name)}"></div>`;
+  const manRow=(x,list,i)=>`<div class="plr man" data-list="${list}" data-i="${i}"><input type="text" class="plr-name" maxlength="40" value="${esc(x.name||'')}" placeholder="${list==='inc'?'Ej.: aguinaldo, un trabajo extra':'Ej.: regalo, patente, service'}" aria-label="Concepto"><button class="xbtn" type="button" data-plx="${list}:${i}" aria-label="Quitar">×</button><input type="date" class="plr-date" value="${esc(x.date||'')}" aria-label="Fecha"><input type="text" inputmode="decimal" data-money class="plr-amt" value="${pnMIn(x.amt)}" placeholder="$ 0" aria-label="Monto"></div>`;
+  const wkRow=(w,i)=>`<div class="plw" data-i="${i}"><input type="text" class="plw-name" maxlength="40" value="${esc(w.name||'')}" placeholder="Ej.: salidas a comer" aria-label="Gasto"><button class="xbtn" type="button" data-plx="weekly:${i}" aria-label="Quitar">×</button>`+
+    `<div class="plw-calc"><input type="text" inputmode="decimal" class="plw-times" value="${w.times===''||w.times==null?'':String(w.times).replace('.',',')}" placeholder="0" aria-label="Veces por semana"><span>por sem. ×</span><input type="text" inputmode="decimal" data-money class="plw-avg" value="${pnMIn(w.avg)}" placeholder="$ promedio" aria-label="Promedio por vez"></div><span class="plw-tot" data-plwt="${i}"></span></div>`;
+  const sug=pnSuggest(p);
+  openSheet(`<div class="sheet-head"><h2>Planificador de gastos</h2>${closeBtn}</div>`+
+    `<div class="daynav pl-mnav"><button class="iconbtn" type="button" data-plm="-1" aria-label="Mes anterior">‹</button><strong>${esc(monthLabel(pnM))}</strong><button class="iconbtn" type="button" data-plm="1" aria-label="Mes siguiente">›</button></div>`+
+    `<div class="field"><label for="pl-start">Arranco el mes con (opcional)</label><input type="text" inputmode="decimal" data-money id="pl-start" value="${pnMIn(p.start)}" placeholder="$ 0"><button class="link-btn" type="button" id="pl-mine" style="align-self:flex-start">Usar lo mío de hoy: ${money(pcSources()[0].v)}</button></div>`+
+    `<section class="pl-sec"><div class="pl-sec-h"><h3>1 · Ingresos</h3><b class="c-g" id="pl-ti"></b></div>${c.inc.filter(x=>x.man==null).map(autoRow).join('')}${(p.inc||[]).map((x,i)=>manRow(x,'inc',i)).join('')}`+
+      `${!c.inc.length?'<p class="s">Tus ingresos fijos aparecen solos. Sumá los demás acá.</p>':''}<button class="btn" type="button" data-pladd="inc">+ Agregar ingreso</button></section>`+
+    `<section class="pl-sec"><div class="pl-sec-h"><h3>2 · Gastos a pagar</h3><b class="c-p" id="pl-to"></b></div>${c.out.filter(x=>x.man==null).sort((a,b)=>a.date<b.date?-1:1).map(autoRow).join('')}${(p.out||[]).map((x,i)=>manRow(x,'out',i)).join('')}`+
+      `${!c.out.length?'<p class="s">Tus gastos fijos y los resúmenes de tarjeta que vencen este mes aparecen solos.</p>':''}<button class="btn" type="button" data-pladd="out">+ Agregar gasto</button></section>`+
+    `<section class="pl-sec"><div class="pl-sec-h"><h3>3 · Gastos por semana</h3><b class="c-p" id="pl-tw"></b></div>`+
+      `<div class="pl-weeks"><span>Semanas del mes</span><div class="stepper"><button type="button" data-plwk="-1" aria-label="Menos semanas">−</button><span>${c.weeks}</span><button type="button" data-plwk="1" aria-label="Más semanas">+</button></div></div>`+
+      `${(p.weekly||[]).map(wkRow).join('')}<button class="btn" type="button" data-pladd="weekly">+ Agregar gasto semanal</button>`+
+      (sug.length?`<div class="field"><span class="lbl">Según lo que gastaste en las últimas 8 semanas</span><div class="cat-chips pl-sug">${sug.map((x,i)=>`<button type="button" data-plsug="${i}">+ ${esc(x.name)} · ${String(x.times).replace('.',',')}/sem · ${money(x.avg)}</button>`).join('')}</div></div>`:'')+`</section>`+
+    `<div class="pc-sum" id="pl-sum"></div>`+
+    `<details class="pl-tl"><summary>Mes día por día</summary><div id="pl-tl"></div></details>`+
+    `<div class="actions"><span class="s" style="align-self:center">Se guarda solo.</span><div class="right"><button class="btn btn-primary" type="button" id="pl-img">📷 Imagen</button></div></div>`+
+    `<span class="s">No crea gastos ni mueve plata: es para ver cómo viene el mes.</span>`);
+  const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);sh.classList.add('pc-sheet','pl-sheet');if(prevSc)sh.scrollTop=prevSc;
+  const read=()=>{const v=parseMoney(q('#pl-start').value);p.start=isNaN(v)?'':v;p.amt=p.amt||{};
+    const au=pnAuto(pnM),base={};au.inc.concat(au.out).forEach(x=>base[x.k]=x.amt);
+    sh.querySelectorAll('[data-plamt]').forEach(i=>{const k=i.dataset.plamt;let a=parseMoney(i.value);if(isNaN(a))a=0;if(base[k]!=null&&Math.abs(a-base[k])<1)delete p.amt[k];else p.amt[k]=a});
+    ['inc','out'].forEach(L=>{p[L]=[...sh.querySelectorAll('.plr.man[data-list="'+L+'"]')].map(el=>{const a=parseMoney(el.querySelector('.plr-amt').value);return{name:el.querySelector('.plr-name').value.trim(),date:el.querySelector('.plr-date').value,amt:isNaN(a)?'':a}})});
+    p.weekly=[...sh.querySelectorAll('.plw')].map((el,i)=>{const t=parseFloat(String(el.querySelector('.plw-times').value).replace(',','.')),a=parseMoney(el.querySelector('.plw-avg').value);return{name:el.querySelector('.plw-name').value.trim(),cat:((p.weekly||[])[i]||{}).cat||'',times:isNaN(t)?'':t,avg:isNaN(a)?'':a}})};
+  const upd=()=>{read();const k=pnCalc(pnM,p);q('#pl-ti').textContent='+ '+money(k.ti);q('#pl-to').textContent='− '+money(k.to);q('#pl-tw').textContent='− '+money(k.tw);
+    k.wk.forEach(w=>{const el=sh.querySelector('[data-plwt="'+w.i+'"]');if(el)el.innerHTML=w.times&&w.avg?`${String(w.times).replace('.',',')} × ${money(w.avg)} × ${k.weeks} sem = <b>${money(w.tot)}</b>`:'Poné cuántas veces por semana y cuánto gastás en promedio cada vez.'});
+    const neg=k.left<0;q('#pl-sum').innerHTML=(k.start?`<div><span>Arranco con</span><b>${money(k.start)}</b></div>`:'')+`<div><span>Ingresos</span><b>+ ${money(k.ti)}</b></div><div><span>Gastos a pagar</span><b>− ${money(k.to)}</b></div><div><span>Gastos por semana</span><b>− ${money(k.tw)}</b></div>`+
+      `<div class="pc-left${neg?' neg':''}"><span>${neg?'Te falta':'Te queda a fin de mes'}</span><b>${neg?'− '+money(-k.left):money(k.left)}</b></div>`+
+      (k.minD&&k.min<0&&!neg?`<p class="pc-falta">Ojo: el ${pnDate(k.minD)} quedás en ${'− '+money(-k.min)} hasta el próximo cobro. Mirá "Mes día por día".</p>`:k.minD&&k.min<0?`<p class="pc-falta">El ${pnDate(k.minD)} es el peor momento: ${'− '+money(-k.min)}.</p>`:'')+
+      (k.tw&&k.ti?`<p class="s" style="margin:0">Los gastos por semana se llevan el ${Math.round(k.tw/k.ti*100)} % de tus ingresos del mes.</p>`:'');
+    q('#pl-tl').innerHTML=k.ev.length?`<div class="pl-tl-l">${(k.start?`<div class="pl-ev"><span class="d">Inicio</span><span class="n">Arranco con</span><span class="v"></span><span class="b">${money(k.start)}</span></div>`:'')+k.ev.map(e=>`<div class="pl-ev${e.bal<0?' neg':''}"><span class="d">${esc(pnDate(e.d))}</span><span class="n">${esc(e.n)}</span><span class="v ${e.v>=0?'c-g':'c-p'}">${e.v>=0?'+ ':'− '}${money(Math.abs(e.v))}</span><span class="b">${e.bal<0?'− '+money(-e.bal):money(e.bal)}</span></div>`).join('')}</div>`:'<p class="s">Todavía no hay movimientos en el plan.</p>';
+    pnSave()};
+  sh.addEventListener('input',()=>upd());sh.addEventListener('change',e=>{if(e.target.matches('.plr-date'))upd()});
+  const re=()=>{pnSave();openPlanner()};
+  sh.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+    if(d.plon){read();p.ov=p.ov||{};const cur=b.getAttribute('aria-pressed')==='true';p.ov[d.plon]=!cur;re()}
+    else if(d.plm){read();pnSave();clearTimeout(pnT);const plans=Object.assign({},pnDoc().plans);plans[pnD.M]=Object.assign({},p,{updatedAt:Date.now()});put('meta','planner',Object.assign({},pnDoc(),{plans}));openPlanner(shiftMonth(pnM,+d.plm))}
+    else if(d.pladd){read();const L=d.pladd;p[L]=p[L]||[];p[L].push(L==='weekly'?{name:'',times:'',avg:''}:{name:'',date:'',amt:''});re();setTimeout(()=>{const l=root.querySelectorAll(L==='weekly'?'.plw-name':'.plr.man[data-list="'+L+'"] .plr-name');if(l.length)l[l.length-1].focus()},60)}
+    else if(d.plx){read();const [L,i]=d.plx.split(':');p[L].splice(+i,1);re()}
+    else if(d.plwk){read();p.weeks=Math.min(6,Math.max(1,(+p.weeks||4)+(+d.plwk)));re()}
+    else if(d.plsug!=null){read();const x=sug[+d.plsug];(p.weekly=p.weekly||[]).push({name:x.name,cat:x.cat,times:x.times,avg:x.avg});re()}
+    else if(b.id==='pl-mine'){const v=Math.round(pcSources()[0].v||0);q('#pl-start').value=pnMIn(v);initMoney(q('#pl-start'));upd()}
+    else if(b.id==='pl-img'){read();clearTimeout(pnT);const plans=Object.assign({},pnDoc().plans);plans[pnD.M]=Object.assign({},p,{updatedAt:Date.now()});put('meta','planner',Object.assign({},pnDoc(),{plans}));planImage(pnM,pnCalc(pnM,p))}});
+  upd()}
+async function planImage(M,k){const W=1080,P=72;const cv=document.createElement('canvas'),x=cv.getContext('2d');const F='"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+  const wrap=(t,font,maxW)=>{x.font=font;const w=String(t||'').split(/\s+/),l=[];let cur='';w.forEach(p=>{const tt=cur?cur+' '+p:p;if(x.measureText(tt).width>maxW&&cur){l.push(cur);cur=p}else cur=tt});if(cur)l.push(cur);return l.length?l:['']};
+  const secs=[['Ingresos',k.inc.filter(i=>i.on&&+i.amt).sort((a,b)=>(a.date||'')<(b.date||'')?-1:1).map(i=>({n:i.name,s:i.when||(i.date?'Cobro: '+pnDate(i.date):''),v:+i.amt,plus:1})),k.ti,1],
+    ['Gastos a pagar',k.out.filter(i=>i.on&&+i.amt).sort((a,b)=>(a.date||'')<(b.date||'')?-1:1).map(i=>({n:i.name,s:(i.date?'Vence: '+pnDate(i.date):'')+(i.card&&i.sub?' · '+i.sub:''),v:+i.amt})),k.to,0],
+    ['Gastos por semana',k.wk.filter(w=>w.tot).map(w=>({n:w.name||'Gasto semanal',s:String(w.times).replace('.',',')+' por semana × '+money(w.avg)+' × '+k.weeks+' semanas',v:w.tot})),k.tw,0]].filter(s=>s[1].length);
+  const paint=H=>{cv.width=W;cv.height=H;x.fillStyle='#F7F6F2';x.fillRect(0,0,W,H);const rr=(X,Y,w,h,r)=>{x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()};
+    x.fillStyle='#FFFFFF';rr(36,36,W-72,H-72,36);x.fill();x.strokeStyle='#E4E2DC';x.lineWidth=2;x.stroke();
+    const line=(c)=>{x.strokeStyle=c||'#E4E2DC';x.lineWidth=2;x.beginPath();x.moveTo(P,y);x.lineTo(W-P,y);x.stroke()};
+    let y=P+60;x.textAlign='left';x.fillStyle='#8A8880';x.font='600 26px '+F;x.letterSpacing='8px';x.fillText('CLARITY · PLANIFICADOR',P,y);x.letterSpacing='0px';
+    y+=72;x.fillStyle='#16171A';x.font='700 52px '+F;x.fillText(monthLabel(M),P,y);y+=46;x.fillStyle='#6B6A64';x.font='400 30px '+F;x.fillText('Cómo viene el mes',P,y);y+=34;
+    if(k.start){y+=10;line();y+=58;x.fillStyle='#6B6A64';x.font='500 32px '+F;x.fillText('Arranco con',P,y);x.textAlign='right';x.fillStyle='#16171A';x.font='700 36px '+F;x.fillText(money(k.start),W-P,y);x.textAlign='left';y+=30}
+    secs.forEach(([t,rows,tot,plus])=>{y+=34;line();y+=60;x.fillStyle=plus?'#1E7A43':'#16171A';x.font='700 34px '+F;x.fillText(t.toUpperCase(),P,y);x.textAlign='right';x.fillText((plus?'+ ':'− ')+money(tot),W-P,y);x.textAlign='left';y+=16;
+      rows.forEach(r=>{const nl=wrap(r.n,'600 34px '+F,W-2*P-330),sl=r.s?wrap(r.s,'400 27px '+F,W-2*P-330):[];let yy=y+48;x.fillStyle='#16171A';x.font='600 34px '+F;nl.forEach(l=>{x.fillText(l,P,yy);yy+=44});
+        x.fillStyle='#8A8880';x.font='400 27px '+F;sl.forEach(l=>{x.fillText(l,P,yy-6);yy+=36});x.textAlign='right';x.fillStyle=r.plus?'#1E7A43':'#16171A';x.font='600 34px '+F;x.fillText((r.plus?'+ ':'− ')+money(r.v),W-P,y+48);x.textAlign='left';
+        y+=nl.length*44+sl.length*36+26})});
+    y+=30;line();y+=40;const neg=k.left<0,warn=!neg&&k.minD&&k.min<0,bh=neg||warn?210:130;x.fillStyle=neg?'#FBE9E7':'#E8F4EC';rr(P-20,y,W-2*P+40,bh,24);x.fill();
+    x.fillStyle=neg?'#B3261E':'#1E7A43';x.font='600 34px '+F;x.fillText(neg?'Te falta':'Te queda a fin de mes',P+8,y+78);x.textAlign='right';x.font='800 50px '+F;x.fillText(neg?'− '+money(-k.left):money(k.left),W-P-8,y+84);x.textAlign='left';
+    if(neg||warn){x.font='500 30px '+F;x.fillStyle=neg?'#B3261E':'#8A5A00';x.fillText(neg?'Ingresos '+money(k.ti)+' · Gastos '+money(k.to+k.tw):'Ojo: el '+pnDate(k.minD)+' quedás en − '+money(-k.min),P+8,y+156)}
+    y+=bh+66;x.textAlign='center';x.fillStyle='#A3A19A';x.font='400 24px '+F;x.fillText('Hecho con CLARITY',W/2,y);return y+64};
+  paint(Math.ceil(paint(6000)));
+  const url=cv.toDataURL('image/png'),b64=url.split(',')[1],name='CLARITY-plan-'+M+'.png',NBx=window.ClarityNative;
+  openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="pi-back" aria-label="Volver">‹</button><h2>Imagen del plan</h2>${closeBtn}</div><img src="${url}" alt="Plan de ${esc(monthLabel(M))}" class="pc-prev"><div class="actions"><button class="btn" type="button" id="pi-save">Guardar en el teléfono</button><div class="right"><button class="btn btn-primary" type="button" id="pi-share">Compartir</button></div></div>`);
+  const sh=root.querySelector('.sheet');const back=()=>openPlanner();sheetBack=back;sh.querySelector('#pi-back').addEventListener('click',()=>{sheetBack=null;back()});
+  const dl=()=>{try{const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),1500);toast('Descargando la imagen')}catch(e){toast('No pude guardar la imagen')}};
+  sh.querySelector('#pi-save').addEventListener('click',()=>{if(NBx&&typeof NBx.saveImage==='function'){try{const r=NBx.saveImage(b64,name);toast(r?'Guardada en '+r:'No pude guardar la imagen');return}catch(e){}}dl()});
+  sh.querySelector('#pi-share').addEventListener('click',async()=>{if(NBx&&typeof NBx.shareImage==='function'){try{NBx.shareImage(b64,name);return}catch(e){}}
+    try{const blob=await (await fetch(url)).blob();const file=new File([blob],name,{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Plan de '+monthLabel(M)});return}}catch(e){if(e&&e.name==='AbortError')return}dl()})}
+
 function knownPeople(scope){const c={};(scope==='fis'?fisNames():finNames()).forEach(([n,w])=>{n=String(n||'').trim();if(!n)return;const k=personKey(n);if(!c[k])c[k]={name:n,n:0};c[k].n+=w});
   return Object.values(c).sort((a,b)=>b.n-a.n).map(x=>x.name)}
 /* si un mismo nombre está en Finanzas y en Físico, pregunta si es la misma persona */
