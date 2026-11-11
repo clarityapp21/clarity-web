@@ -1913,8 +1913,6 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
           <button class="fis-act" type="button" data-fq="match"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5l4 3-1.5 4.5h-5L8 10.5z"/></svg><b>Partido</b><span>Fútbol o pádel con tu nota</span></button>
         </div>
         <div class="fis-tool-w"><button class="fis-tool" type="button" id="truco-open"><span class="ft-e" aria-hidden="true">🃏</span><span><b>Truco</b><small id="truco-sub">Anotador con fósforos</small></span><span class="ft-r" id="truco-live"></span></button><button class="btn fis-tool-h" type="button" id="truco-hist">🏆 Historial</button></div>
-        <div class="pane-head econ-head news-head hb-head"><h2>Contadores</h2><button class="link-btn" type="button" id="hab-add">+ Nuevo</button></div>
-        <div class="hb-grid" id="hab-grid"></div>
         <figure class="verse fis-frase"><blockquote class="verse-text" id="fis-frase-t"></blockquote><figcaption class="verse-ref">Frase del día</figcaption></figure>
         <div class="pane-head econ-head news-head"><h2>Objetivos</h2><button class="link-btn" type="button" id="fg-add">+ Nuevo objetivo</button></div>
         <div class="fg-grid" id="fis-goals"></div>
@@ -1925,6 +1923,8 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
           <section class="fin-block"><div class="block-head"><h3>Calendario</h3><div class="month-nav sm"><button class="iconbtn" type="button" id="pc-prev" aria-label="Mes anterior">‹</button><strong id="pc-label"></strong><button class="iconbtn" type="button" id="pc-next" aria-label="Mes siguiente">›</button></div></div><div id="fis-cal"></div><div class="period-note" id="fis-cal-note" hidden></div><div id="fis-day" class="stack"></div></section>
           <section class="fin-block movs-block"><h3>Actividad</h3><div class="mov-scroll"><ul class="mov-list" id="fis-acts"></ul><div class="ruled" aria-hidden="true"></div></div></section>
         </div>
+        <div class="pane-head econ-head news-head hb-head"><h2>Contadores</h2><button class="link-btn" type="button" id="hab-add">+ Nuevo</button></div>
+        <div class="hb-grid" id="hab-grid"></div>
         <div class="wk-tiles" id="fis-week"></div>
         <div class="pane-head econ-head news-head"><h2>Mis partidos</h2><div class="seg seg-sm" id="mt-seg" role="group" aria-label="Deporte"><button type="button" data-mt="futbol" aria-pressed="true">Fútbol</button><button type="button" data-mt="padel" aria-pressed="false">Pádel</button></div></div>
         <section class="fin-block" id="fis-matches"></section>
@@ -3020,7 +3020,7 @@ function balances(){const b={};accounts().forEach(([id,a])=>b[id]=+a.initial||0)
     else if(m.kind==='vault'&&b[m.account]!=null)b[m.account]+=m.dir==='in'?a:-a;});
   accounts().forEach(([id,a])=>{if(a.type==='credito'&&a.paidManual&&a.paidManual.length)a.paidManual.forEach(mo=>{b[id]+=cardMonthTotal(id,mo)})});
   return b}
-function vaultBySection(){const v={};Object.values(state.movs).forEach(m=>{if(m.kind!=='vault')return;v[m.section]=(v[m.section]||0)+(m.dir==='in'?1:-1)*(+m.amount||0)});return v}
+function vaultBySection(){const v={};Object.values(state.movs).forEach(m=>{if(m.kind!=='vault')return;v[m.section]=(v[m.section]||0)+(m.dir==='in'?1:-1)*(+m.amount||0)});Object.keys(v).forEach(k=>{v[k]=Math.round(v[k]*100)/100});return v}
 function allocs(m){const a=+m.amount||0,n=Math.max(1,+m.cuotas||1),k=Math.min(n,Math.max(1,+m.startCuota||1));let base=monthOf(m.date);const ac=state.accounts[m.account];
   if(m.kind==='gasto'&&ac&&ac.type==='credito'&&ac.closeDay&&m.source!=='resumen'&&+m.date.slice(8,10)>+ac.closeDay)base=shiftMonth(base,1);
   const out=[];for(let i=k;i<=n;i++)out.push({month:shiftMonth(base,i-k),amount:a/n,i,n});return out}
@@ -3379,12 +3379,12 @@ function openVaultAll(id,filt){const sc=state.vsecs[id];if(!sc)return;filt=filt|
     if(vi||vo){if(!accounts().length)return;openVmov(id,vi?'in':'out');sheetBack=back}})}
 function renderVault(vsec,total){
   $('#v-total').textContent=money(total);
-  {const negs=Object.entries(state.vsecs).filter(([id])=>(vsec[id]||0)<0);let al=$('#v-alert');if(!al){al=document.createElement('div');al.id='v-alert';al.className='vm-warn';al.setAttribute('role','alert');$('#v-secs').before(al)}
+  {const negs=Object.entries(state.vsecs).filter(([id])=>(vsec[id]||0)<-0.5);let al=$('#v-alert');if(!al){al=document.createElement('div');al.id='v-alert';al.className='vm-warn';al.setAttribute('role','alert');$('#v-secs').before(al)}
    al.hidden=!negs.length;al.innerHTML=negs.length?'<b>⚠ '+(negs.length===1?'Una sección está':negs.length+' secciones están')+' en negativo</b><br>'+negs.map(([id,sc])=>esc(sc.name)+': − '+money(-(vsec[id]||0))).join('<br>')+'<br><small>Sacaste más plata de la que había. Revisá si alguna salida va en otra sección.</small>':''}
   const secs=Object.entries(state.vsecs);
   $('#v-secs').innerHTML=secs.length?secs.map(([id,sc])=>{const movs=Object.entries(state.movs).filter(([,m])=>m.kind==='vault'&&m.section===id).sort((a,b)=>a[1].date<b[1].date?1:a[1].date>b[1].date?-1:(b[1].createdAt||0)-(a[1].createdAt||0));
     const ins=movs.filter(([,m])=>m.dir==='in').reduce((s,[,m])=>s+(+m.amount||0),0),outs=movs.filter(([,m])=>m.dir==='out').reduce((s,[,m])=>s+(+m.amount||0),0);
-    return '<section class="fin-block vault-block"><div class="block-head"><button class="link-plain" type="button" data-vsec="'+esc(id)+'"><span class="t vs-title">'+esc(sc.name)+'</span><span class="s">Entró '+money(ins)+' · salió '+money(outs)+'</span></button><b class="vs-bal'+((vsec[id]||0)<0?' neg':'')+'">'+((vsec[id]||0)<0?'− '+money(-(vsec[id]||0)):money(vsec[id]||0))+'</b></div>'+((vsec[id]||0)<0?'<p class="vs-neg">⚠ En negativo: salió más plata de la que había en esta sección.</p>':'')+
+    return '<section class="fin-block vault-block"><div class="block-head"><button class="link-plain" type="button" data-vsec="'+esc(id)+'"><span class="t vs-title">'+esc(sc.name)+'</span><span class="s">Entró '+money(ins)+' · salió '+money(outs)+'</span></button><b class="vs-bal'+((vsec[id]||0)<-0.5?' neg':'')+'">'+((vsec[id]||0)<-0.5?'− '+money(-(vsec[id]||0)):money(Math.abs(vsec[id]||0)<0.5?0:vsec[id]))+'</b></div>'+((vsec[id]||0)<-0.5?'<p class="vs-neg">⚠ En negativo: salió más plata de la que había en esta sección.</p>':'')+
       '<div class="vsec-actions"><button class="btn btn-primary mini-btn" type="button" data-vin="'+esc(id)+'">Entrada</button><button class="btn mini-btn" type="button" data-vout="'+esc(id)+'">Salida</button></div>'+
       (movs.length?'<ul class="mov-list">'+movs.slice(0,5).map(([mid,m])=>vMovLi(mid,m)).join('')+'</ul>'+(movs.length>5?'<button class="btn vs-more" type="button" data-vall="'+esc(id)+'">Ver los '+movs.length+' movimientos</button>':''):'<p class="empty">Sin movimientos todavía.</p>')+'</section>'}).join('')
     :'<p class="empty">Creá una sección por cada situación, por ejemplo "Alquileres papá". Lo que entra y sale de acá no cuenta como tuyo.</p>';
@@ -3636,8 +3636,8 @@ function openVmov(section,dir,id){
   const chk=()=>{const w=q('#vm-warn'),amount=parseMoney(q('#vm-amt').value),sec=q('#vm-sec').value,acc=q('#vm-acc').value;sv.classList.remove('armed');sv.textContent='Guardar';
     if(d!=='out'||isNaN(amount)||amount<=0){w.hidden=true;over=false;return}
     const av=vmAvail(sec,id),left=av-amount,sn=(state.vsecs[sec]||{}).name||'esta sección';const ab=(balances()[acc]||0)+(id&&m.dir==='out'&&m.account===acc?(+m.amount||0):0);
-    const msgs=[];if(left<0)msgs.push('<b>⚠ No alcanza la plata de «'+esc(sn)+'».</b> Hay '+money(av)+' y estás sacando '+money(amount)+'. Quedaría en <b>− '+money(-left)+'</b>: estarías usando plata de otra sección o tuya.');
-    if(amount>ab)msgs.push('<b>⚠ En '+esc(accName(acc))+' hay '+money(ab)+'.</b> No alcanza para sacar '+money(amount)+'.');
+    const msgs=[];if(left<-0.5)msgs.push('<b>⚠ No alcanza la plata de «'+esc(sn)+'».</b> Hay '+money(av)+' y estás sacando '+money(amount)+'. Quedaría en <b>− '+money(-left)+'</b>: estarías usando plata de otra sección o tuya.');
+    if(amount>ab+0.5)msgs.push('<b>⚠ En '+esc(accName(acc))+' hay '+money(ab)+'.</b> No alcanza para sacar '+money(amount)+'.');
     over=msgs.length>0;w.hidden=!over;w.innerHTML=msgs.join('<br>')};
   ['input','change'].forEach(ev=>sh.addEventListener(ev,e=>{if(e.target.matches('#vm-amt,#vm-sec,#vm-acc'))chk()}));
   sh.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('click',()=>{d=b.dataset.dir;sh.querySelectorAll('[data-dir]').forEach(x=>x.setAttribute('aria-pressed',x===b));chk()}));chk();
