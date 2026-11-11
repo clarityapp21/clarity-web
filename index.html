@@ -1663,6 +1663,13 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .cap-more ~ .ruled{display:none}
 .cap-all .cap-h{display:revert!important}
 .cap-wrap{display:flex;flex-direction:column}
+.vm-warn{border:1.5px solid #C0392B;background:color-mix(in srgb,#C0392B 12%,var(--surface));color:var(--ink);border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.45}
+.vm-warn b{color:#C0392B}
+.vm-warn small{color:var(--muted)}
+#v-alert{margin-bottom:12px}
+.vs-bal.neg{color:#C0392B}
+.vs-neg{margin:0 0 8px;color:#C0392B;font-size:13px;font-weight:600}
+#vm-save.armed{background:#C0392B;border-color:#C0392B;color:#fff}
 </style>
 
 <div class="app">
@@ -3350,10 +3357,12 @@ function openVaultAll(id,filt){const sc=state.vsecs[id];if(!sc)return;filt=filt|
     if(vi||vo){if(!accounts().length)return;openVmov(id,vi?'in':'out');sheetBack=back}})}
 function renderVault(vsec,total){
   $('#v-total').textContent=money(total);
+  {const negs=Object.entries(state.vsecs).filter(([id])=>(vsec[id]||0)<0);let al=$('#v-alert');if(!al){al=document.createElement('div');al.id='v-alert';al.className='vm-warn';al.setAttribute('role','alert');$('#v-secs').before(al)}
+   al.hidden=!negs.length;al.innerHTML=negs.length?'<b>⚠ '+(negs.length===1?'Una sección está':negs.length+' secciones están')+' en negativo</b><br>'+negs.map(([id,sc])=>esc(sc.name)+': − '+money(-(vsec[id]||0))).join('<br>')+'<br><small>Sacaste más plata de la que había. Revisá si alguna salida va en otra sección.</small>':''}
   const secs=Object.entries(state.vsecs);
   $('#v-secs').innerHTML=secs.length?secs.map(([id,sc])=>{const movs=Object.entries(state.movs).filter(([,m])=>m.kind==='vault'&&m.section===id).sort((a,b)=>a[1].date<b[1].date?1:a[1].date>b[1].date?-1:(b[1].createdAt||0)-(a[1].createdAt||0));
     const ins=movs.filter(([,m])=>m.dir==='in').reduce((s,[,m])=>s+(+m.amount||0),0),outs=movs.filter(([,m])=>m.dir==='out').reduce((s,[,m])=>s+(+m.amount||0),0);
-    return '<section class="fin-block vault-block"><div class="block-head"><button class="link-plain" type="button" data-vsec="'+esc(id)+'"><span class="t vs-title">'+esc(sc.name)+'</span><span class="s">Entró '+money(ins)+' · salió '+money(outs)+'</span></button><b class="vs-bal">'+money(vsec[id]||0)+'</b></div>'+
+    return '<section class="fin-block vault-block"><div class="block-head"><button class="link-plain" type="button" data-vsec="'+esc(id)+'"><span class="t vs-title">'+esc(sc.name)+'</span><span class="s">Entró '+money(ins)+' · salió '+money(outs)+'</span></button><b class="vs-bal'+((vsec[id]||0)<0?' neg':'')+'">'+((vsec[id]||0)<0?'− '+money(-(vsec[id]||0)):money(vsec[id]||0))+'</b></div>'+((vsec[id]||0)<0?'<p class="vs-neg">⚠ En negativo: salió más plata de la que había en esta sección.</p>':'')+
       '<div class="vsec-actions"><button class="btn btn-primary mini-btn" type="button" data-vin="'+esc(id)+'">Entrada</button><button class="btn mini-btn" type="button" data-vout="'+esc(id)+'">Salida</button></div>'+
       (movs.length?'<ul class="mov-list">'+movs.slice(0,5).map(([mid,m])=>vMovLi(mid,m)).join('')+'</ul>'+(movs.length>5?'<button class="btn vs-more" type="button" data-vall="'+esc(id)+'">Ver los '+movs.length+' movimientos</button>':''):'<p class="empty">Sin movimientos todavía.</p>')+'</section>'}).join('')
     :'<p class="empty">Creá una sección por cada situación, por ejemplo "Alquileres papá". Lo que entra y sale de acá no cuenta como tuyo.</p>';
@@ -3588,18 +3597,30 @@ function openVsec(id){
   q('#v-save').addEventListener('click',()=>{const name=q('#v-name').value.trim();if(!name){toast('Poné un nombre.');return}put('vsecs',id||uid(),{name});closeSheet();toast('Sección guardada')});
   if(id){const del=q('#v-del');del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}remove('vsecs',id);closeSheet();toast('Sección eliminada')})}
 }
+/* plata disponible en una sección de la caja fuerte (sin contar el movimiento que se está editando) */
+function vmAvail(sec,exId){let v=vaultBySection()[sec]||0;const m=exId&&state.movs[exId];if(m&&m.kind==='vault'&&m.section===sec)v-=(m.dir==='in'?1:-1)*(+m.amount||0);return v}
 function openVmov(section,dir,id){
   const m=id?state.movs[id]:{section,dir,date:todayStr(),account:defAcc()};if(id&&!m)return;
   openSheet('<div class="sheet-head"><h2>Caja fuerte</h2>'+closeBtn+'</div>'+
     '<div class="seg" role="group" aria-label="Entrada o salida"><button type="button" data-dir="in" aria-pressed="'+(m.dir==='in')+'">Entra plata</button><button type="button" data-dir="out" aria-pressed="'+(m.dir==='out')+'">Sale plata</button></div>'+
     '<div class="field"><label for="vm-amt">Monto</label><input type="text" inputmode="decimal" data-money="1" id="vm-amt" class="amount-input" placeholder="$ 0" value="'+(m.amount||'')+'"></div>'+
-    '<div class="row2"><div class="field"><label for="vm-sec">Sección</label><select id="vm-sec">'+Object.entries(state.vsecs).map(([k,v])=>'<option value="'+esc(k)+'"'+(k===m.section?' selected':'')+'>'+esc(v.name)+'</option>').join('')+'</select></div>'+
+    '<div class="vm-warn" id="vm-warn" role="alert" hidden></div>'+
+    '<div class="row2"><div class="field"><label for="vm-sec">Sección</label><select id="vm-sec">'+Object.entries(state.vsecs).map(([k,v])=>'<option value="'+esc(k)+'"'+(k===m.section?' selected':'')+'>'+esc(v.name)+' · '+money(vmAvail(k,id))+'</option>').join('')+'</select></div>'+
     '<div class="field"><label for="vm-acc">En qué cuenta</label><select id="vm-acc">'+accOptions(m.account)+'</select></div></div>'+
     '<div class="row2"><div class="field"><label for="vm-date">Fecha</label><input type="date" id="vm-date" value="'+esc(m.date)+'"></div><div class="field"><label for="vm-note">Detalle</label><input type="text" id="vm-note" maxlength="80" value="'+esc(m.note||'')+'" placeholder="Ej.: alquiler depto 2"></div></div>'+
     '<div class="actions">'+(id?'<button class="btn btn-danger" type="button" id="vm-del">Eliminar</button>':'')+'<div class="right"><button class="btn btn-primary" type="button" id="vm-save">Guardar</button></div></div>');
   const sh=root.querySelector('.sheet');const q=x=>sh.querySelector(x);let d=m.dir;setTimeout(()=>q('#vm-amt').focus(),50);
-  sh.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('click',()=>{d=b.dataset.dir;sh.querySelectorAll('[data-dir]').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
-  q('#vm-save').addEventListener('click',()=>{const amount=parseMoney(q('#vm-amt').value);if(isNaN(amount)||amount<=0){toast('Ingresá un monto válido.');return}
+  const sv=q('#vm-save');let over=false;
+  const chk=()=>{const w=q('#vm-warn'),amount=parseMoney(q('#vm-amt').value),sec=q('#vm-sec').value,acc=q('#vm-acc').value;sv.classList.remove('armed');sv.textContent='Guardar';
+    if(d!=='out'||isNaN(amount)||amount<=0){w.hidden=true;over=false;return}
+    const av=vmAvail(sec,id),left=av-amount,sn=(state.vsecs[sec]||{}).name||'esta sección';const ab=(balances()[acc]||0)+(id&&m.dir==='out'&&m.account===acc?(+m.amount||0):0);
+    const msgs=[];if(left<0)msgs.push('<b>⚠ No alcanza la plata de «'+esc(sn)+'».</b> Hay '+money(av)+' y estás sacando '+money(amount)+'. Quedaría en <b>− '+money(-left)+'</b>: estarías usando plata de otra sección o tuya.');
+    if(amount>ab)msgs.push('<b>⚠ En '+esc(accName(acc))+' hay '+money(ab)+'.</b> No alcanza para sacar '+money(amount)+'.');
+    over=msgs.length>0;w.hidden=!over;w.innerHTML=msgs.join('<br>')};
+  ['input','change'].forEach(ev=>sh.addEventListener(ev,e=>{if(e.target.matches('#vm-amt,#vm-sec,#vm-acc'))chk()}));
+  sh.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('click',()=>{d=b.dataset.dir;sh.querySelectorAll('[data-dir]').forEach(x=>x.setAttribute('aria-pressed',x===b));chk()}));chk();
+  sv.addEventListener('click',()=>{const amount=parseMoney(q('#vm-amt').value);if(isNaN(amount)||amount<=0){toast('Ingresá un monto válido.');return}
+    chk();if(over&&!sv.classList.contains('armed2')){sv.classList.add('armed','armed2');sv.textContent='Guardar igual (no alcanza)';navigator.vibrate&&navigator.vibrate(120);q('#vm-warn').scrollIntoView({block:'nearest'});return}
     put('movs',id||uid(),Object.assign({},id?m:{createdAt:Date.now()},{kind:'vault',dir:d,amount,section:q('#vm-sec').value,account:q('#vm-acc').value,date:q('#vm-date').value||todayStr(),note:q('#vm-note').value.trim()}));closeSheet();toast('Caja fuerte actualizada')});
   if(id){const del=q('#vm-del');del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}remove('movs',id);closeSheet();toast('Movimiento eliminado')})}
 }
