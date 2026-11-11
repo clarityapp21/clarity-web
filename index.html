@@ -1604,6 +1604,60 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .sum-line{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:2px 6px;margin-top:-2px;color:var(--muted);font-size:13.5px}
 .sum-line small{font-size:12px}
 .money-top .sum-line b{display:inline;font-family:inherit;font-size:15px;font-weight:600;margin:0;color:var(--ink);opacity:.85;font-variant-numeric:tabular-nums}
+
+/* contadores */
+.hb-head{margin-top:18px}
+.hb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:761px){.hb-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.hb-card{position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;border-radius:18px;padding:14px;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--hc);color:var(--ink);min-width:0;box-shadow:var(--lift)}
+.hb-card.paused{opacity:.6}
+.hb-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--hc);margin-right:6px;vertical-align:1px;flex:none}
+.hb-kind{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.hb-name{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:-2px}
+.hb-card.disc .hb-name{letter-spacing:.2em;color:var(--muted)}
+.hb-card.disc{background:repeating-linear-gradient(135deg,var(--surface) 0 10px,var(--surface-2) 10px 20px)}
+.hb-num{font-family:var(--font-display);font-size:34px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums;color:var(--hc)}
+.hb-num small{display:block;font-size:12.5px;color:var(--muted);font-family:var(--font-body,inherit);margin-top:4px;font-weight:500}
+.hb-sub{font-size:12px;color:var(--muted)}
+.hb-week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:2px}
+.hb-week i{font-style:normal;display:grid;place-items:center;aspect-ratio:1;border-radius:50%;font-size:9.5px;color:var(--muted);border:1.5px solid var(--line)}
+.hb-week i.y{background:var(--hc);border-color:var(--hc);color:#fff}
+.hb-week i.n{border-style:dashed}
+.hb-week i.t{outline:2px solid var(--hi);outline-offset:1px}
+.hb-btn{margin-top:4px;border-radius:12px;padding:9px;font-weight:700;font-size:13.5px;border:1px solid var(--hc);background:var(--hc);color:#fff;text-align:center}
+.hb-btn.done{background:transparent;color:var(--hc)}
+.hb-btn.ghost{background:transparent;color:var(--muted);border-color:var(--line);font-weight:600}
+.hb-btn.rel,.hb-btn.armed{border-color:#C0392B;color:#C0392B}
+.hb-btn.big{padding:13px;font-size:15px;width:100%}
+.hb-bar{height:6px;border-radius:9px;background:var(--surface-2);overflow:hidden}.hb-bar b{display:block;height:100%;background:var(--hc);border-radius:9px}
+.hb-hidden{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px;border-radius:12px;border:1px dashed var(--line);color:var(--muted);font-size:13px;background:none}
+.hb-empty{grid-column:1/-1;margin:0;color:var(--muted);font-size:13.5px;border:1px dashed var(--line);border-radius:14px;padding:14px;text-align:center}
+.hb-type{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hb-type button{display:flex;flex-direction:column;gap:4px;text-align:left;padding:12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.hb-type button b{font-size:14.5px}.hb-type button span{font-size:12px;color:var(--muted)}
+.hb-type button[aria-pressed=true],.hb-vis button[aria-pressed=true]{border-color:var(--hi);background:color-mix(in srgb,var(--hi) 10%,var(--surface))}
+.hb-cols{display:flex;gap:10px;flex-wrap:wrap}.hb-cols button{width:32px;height:32px;border-radius:50%;border:3px solid var(--surface)}.hb-cols button[aria-pressed=true]{box-shadow:0 0 0 2px var(--ink)}
+.hb-vis{display:flex;flex-direction:column;gap:6px}
+.hb-vis button{display:flex;flex-direction:column;text-align:left;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.hb-vis b{font-size:14px}.hb-vis small{color:var(--muted);font-size:12px}
+.hb-rem{display:flex;gap:8px}.hb-rem input{flex:1;min-width:0}
+.hb-detail{display:flex;flex-direction:column;gap:12px}
+.hb-big{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;text-align:center}
+.hb-big .hb-num{font-size:64px}
+.hb-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hb-stats div{background:var(--surface-2);border-radius:12px;padding:9px 6px;text-align:center}.hb-stats b{display:block;font-size:18px;font-variant-numeric:tabular-nums}.hb-stats span{font-size:11.5px;color:var(--muted)}
+.daynav .hb-mo,.hb-mo{flex:1;text-align:center;text-transform:none!important}
+.hb-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.hb-cal .h{font-size:11px;color:var(--muted);text-align:center}
+.hb-cal button,.hb-cal i{font-style:normal;aspect-ratio:1;border-radius:10px;display:grid;place-items:center;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:0}
+.hb-cal .y{background:var(--hc);border-color:var(--hc);color:#fff;font-weight:700}
+.hb-cal .x{background:color-mix(in srgb,#C0392B 16%,var(--surface));border-color:#C0392B;color:#C0392B;font-weight:700}
+.hb-cal .ok{background:color-mix(in srgb,var(--hc) 14%,var(--surface));border-color:color-mix(in srgb,var(--hc) 40%,var(--line))}
+.hb-cal .f{opacity:.35}.hb-cal .pre{opacity:.55}.hb-cal i.e{border:0;background:none}
+.hb-cal .t{outline:2px solid var(--hi);outline-offset:1px}
+.hb-legend{display:flex;gap:6px 12px;font-size:12px;color:var(--muted);flex-wrap:wrap}.hb-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1px solid var(--line)}
+.hb-legend i.y{background:var(--hc);border-color:var(--hc)}.hb-legend i.ok{background:color-mix(in srgb,var(--hc) 14%,var(--surface));border-color:var(--hc)}.hb-legend i.x{background:#f3d6d2;border-color:#C0392B}
+.sheet-head h2 .hb-dot{width:12px;height:12px}
 </style>
 
 <div class="app">
@@ -1825,6 +1879,8 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
           <button class="fis-act" type="button" data-fq="match"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5l4 3-1.5 4.5h-5L8 10.5z"/></svg><b>Partido</b><span>Fútbol o pádel con tu nota</span></button>
         </div>
         <div class="fis-tool-w"><button class="fis-tool" type="button" id="truco-open"><span class="ft-e" aria-hidden="true">🃏</span><span><b>Truco</b><small id="truco-sub">Anotador con fósforos</small></span><span class="ft-r" id="truco-live"></span></button><button class="btn fis-tool-h" type="button" id="truco-hist">🏆 Historial</button></div>
+        <div class="pane-head econ-head news-head hb-head"><h2>Contadores</h2><button class="link-btn" type="button" id="hab-add">+ Nuevo</button></div>
+        <div class="hb-grid" id="hab-grid"></div>
         <figure class="verse fis-frase"><blockquote class="verse-text" id="fis-frase-t"></blockquote><figcaption class="verse-ref">Frase del día</figcaption></figure>
         <div class="pane-head econ-head news-head"><h2>Objetivos</h2><button class="link-btn" type="button" id="fg-add">+ Nuevo objetivo</button></div>
         <div class="fg-grid" id="fis-goals"></div>
@@ -2332,6 +2388,98 @@ function crInApp(){if(window.ClarityNative)return;const now=Date.now();let seen=
     toast('⏰ En '+remTxt(m)+': '+it.title+(it.place?' · '+it.place:''));try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){}}})});
   if(ch){Object.keys(seen).forEach(k=>{if(now-seen[k]>3*864e5)delete seen[k]});try{localStorage.setItem('clarity-crseen',JSON.stringify(seen))}catch(e){}}}
 setInterval(crInApp,30000);setTimeout(crInApp,4000);
+
+/* ---------- contadores (hábitos para formar o dejar) ---------- */
+const HB_COLORS=['#2E8B57','#C0703A','#3B7DD8','#6A5ACD','#C0392B','#B8860B','#8A8880'];
+const hbDoc=()=>Object.assign({items:{}},state.meta.habits||{});
+const hbItems=()=>Object.entries(hbDoc().items||{}).sort((a,b)=>(a[1].createdAt||0)-(b[1].createdAt||0));
+const hbPut=(id,it)=>{const items=Object.assign({},hbDoc().items);if(it)items[id]=it;else delete items[id];put('meta','habits',Object.assign({},hbDoc(),{items}))};
+const hbDD=(a,b)=>Math.round((parseYmd(b)-parseYmd(a))/864e5);
+let hbUnlockedAt=0,hbMo={};
+function hbStats(h){const t=todayStr(),st=h.start||t,days=h.days||{};
+  if(h.kind==='quit'){const rel=Object.keys(days).filter(d=>days[d]&&d>=st&&d<=t).sort(),last=rel.length?rel[rel.length-1]:null;
+    const cur=Math.max(0,last?hbDD(last,t)-1+(last===t?0:0):hbDD(st,t));let best=cur,prev=null;
+    rel.forEach(r=>{best=Math.max(best,prev?hbDD(prev,r)-1:hbDD(st,r));prev=r});
+    const total=Math.max(1,hbDD(st,t)+1);
+    return{cur:last===t?0:cur,best,since:last?shiftDay(last,1):st,relYear:rel.filter(r=>r.slice(0,4)===t.slice(0,4)).length,clean:Math.max(0,Math.round((total-rel.length)/total*100)),today:!!days[t]}}
+  const done=d=>!!days[d];let cur=0,d=done(t)?t:shiftDay(t,-1);while(done(d)){cur++;d=shiftDay(d,-1)}
+  const all=Object.keys(days).filter(k=>days[k]&&k<=t).sort();let best=0,run=0,pv=null;all.forEach(k=>{run=pv&&hbDD(pv,k)===1?run+1:1;best=Math.max(best,run);pv=k});
+  const mo=t.slice(0,7)+'-01',from=st>mo?st:mo,el=Math.max(1,hbDD(from,t)+1),inM=all.filter(k=>k>=from).length;
+  const wk0=shiftDay(t,-((parseYmd(t).getDay()+6)%7));
+  return{cur,best,month:Math.min(100,Math.round(inM/el*100)),total:all.length,week:all.filter(k=>k>=wk0).length,wk0,today:done(t)}}
+function hbWeekHtml(h,s){const t=todayStr(),days=h.days||{},st=h.start||t;
+  return '<div class="hb-week">'+'LMMJVSD'.split('').map((l,i)=>{const d=shiftDay(s.wk0,i);const c=d>t?'':days[d]?'y':(d<st?'':'n');return `<i class="${c}${d===t?' t':''}">${l}</i>`}).join('')+'</div>'}
+function hbCard(id,h,reveal){const s=hbStats(h),disc=h.vis==='disc'&&!reveal,goalW=h.kind!=='quit'&&h.goalType==='week'&&+h.goal;
+  const kind=h.kind==='quit'?'Dejar':'Formar'+(goalW?' · '+h.goal+' por semana':'');let body;
+  if(h.kind==='quit')body=`<div class="hb-num">${s.cur}<small>${s.cur===1?'día':'días'}${disc?'':' sin'}</small></div>`+
+      (disc?'':`<div class="hb-sub">${+h.goal?'Meta '+h.goal+' días · ':''}récord ${s.best}</div>`)+(+h.goal?`<div class="hb-bar"><b style="width:${Math.min(100,s.cur/h.goal*100)}%"></b></div>`:'')+
+      (disc||h.paused?'':`<span class="hb-btn ghost${s.today?' rel':''}" data-hbq="${id}">${s.today?'Recaída marcada hoy':'Hoy recaí'}</span>`);
+  else body=`<div class="hb-num">${goalW?s.week:s.cur}<small>${goalW?'de '+h.goal+' esta semana':(s.cur===1?'día seguido':'días seguidos')}</small></div>`+hbWeekHtml(h,s)+
+      (disc||h.paused?'':`<span class="hb-btn${s.today?' done':''}" data-hbf="${id}">${s.today?'✓ Hecho hoy':'✓ Hoy lo hice'}</span>`);
+  return `<button type="button" class="hb-card${disc?' disc':''}${h.paused?' paused':''}" data-hb="${id}" style="--hc:${h.color||HB_COLORS[0]}"><div class="hb-kind"><span class="hb-dot"></span>${disc?'Contador':kind}${h.paused?' · en pausa':''}</div><div class="hb-name">${disc?'• • • • •':esc(h.name)}</div>${body}${disc?'<div class="hb-sub">Tocá para ver</div>':''}</button>`}
+function renderHabits(){const g=$('#hab-grid');if(!g)return;const l=hbItems(),vis=l.filter(([,h])=>h.vis!=='hide'),hid=l.length-vis.length;
+  g.innerHTML=vis.map(([id,h])=>hbCard(id,h)).join('')+(hid?`<button type="button" class="hb-hidden" id="hab-hid">🔒 ${hid} ${hid===1?'contador oculto · tocá para verlo':'contadores ocultos · tocá para verlos'}</button>`:'')+
+    (!l.length?'<p class="hb-empty">Contá los días de un hábito que querés formar o dejar. Puede ser visible, discreto u oculto.</p>':'')}
+function hbMarkToday(id){const it=hbDoc().items[id];if(!it)return;const t=todayStr(),days=Object.assign({},it.days);if(days[t])delete days[t];else days[t]=1;hbPut(id,Object.assign({},it,{days}));return !!days[t]}
+/* pedir huella para los ocultos (en Android); en la web se abre directo */
+function hbUnlock(cb){if(Date.now()-hbUnlockedAt<120000){cb();return}const N=window.ClarityNative;
+  if(N&&typeof N.askAuth==='function'&&typeof N.lockState==='function'&&N.lockState()!=='na'){window.clarityAuthResult=ok=>{window.clarityAuthResult=null;if(ok){hbUnlockedAt=Date.now();cb()}else toast('No se pudo verificar. Probá de nuevo.')};try{N.askAuth('Contadores ocultos')}catch(e){cb()}return}
+  hbUnlockedAt=Date.now();cb()}
+function openHiddenHabits(){const l=hbItems().filter(([,h])=>h.vis==='hide');if(!l.length){closeSheet();return}
+  openSheet(`<div class="sheet-head"><h2>Contadores ocultos</h2>${closeBtn}</div><div class="hb-grid">${l.map(([id,h])=>hbCard(id,h,true)).join('')}</div><p class="status" style="margin:0">No aparecen en Físico. Para mostrarlos, editalos y elegí Visible o Discreto.</p>`);
+  const sh=root.querySelector('.sheet');sh.addEventListener('click',e=>hbClick(e,()=>openHiddenHabits()))}
+function hbClick(e,back){const f=e.target.closest('[data-hbf]'),q=e.target.closest('[data-hbq]'),c=e.target.closest('[data-hb]');
+  if(f){const on=hbMarkToday(f.dataset.hbf);toast(on?'¡Bien! Día marcado':'Desmarcado');if(back)back();return}
+  if(q){const id=q.dataset.hbq,it=hbDoc().items[id];if(!it)return;if(hbStats(it).today){openHabit(id,null,back);return}
+    if(!q.classList.contains('armed')){q.classList.add('armed');q.textContent='Tocá de nuevo para confirmar';setTimeout(()=>{if(q.isConnected){q.classList.remove('armed');q.textContent='Hoy recaí'}},4000);return}
+    hbMarkToday(id);toast('Anotado. Arrancás de nuevo desde mañana: vos podés.');if(back)back();return}
+  if(c)openHabit(c.dataset.hb,null,back)}
+$('#hab-grid').addEventListener('click',e=>{if(e.target.closest('#hab-hid')){hbUnlock(openHiddenHabits);return}hbClick(e)});
+$('#hab-add').addEventListener('click',()=>openHabitForm());
+function openHabit(id,mo,back){const h=hbDoc().items[id];if(!h){if(back)back();else closeSheet();return}
+  const t=todayStr();mo=mo||hbMo[id]||t.slice(0,7);hbMo[id]=mo;const s=hbStats(h),c=h.color||HB_COLORS[0],quit=h.kind==='quit',days=h.days||{},st=h.start||t;
+  const first=parseYmd(mo+'-01'),off=(first.getDay()+6)%7,n=new Date(first.getFullYear(),first.getMonth()+1,0).getDate();let cal='<div class="hb-cal">'+'LMMJVSD'.split('').map(x=>`<span class="h">${x}</span>`).join('')+'<i class="e"></i>'.repeat(off);
+  for(let i=1;i<=n;i++){const d=mo+'-'+pad(i),fut=d>t,pre=d<st;let cl=fut?'f':days[d]?(quit?'x':'y'):(quit&&!pre?'ok':'');cal+=`<button type="button" class="${cl}${d===t?' t':''}${pre&&!days[d]?' pre':''}" data-hd="${d}"${fut?' disabled':''} aria-label="${esc(longDate(d))}">${i}</button>`}
+  cal+='</div>';const goalW=!quit&&h.goalType==='week'&&+h.goal;
+  const big=quit?`<span class="hb-num">${s.cur}</span><span class="hb-sub">${s.cur===1?'día':'días'} sin hacerlo · desde el ${esc(longDate(s.since).replace(/^[a-záéíóú]+, /,''))}</span>`+(+h.goal?`<div class="hb-bar" style="width:70%;margin-top:6px"><b style="width:${Math.min(100,s.cur/h.goal*100)}%"></b></div><span class="hb-sub">${s.cur>=h.goal?'¡Cumpliste tu meta de '+h.goal+' días!':'Faltan '+(h.goal-s.cur)+' para tu meta de '+h.goal}</span>`:'')
+    :`<span class="hb-num">${goalW?s.week:s.cur}</span><span class="hb-sub">${goalW?'de '+h.goal+' esta semana · racha '+s.cur:(s.cur===1?'día seguido':'días seguidos')}</span>`+(+h.goal&&!goalW?`<span class="hb-sub">${s.cur>=h.goal?'¡Meta de '+h.goal+' días cumplida!':'Meta: '+h.goal+' días seguidos'}</span>`:'');
+  const stats=quit?[[s.best,'récord'],[s.relYear,s.relYear===1?'recaída en el año':'recaídas en el año'],[s.clean+' %','días limpios']]:[[s.best,'mejor racha'],[s.month+' %','este mes'],[s.total,'días en total']];
+  openSheet(`<div class="sheet-head">${back?'<button class="iconbtn" type="button" id="hb-back" aria-label="Volver">‹</button>':''}<h2><span class="hb-dot" style="--hc:${c}"></span>${esc(h.name)}</h2>${closeBtn}</div>`+
+    `<div class="hb-detail" style="--hc:${c}"><div class="hb-big">${big}${h.paused?'<span class="hb-sub"><b>En pausa</b></span>':''}</div>`+
+    `<div class="hb-stats">${stats.map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join('')}</div>`+
+    `<div class="daynav"><button class="iconbtn" type="button" data-hm="-1" aria-label="Mes anterior">‹</button><strong class="hb-mo">${esc((m=>m.charAt(0).toUpperCase()+m.slice(1))(monthLabel(mo).toLowerCase()))}</strong><button class="iconbtn" type="button" data-hm="1" aria-label="Mes siguiente"${mo>=t.slice(0,7)?' disabled':''}>›</button></div>${cal}`+
+    `<div class="hb-legend">${quit?'<span><i class="ok"></i>Día limpio (cuenta solo)</span><span><i class="x"></i>Recaída</span><span>Tocá un día para marcar o sacar una recaída</span>':'<span><i class="y"></i>Lo hice</span><span><i></i>No lo hice</span><span>Tocá un día para marcarlo o desmarcarlo</span>'}</div>`+
+    (quit?`<button class="hb-btn ghost big rel" type="button" id="hb-today">${s.today?'Sacar la recaída de hoy':'Hoy recaí · reinicia el contador'}</button>`:`<button class="hb-btn big${s.today?' done':''}" type="button" id="hb-today">${s.today?'✓ Hecho hoy · tocá para desmarcar':'✓ Hoy lo hice'}</button>`)+
+    `<div class="actions"><button class="btn" type="button" id="hb-edit">Editar</button><div class="right"><button class="btn" type="button" id="hb-pause">${h.paused?'Reanudar':'Pausar'}</button></div></div></div>`);
+  const sh=root.querySelector('.sheet'),re=m=>openHabit(id,m||hbMo[id],back);if(back){sheetBack=back;sh.querySelector('#hb-back').addEventListener('click',()=>{sheetBack=null;back()})}
+  sh.addEventListener('click',e=>{const d=e.target.closest('[data-hd]'),m=e.target.closest('[data-hm]');
+    if(d&&!d.disabled){const k=d.dataset.hd,it=hbDoc().items[id],dd=Object.assign({},it.days);if(dd[k])delete dd[k];else dd[k]=1;const up={days:dd};if(k<(it.start||t))up.start=k;hbPut(id,Object.assign({},it,up));re();return}
+    if(m){const [y,mm]=hbMo[id].split('-').map(Number),nd=new Date(y,mm-1+(+m.dataset.hm),1);re(nd.getFullYear()+'-'+pad(nd.getMonth()+1));return}});
+  const tb=sh.querySelector('#hb-today');tb.addEventListener('click',()=>{if(quit&&!s.today&&!tb.classList.contains('armed')){tb.classList.add('armed');tb.textContent='Tocá de nuevo para confirmar';return}
+    const on=hbMarkToday(id);toast(quit?(on?'Anotado. Arrancás de nuevo desde mañana: vos podés.':'Recaída de hoy sacada'):(on?'¡Bien! Día marcado':'Desmarcado'));re(t.slice(0,7))});
+  sh.querySelector('#hb-edit').addEventListener('click',()=>openHabitForm(id,()=>openHabit(id,null,back)));
+  sh.querySelector('#hb-pause').addEventListener('click',()=>{const it=hbDoc().items[id];hbPut(id,Object.assign({},it,{paused:!it.paused}));toast(it.paused?'Contador reanudado':'Contador en pausa: no te recuerda nada');re()})}
+function openHabitForm(id,back){const h=id?hbDoc().items[id]:null;const v=Object.assign({name:'',kind:'form',color:HB_COLORS[0],start:todayStr(),goal:'',goalType:'streak',vis:'show',rem:''},h||{});
+  const draw=()=>{openSheet(`<div class="sheet-head"><h2>${id?'Editar contador':'Nuevo contador'}</h2>${closeBtn}</div>`+
+    `<div class="field"><label for="hf-n">Nombre</label><input type="text" id="hf-n" maxlength="40" placeholder="Ej.: leer 20 minutos, sin gaseosa"></div>`+
+    `<div class="field"><span class="lbl">¿Qué querés lograr?</span><div class="hb-type"><button type="button" data-hk="form" aria-pressed="${v.kind!=='quit'}"><b>✓ Formar un hábito</b><span>Marcás los días que lo hiciste. Cuenta rachas.</span></button><button type="button" data-hk="quit" aria-pressed="${v.kind==='quit'}"><b>⊘ Dejar un hábito</b><span>Los días suman solos. Marcás solo si recaíste.</span></button></div></div>`+
+    `<div class="field"><span class="lbl">Color</span><div class="hb-cols">${HB_COLORS.map(c=>`<button type="button" data-hc="${c}" style="background:${c}" aria-label="Color" aria-pressed="${c===v.color}"></button>`).join('')}</div></div>`+
+    `<div class="row2"><div class="field"><label for="hf-s">Desde</label><input type="date" id="hf-s"></div><div class="field"><label for="hf-g">Meta (opcional)</label><input type="text" inputmode="numeric" id="hf-g" placeholder="${v.kind==='quit'?'Ej.: 30 días':'Ej.: 21'}"></div></div>`+
+    (v.kind==='quit'?'':`<div class="field"><span class="lbl">La meta es en</span><div class="seg" role="group" data-hg><button type="button" data-v="streak" aria-pressed="${v.goalType!=='week'}">Días seguidos</button><button type="button" data-v="week" aria-pressed="${v.goalType==='week'}">Veces por semana</button></div></div>`)+
+    `<div class="field"><span class="lbl">¿Cómo se ve en Físico?</span><div class="hb-vis">${[['show','Visible','Con nombre y número.'],['disc','Discreto','Solo el número. El nombre aparece al tocarlo.'],['hide','Oculto','No aparece. Se abre desde "contador oculto"'+(window.ClarityNative?', con tu huella.':'.')]].map(([k,t,d])=>`<button type="button" data-hv="${k}" aria-pressed="${v.vis===k}"><b>${t}</b><small>${d}</small></button>`).join('')}</div></div>`+
+    `<div class="field"><label for="hf-r">Recordatorio diario (opcional)</label><div class="hb-rem"><input type="time" id="hf-r"><button class="btn" type="button" id="hf-rx">Sin aviso</button></div><span class="s">${window.ClarityNative?'':'Los avisos llegan en la app de Android. '}Si es discreto u oculto, el aviso no dice el nombre.</span></div>`+
+    `<div class="actions">${id?'<button class="btn btn-danger" type="button" id="hf-del">Eliminar</button>':''}<div class="right"><button class="btn btn-primary" type="button" id="hf-ok">${id?'Guardar':'Crear contador'}</button></div></div>`);
+    const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);if(back)sheetBack=back;
+    q('#hf-n').value=v.name;q('#hf-s').value=v.start||todayStr();q('#hf-g').value=v.goal||'';q('#hf-r').value=v.rem||'';
+    const rd=()=>{v.name=q('#hf-n').value.trim().replace(/\s+/g,' ');v.start=q('#hf-s').value||todayStr();v.goal=parseInt(q('#hf-g').value,10)||'';v.rem=q('#hf-r').value||''};
+    sh.addEventListener('click',e=>{const k=e.target.closest('[data-hk]'),c=e.target.closest('[data-hc]'),g=e.target.closest('[data-hg] [data-v]'),vi=e.target.closest('[data-hv]');
+      if(k){rd();v.kind=k.dataset.hk;draw()}else if(c){rd();v.color=c.dataset.hc;draw()}else if(g){rd();v.goalType=g.dataset.v;draw()}else if(vi){rd();v.vis=vi.dataset.hv;draw()}});
+    q('#hf-rx').addEventListener('click',()=>{q('#hf-r').value=''});
+    q('#hf-ok').addEventListener('click',()=>{rd();if(!v.name){toast('Ponele un nombre.');q('#hf-n').focus();return}if(v.start>todayStr()){toast('La fecha de inicio no puede ser futura.');return}
+      const nid=id||uid(),it=Object.assign({},h||{createdAt:Date.now(),days:{}},v);if(it.kind==='quit')delete it.goalType;hbPut(nid,it);sheetBack=null;
+      toast(id?'Contador guardado':v.vis==='hide'?'Contador creado. Está oculto: lo abrís desde "contador oculto".':'Contador creado');if(back&&id)back();else closeSheet()});
+    const del=q('#hf-del');if(del)del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}hbPut(id,null);sheetBack=null;closeSheet();toast('Contador eliminado')})};
+  draw()}
 
 /* ---------- diario ---------- */
 let diaryTimer=null;
@@ -6822,7 +6970,7 @@ function cmContext(){const t=nTargets(),n=nutri()||{},d=todayStr();const days=Ar
   return ASK_BASE()+'Sos su asistente de alimentación. Das consejos prácticos y realistas para Argentina, sin extremos ni culpa; no reemplazás a un nutricionista y lo sugerís si hay una condición médica. Si propone algo riesgoso (muy pocas calorías, ayunos larguísimos), decíselo con cuidado.\n\nDatos: '+JSON.stringify(data)}
 setupAssistant('cx-',cmContext);bindDayRate();
 
-function renderFisico(){
+function renderFisico(){try{renderHabits()}catch(e){}
   const ready=['workouts','acts','meta'].every(c=>loaded.has(c));if(!ready)return;syncLive();updatePill();plSync();renderPLive();
   const setup=!prefs().sports;$('#fis-setup').hidden=!setup;$('#fis-main').hidden=setup;if(setup){renderSportsSetup();return}
   const ws=weekStartOf(todayStr()),a=weekStats(ws),b=weekStats(shiftDay(ws,-7)),streak=weekStreak();
@@ -7081,7 +7229,7 @@ let nbTimer=null;
 function nbPush(){if(!NB||backend!=='local')return;clearTimeout(nbTimer);nbTimer=setTimeout(()=>{try{NB.setWidgetData(JSON.stringify(nbData()))}catch(e){}nbNotifPush()},300)}
 /* ---------- recordatorios con la app cerrada ---------- */
 const NB_MEALS=[['desayuno',10,'¿Ya desayunaste?','Anotalo en Comida así no se te pasa.'],['almuerzo',14,'Te falta cargar el almuerzo','Tocá para anotarlo en Comida.'],['merienda',18,'¿Merendaste?','Cargalo ahora que te acordás.'],['cena',21,'Antes de cerrar el día','Cargá la cena en Comida.']];
-const nbNP=()=>Object.assign({rev:true,exp:true,meals:true,tasks:true,dues:true,week:true,pantry:true,sched:true,lead:30},prefs().notif||{});
+const nbNP=()=>Object.assign({rev:true,exp:true,meals:true,tasks:true,dues:true,week:true,pantry:true,sched:true,habits:true,lead:30},prefs().notif||{});
 function nbNotifCfg(){const np=nbNP(),rules=[],once=[];
   if(np.rev)rules.push({id:'rev',h:20,m:0,title:'Revisión de las 20 h',body:'Tachá lo que hiciste y anotá lo que viene para mañana.',open:'review',cond:'review'});
   if(np.exp)rules.push({id:'exp',h:23,m:0,title:'¿Cargaste los gastos de hoy?',body:'Todavía no anotaste ningún gasto hoy. Hacelo ahora que está fresco.',open:'newgasto',cond:'gasto'});
@@ -7090,6 +7238,9 @@ function nbNotifCfg(){const np=nbNP(),rules=[],once=[];
   if(np.tasks){const now=Date.now(),lim=now+14*864e5,lead=(+np.lead||0)*60000;
     Object.entries(state.tasks).forEach(([id,t])=>{if(t.done||!t.due||!t.time)return;const at=new Date(t.due+'T'+t.time+':00').getTime();if(!(at>now&&at<lim))return;
       const pre=at-lead,early=lead>0&&pre>now;once.push({id:'task-'+id,at:early?pre:at,title:(early?'En '+(+np.lead>=60?(+np.lead/60)+' h':np.lead+' min')+': ':'Ahora: ')+t.title,body:'A las '+t.time+' h'+(t.note?' · '+String(t.note).slice(0,120):''),open:'task:'+id,cond:'task:'+id})})}
+  // contadores: aviso diario a la hora elegida (sin el nombre si es discreto u oculto)
+  if(np.habits&&typeof hbItems==='function')hbItems().forEach(([id,h])=>{if(!h.rem||h.paused)return;const [hh,mm]=h.rem.split(':').map(Number);const priv=h.vis!=='show';
+    rules.push({id:'hab-'+id,h:hh,m:mm,title:priv?'¿Marcaste tu contador?':(h.kind==='quit'?'Contador: '+h.name:'¿Hoy hiciste "'+h.name+'"?'),body:priv?'Tocá para abrir CLARITY.':(h.kind==='quit'?'Si hoy recaíste, marcalo. Si no, el día suma solo.':'Tocá para marcarlo.'),open:'hab:'+id,cond:''})});
   // cronograma: los recordatorios que eligió (4 h, 2 h, 1 h o 30 min antes)
   if(np.sched&&typeof schItems==='function'){const now=Date.now();schItems().forEach(([id,it])=>{if(!it.date||!it.time)return;const at=new Date(it.date+'T'+it.time+':00').getTime();
     (it.rem||[]).forEach(m=>{const t=at-m*60000;if(t>now&&t<now+30*864e5)once.push({id:'sch-'+id+'-'+m,at:t,title:'En '+remTxt(m)+': '+it.title,body:'A las '+it.time+' h'+(it.place?' · '+it.place:'')+(it.note?' · '+String(it.note).slice(0,120):''),open:'sched:'+id,cond:''})})})}
@@ -7118,6 +7269,7 @@ function openNotifSettings(){const draw=()=>{const np=nbNP(),st=nbNotifStatus();
       sw('exp','Gastos de las 23 h','Solo si no anotaste ningún gasto en el día.')+
       sw('meals','Comidas','A las 10, 14, 18 y 21 h, si te falta cargar esa comida.'+(hasN?'':' Se activa cuando configurás Comida.'))+
       sw('tasks','Tareas con horario','Para turnos y entregas que tengan hora.')+
+      sw('habits','Contadores','A la hora que elijas en cada contador.')+
       sw('sched','Cronograma','Los recordatorios que elegís en cada actividad: 4 h, 2 h, 1 h o 30 min antes.')+
       sw('dues','Vencimientos','Gastos fijos y tarjetas: 2 días antes y el mismo día, si no los pagaste.')+
       sw('pantry','Heladera y alacena','A las 10 h, el día antes y el mismo día en que vence o deja de ser recomendable cada alimento.')+
@@ -7158,6 +7310,7 @@ function nbOpen(what){try{what=String(what||'');
   else if(what==='timer'){go('entreno');setTimeout(()=>{if(typeof iv!=='undefined'&&iv)ivShow()},150)}
   else if(what==='weekreport'){go('agenda');setTimeout(()=>{const fr=weekRange(0).from,rp=(state.meta.reports||{})[fr];if(rp&&Date.now()-rp.at<6*3600e3)showWeekReport(rp.md,fr,true);else if(sampleFn)weekReport(0,true,false);else openWeekSummary(0)},300)}
   else if(what==='week'){go('agenda');setTimeout(()=>{if(typeof openWeekSummary==='function')openWeekSummary()},150)}
+  else if(what.startsWith('hab:')){go('entreno');const id=what.slice(4);setTimeout(()=>{const h=hbDoc().items[id];if(!h)return;if(h.vis==='hide')hbUnlock(()=>openHabit(id));else openHabit(id)},200)}
   else if(what.startsWith('sched:')){go('agenda');const id=what.slice(6);setTimeout(()=>{const it=sch().items[id];if(!it)return;crDay=it.date;renderCrono();const p=document.getElementById('pane-crono');if(p)p.scrollIntoView({block:'start'});openSched(id)},200)}
   else if(what==='newtask'){go('agenda');setTimeout(()=>openTask(),150)}
   else if(what==='newgasto'){go('finanzas');setTimeout(()=>openMov('gasto'),150)}
