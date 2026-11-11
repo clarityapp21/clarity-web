@@ -1658,6 +1658,10 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .hb-legend{display:flex;gap:6px 12px;font-size:12px;color:var(--muted);flex-wrap:wrap}.hb-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1px solid var(--line)}
 .hb-legend i.y{background:var(--hc);border-color:var(--hc)}.hb-legend i.ok{background:color-mix(in srgb,var(--hc) 14%,var(--surface));border-color:var(--hc)}.hb-legend i.x{background:#f3d6d2;border-color:#C0392B}
 .sheet-head h2 .hb-dot{width:12px;height:12px}
+.cap-h{display:none!important}
+.cap-more{display:flex;align-self:flex-start;margin:8px 0 2px}
+.cap-all .cap-h{display:revert!important}
+.cap-wrap{display:flex;flex-direction:column}
 </style>
 
 <div class="app">
@@ -2480,6 +2484,27 @@ function openHabitForm(id,back){const h=id?hbDoc().items[id]:null;const v=Object
       toast(id?'Contador guardado':v.vis==='hide'?'Contador creado. Está oculto: lo abrís desde "contador oculto".':'Contador creado');if(back&&id)back();else closeSheet()});
     const del=q('#hf-del');if(del)del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}hbPut(id,null);sheetBack=null;closeSheet();toast('Contador eliminado')})};
   draw()}
+
+/* ---------- listas largas: se ven las primeras 5 y "Ver todo" abre una ventana con la lista completa ---------- */
+const CAP_N=5;
+const CAPS=[['#done-list','li:not(.empty)','Tareas terminadas'],['#notes','.note','Notas'],['#entries','li:not(.empty)','Diario'],['#cr-list','li:not(.cr-empty)','Cronograma'],
+  ['#f-movs','li:not(.mov-day):not(.empty)','Movimientos'],['#f-dues','.due-row','Próximos vencimientos'],['#f-fixin','.fixed-row','Ingresos fijos'],['#f-fixed','.fixed-row','Gastos fijos'],['#f-cuotas','.cuo-month','Cuotas'],['#f-goals','.goal','Objetivos'],
+  ['#fis-acts','li:not(.mov-day):not(.empty)','Registro de actividades'],['#fis-matches ul.mov-list','li:not(.empty)','Partidos'],['#fis-injuries','.inj-row','Lesiones'],['#fis-routines','.rt-card','Mis rutinas'],['#fis-prs','.pr-btn','Récords'],['#fis-goals','.fg-card','Objetivos']];
+function capAll(){CAPS.forEach(([cs,is],k)=>document.querySelectorAll(cs).forEach(el=>{if(el.closest('.sheet'))return;const kids=[...el.children],items=kids.filter(c=>c.matches(is)),over=items.length>CAP_N;
+  const set=(c,h)=>{if(c.classList.contains('cap-h')!==h)c.classList.toggle('cap-h',h)};items.forEach((it,i)=>set(it,over&&i>=CAP_N));
+  kids.forEach((c,i)=>{if(!c.matches('.mov-day'))return;let vis=false;for(let j=i+1;j<kids.length&&!kids[j].matches('.mov-day');j++)if(!kids[j].classList.contains('cap-h')){vis=true;break}set(c,over&&!vis)});
+  let b=el.nextElementSibling;if(!(b&&b.classList.contains('cap-more')))b=null;
+  if(over){const txt='Ver todo ('+items.length+')';if(!b){b=document.createElement('button');b.type='button';b.className='btn cap-more';el.after(b)}if(b.dataset.capk!==String(k))b.dataset.capk=k;if(b.textContent!==txt)b.textContent=txt}
+  else if(b)b.remove()}))}
+function openCapAll(b){const c=CAPS[+b.dataset.capk],el=b.previousElementSibling;if(!c||!el)return;
+  const wrap=document.createElement(el.tagName.toLowerCase());wrap.className=el.className+' cap-all';[...el.children].forEach(x=>{const y=x.cloneNode(true);y.classList.remove('cap-h');y.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));wrap.appendChild(y)});
+  openSheet(`<div class="sheet-head"><h2>${esc(c[2])}</h2>${closeBtn}</div><div class="cap-wrap"></div>`);const sh=root.querySelector('.sheet');sh.querySelector('.cap-wrap').appendChild(wrap);
+  /* tocar algo de la lista completa hace lo mismo que tocarlo en la pantalla */
+  wrap.addEventListener('click',e=>{const t=e.target.closest('button,a,input,label,[role="button"]');if(!t||!wrap.contains(t)||e.target.closest('summary'))return;
+    const path=[];let n=t;while(n&&n!==wrap){path.unshift([...n.parentNode.children].indexOf(n));n=n.parentNode}let o=el;for(const i of path)o=o&&o.children[i];
+    if(!o)return;e.preventDefault();closeSheet();setTimeout(()=>o.click(),40)})}
+document.addEventListener('click',e=>{const b=e.target.closest('.cap-more');if(b&&!b.closest('.sheet')){e.stopPropagation();openCapAll(b)}},true);
+{let capQ=false;new MutationObserver(()=>{if(capQ)return;capQ=true;requestAnimationFrame(()=>{capQ=false;try{capAll()}catch(e){}})}).observe(document.querySelector('main')||document.body,{childList:true,subtree:true});}
 
 /* ---------- diario ---------- */
 let diaryTimer=null;
@@ -3329,7 +3354,7 @@ function renderVault(vsec,total){
     const ins=movs.filter(([,m])=>m.dir==='in').reduce((s,[,m])=>s+(+m.amount||0),0),outs=movs.filter(([,m])=>m.dir==='out').reduce((s,[,m])=>s+(+m.amount||0),0);
     return '<section class="fin-block vault-block"><div class="block-head"><button class="link-plain" type="button" data-vsec="'+esc(id)+'"><span class="t vs-title">'+esc(sc.name)+'</span><span class="s">Entró '+money(ins)+' · salió '+money(outs)+'</span></button><b class="vs-bal">'+money(vsec[id]||0)+'</b></div>'+
       '<div class="vsec-actions"><button class="btn btn-primary mini-btn" type="button" data-vin="'+esc(id)+'">Entrada</button><button class="btn mini-btn" type="button" data-vout="'+esc(id)+'">Salida</button></div>'+
-      (movs.length?'<ul class="mov-list">'+movs.slice(0,4).map(([mid,m])=>vMovLi(mid,m)).join('')+'</ul>'+(movs.length>4?'<button class="btn vs-more" type="button" data-vall="'+esc(id)+'">Ver los '+movs.length+' movimientos</button>':''):'<p class="empty">Sin movimientos todavía.</p>')+'</section>'}).join('')
+      (movs.length?'<ul class="mov-list">'+movs.slice(0,5).map(([mid,m])=>vMovLi(mid,m)).join('')+'</ul>'+(movs.length>5?'<button class="btn vs-more" type="button" data-vall="'+esc(id)+'">Ver los '+movs.length+' movimientos</button>':''):'<p class="empty">Sin movimientos todavía.</p>')+'</section>'}).join('')
     :'<p class="empty">Creá una sección por cada situación, por ejemplo "Alquileres papá". Lo que entra y sale de acá no cuenta como tuyo.</p>';
 }
 
