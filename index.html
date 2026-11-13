@@ -1692,6 +1692,16 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .pf-sp{padding:7px 0;border-bottom:1px solid var(--line);gap:10px}
 .pf-chev{color:var(--muted);font-size:20px}
 .tru-ppl{display:flex;flex-direction:column;margin-bottom:6px}
+.tru-rank{display:flex;flex-direction:column;margin-bottom:8px}
+.tru-rk{display:grid;grid-template-columns:22px minmax(0,1fr) 34px 30px 30px 40px;gap:6px;align-items:center;padding:9px 2px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;font-size:14px}
+.tru-rk>span:nth-child(1){text-align:left;color:var(--muted);font-size:12px}
+.tru-rk .nm{text-align:left;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tru-rk.h{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding-top:2px}
+.tru-rk.h>span:nth-child(2){text-align:left}
+.tru-rk.me{background:color-mix(in srgb,var(--hi) 8%,transparent)}
+.tru-prl{display:flex;flex-direction:column}
+.tru-pr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line)}
+.tru-pr>span:first-child{font-weight:600}.tru-pr .s{font-size:12px;color:var(--muted)}.tru-pr b{font-variant-numeric:tabular-nums}
 </style>
 
 <div class="app">
@@ -6534,16 +6544,42 @@ function openTrucoCantos(flor,back){let tab='env';const draw=()=>{const T=(rows)
     const sh=root.querySelector('.sheet');if(back)sheetBack=back;sh.querySelector('#tc-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
     sh.querySelector('#tc-t').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;tab=b.dataset.t;draw()})};
   draw()}
+/* ---------- récord individual de cada jugador de truco (incluido "Vos"), sin importar el equipo ---------- */
+const TRU_ME='__vos';
+function truStats(){const by={};const add=(k,n)=>by[k]=by[k]||{k,name:n,G:0,P:0,pf:0,pc:0,mates:{},rivals:{},games:[]};
+  (tru().games||[]).forEach(x=>{const sides=[{ids:[[TRU_ME,'Vos']].concat((x.us||[]).filter(Boolean).map(n=>[personKey(n),n])),won:x.w==='n',pf:+x.n||0,pc:+x.e||0},
+      {ids:(x.them||[]).filter(Boolean).map(n=>[personKey(n),n]),won:x.w==='e',pf:+x.e||0,pc:+x.n||0}];
+    sides.forEach((sd,si)=>{const ot=sides[1-si];sd.ids.forEach(([k,n])=>{const p=add(k,n),r=sd.won?'G':'P';p[r]++;p.pf+=sd.pf;p.pc+=sd.pc;
+      p.games.push({x,won:sd.won,pf:sd.pf,pc:sd.pc,mates:sd.ids.filter(i=>i[0]!==k).map(i=>i[1]),rivals:ot.ids.map(i=>i[1])});
+      sd.ids.forEach(([k2,n2])=>{if(k2===k)return;const m=p.mates[k2]=p.mates[k2]||{name:n2,G:0,P:0};m[r]++});
+      ot.ids.forEach(([k2,n2])=>{const o=p.rivals[k2]=p.rivals[k2]||{name:n2,G:0,P:0};o[r]++})})})});
+  return Object.values(by).map(p=>Object.assign(p,{n:p.G+p.P,pct:p.G+p.P?p.G/(p.G+p.P):0})).sort((a,b)=>b.pct-a.pct||b.n-a.n||b.G-a.G)}
+function truRankHtml(){const l=truStats();if(l.length<2)return'';
+  return `<span class="lbl">Jugadores · cada uno con sus victorias, juegue en el equipo que juegue</span><div class="tru-rank"><div class="tru-rk h"><span>#</span><span>Jugador</span><span>PJ</span><span>G</span><span>P</span><span>%</span></div>`+
+    l.map((p,i)=>`<button type="button" class="tru-rk${p.k===TRU_ME?' me':''}" data-tp="${esc(p.k)}"><span>${i+1}</span><span class="nm">${esc(p.name)}</span><span>${p.n}</span><span class="c-g">${p.G}</span><span class="c-p">${p.P}</span><span><b>${Math.round(p.pct*100)}</b></span></button>`).join('')+`</div>`}
+function openTrucoPlayer(key,back){const p=truStats().find(x=>x.k===key);if(!p){back?back():closeSheet();return}
+  const gs=p.games.slice().sort((a,b)=>(b.x.ts||0)-(a.x.ts||0));let st=0,sk=null;for(const g of gs){if(sk===null)sk=g.won;if(g.won!==sk)break;st++}
+  const recL=o=>Object.values(o).sort((a,b)=>(b.G+b.P)-(a.G+a.P)||b.G-a.G).map(m=>`<div class="tru-pr"><span>${esc(m.name)}</span><span class="s">${m.G+m.P} PJ · ${Math.round(m.G/(m.G+m.P)*100)} %</span><b><span class="c-g">${m.G}</span> – <span class="c-p">${m.P}</span></b></div>`).join('');
+  const who=p.k===TRU_ME?'Ganaste':'Ganó',whoL=p.k===TRU_ME?'Perdiste':'Perdió',nm=n=>n==='Vos'?'vos':esc(n);
+  openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="tp-back" aria-label="Volver">‹</button><h2>${esc(p.name)}</h2>${closeBtn}</div>`+
+    `<div class="debt-total"><span class="lbl">Victorias</span><b class="${p.pct>=0.5?'pos':'neg'}">${Math.round(p.pct*100)} %</b><div class="debt-sub"><span><b class="c-g">${p.G}</b> ganadas · <b class="c-p">${p.P}</b> perdidas · ${p.n} jugadas</span></div></div>`+
+    `<div class="pf-stats"><div><span>Puntos a favor</span><b>${p.pf}</b><small>${p.n?Math.round(p.pf/p.n)+' por partida':''}</small></div><div><span>Puntos en contra</span><b>${p.pc}</b><small>${p.n?Math.round(p.pc/p.n)+' por partida':''}</small></div><div><span>Racha actual</span><b>${st}</b><small>${st?(sk?(st===1?'ganada':'ganadas seguidas'):(st===1?'perdida':'perdidas seguidas')):''}</small></div></div>`+
+    (Object.keys(p.mates).length?`<span class="lbl dl-lbl">Con cada compañero</span><div class="tru-prl">${recL(p.mates)}</div>`:'')+
+    (Object.keys(p.rivals).length?`<span class="lbl dl-lbl">Contra cada rival</span><div class="tru-prl">${recL(p.rivals)}</div>`:'')+
+    `<span class="lbl dl-lbl">Partidas</span><div class="tru-hl" id="tp-list">${gs.map((g,i)=>`<div class="tru-hrow${i>=5?' cap-h':''}"><span><b>${g.won?who:whoL}${g.rivals.length?' vs '+g.rivals.map(nm).join(' y '):''}</b><span class="s">${g.mates.length?'Con '+g.mates.map(nm).join(' y ')+' · ':''}${esc(parseYmd(g.x.date).toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}))}${g.x.min?' · '+g.x.min+' min':''} · a ${g.x.to}</span></span><span class="tru-res"><span class="${g.won?'c-g':''}">${g.pf}</span> – <span class="${g.won?'':'c-p'}">${g.pc}</span></span></div>`).join('')}</div>`+
+    (gs.length>5?`<button class="btn dev-more" type="button" id="tp-more">Ver todas las partidas (${gs.length})</button>`:''));
+  const sh=root.querySelector('.sheet');sheetBack=back||null;sh.querySelector('#tp-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
+  const m=sh.querySelector('#tp-more');if(m)m.addEventListener('click',()=>{sh.querySelectorAll('#tp-list .cap-h').forEach(x=>x.classList.remove('cap-h'));m.remove()})}
 function openTrucoHist(back){const draw=()=>{const g=(tru().games||[]).slice().reverse();const by={};g.forEach(x=>{const k=truKey(x.them);if(!k)return;(by[k]=by[k]||{names:x.them,w:0,l:0}).w+=x.w==='n'?1:0;by[k].l+=x.w==='e'?1:0});
     const riv=Object.values(by).sort((a,b)=>(b.w+b.l)-(a.w+a.l));const W=g.filter(x=>x.w==='n').length;
     openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="th-back" aria-label="Volver">‹</button><h2>Historial de truco</h2>${closeBtn}</div>`+
       (g.length?`<div class="kpis two"><div class="kpi"><span>Partidas</span><b>${g.length}</b></div><div class="kpi"><span>Ganadas</span><b>${W} <small>(${Math.round(W/g.length*100)} %)</small></b></div></div>`+
-        (truPeople().length?`<span class="lbl">Jugadores · tocá para ver su perfil</span><div class="tru-ppl">${truPeople().map(p=>`<button type="button" class="row tru-pp" data-tp="${esc(p.k)}"><span class="mov-txt"><span class="t">${esc(p.name)}</span><span class="s">${p.v.W+p.v.L?'En contra '+p.v.W+'–'+p.v.L:''}${p.v.W+p.v.L&&p.w.W+p.w.L?' · ':''}${p.w.W+p.w.L?'Juntos '+p.w.W+'–'+p.w.L:''}</span></span><span class="pf-chev">›</span></button>`).join('')}</div>`:'')+
+        truRankHtml()+
         (riv.length?`<span class="lbl">Contra cada equipo</span>${riv.map(r=>`<div class="tru-rival"><div style="flex:1;min-width:0"><b>vs ${esc(truNames(r.names))}</b><div class="tru-bar"><i style="width:${Math.round(r.w/(r.w+r.l)*100)}%"></i></div></div><span class="tru-rec"><span class="c-g">${r.w}</span> – <span class="c-p">${r.l}</span></span></div>`).join('')}`:'')+
         `<span class="lbl">Partidas</span><div class="tru-hl">${g.slice(0,60).map(x=>`<div class="tru-hrow"><span><b>${x.w==='n'?'Ganaron':'Perdieron'}${x.them&&x.them.length?' vs '+esc(truNames(x.them)):''}</b><span class="s">${esc(['Vos'].concat(x.us||[]).join(', '))} · ${esc(parseYmd(x.date).toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}))}${x.min?' · '+x.min+' min':''} · a ${x.to}${x.flor?' con flor':''}</span></span><span class="tru-res"><span class="${x.w==='n'?'c-g':''}">${x.n}</span> – <span class="${x.w==='e'?'c-p':''}">${x.e}</span></span><button class="xbtn" type="button" data-thd="${x.ts}" aria-label="Borrar partida">×</button></div>`).join('')}</div>`
       :'<p class="empty">Todavía no terminaste ninguna partida. Cuando un equipo llega a los puntos, queda guardada acá.</p>'));
     const sh=root.querySelector('.sheet');if(back)sheetBack=back;sh.querySelector('#th-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
-    sh.querySelectorAll('[data-tp]').forEach(b=>b.addEventListener('click',()=>openTrucoPerson(b.dataset.tp,draw)));
+    sh.querySelectorAll('[data-tp]').forEach(b=>b.addEventListener('click',()=>openTrucoPlayer(b.dataset.tp,draw)));
     sh.querySelectorAll('[data-thd]').forEach(b=>b.addEventListener('click',()=>{if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='¿?';return}truSave({games:(tru().games||[]).filter(x=>String(x.ts)!==b.dataset.thd)});draw()}))};
   draw()}
 setTimeout(truLive,1500);$('#truco-hist').addEventListener('click',()=>openTrucoHist());$('#truco-open').addEventListener('click',()=>{tru().cur?openTruco():openTrucoSetup()});
