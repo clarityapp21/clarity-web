@@ -1713,6 +1713,17 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .tru-hrow.ed{grid-template-columns:minmax(0,1fr) auto 30px 30px;gap:4px}
 .tru-hrow .ebtn{border:0;background:none;color:var(--muted);font-size:15px;padding:4px 6px}
 .tg-mem{display:flex;flex-wrap:wrap;gap:6px}
+.hc-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tru-plbtn{align-self:flex-start}
+.preg-list{display:flex;flex-direction:column}
+.preg{display:grid;grid-template-columns:minmax(0,1fr) auto 16px;gap:10px;align-items:center;padding:11px 2px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:inherit;width:100%}
+.preg .t{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.preg .s{display:block;font-size:12.5px;color:var(--muted);font-weight:400}
+.preg .pj{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.preg .chev{color:var(--muted)}
+.pc-amb{border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.pc-amb .hd{display:flex;align-items:center;justify-content:space-between;gap:8px}.pc-amb .hd b{font-size:15px}
+.pc-recs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pc-recs>div{display:flex;flex-direction:column;gap:2px}.pc-recs>div>span{font-size:12px;color:var(--muted)}.pc-recs b{font-size:17px;font-variant-numeric:tabular-nums}
+.grp-tg{display:flex;flex-wrap:wrap;gap:6px}.grp-tg button{border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;padding:7px 12px;font:inherit;font-size:13.5px}
+.grp-tg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}.grp-tg .add{color:var(--muted);border-style:dashed}
 .tru-pr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line)}
 .tru-pr>span:first-child{font-weight:600}.tru-pr .s{font-size:12px;color:var(--muted)}.tru-pr b{font-variant-numeric:tabular-nums}
 </style>
@@ -5085,10 +5096,14 @@ function teamsOf(a){const cp=t=>({name:t&&t.name||'',players:(t&&t.players||[]).
 const teamName=(t,side)=>(t&&t.name)||(side==='my'?'Mi equipo':'Rival');
 /* cada deporte tiene su propia lista de jugadores */
 function sportNames(sp){const c={},nm={};const add=n=>{n=String(n||'').trim();if(!n)return;const k=personKey(n);if(!nm[k])nm[k]=n;c[k]=(c[k]||0)+1};
-  Object.values(state.acts).forEach(a=>{if(a.sport!==sp)return;if(isGames(a)){add(a.fixP);(a.games||[]).forEach(g=>{add(g.p);(g.r||[]).forEach(add)})}const t=teamsOf(a);t.my.players.concat(t.rv.players).forEach(add)});
+  Object.values(state.acts).forEach(a=>{if(a.sport!==sp)return;actNames(a).forEach(add)});
+  ((pgDoc()[sp])||[]).concat([{members:roster()[sp]||[]}]).forEach(gr=>(gr.members||[]).forEach(n=>{const k=personKey(n);if(k&&!nm[k]){nm[k]=n;c[k]=0}}));
   return Object.keys(c).sort((x,y)=>c[y]-c[x]).map(k=>nm[k])}
+function actNames(a){const l=[];const add=n=>{n=String(n||'').trim();if(n&&!l.some(x=>personKey(x)===personKey(n)))l.push(n)};if(isGames(a)){add(a.fixP);(a.games||[]).forEach(g=>{add(g.p);(g.r||[]).forEach(add)})}const t=teamsOf(a);t.my.players.concat(t.rv.players).forEach(add);return l}
+const roster=()=>ppl().roster||{};
+const pgDoc=()=>Object.assign({},state.meta.pgroups||{});
 function truPlayers(){const c={},nm={};(tru().games||[]).forEach(g=>(g.us||[]).concat(g.them||[]).forEach(n=>{n=String(n||'').trim();if(!n)return;const k=personKey(n);if(!nm[k])nm[k]=n;c[k]=(c[k]||0)+1}));
-  ((tru().groups)||[]).forEach(gr=>(gr.members||[]).forEach(n=>{const k=personKey(n);if(k&&!nm[k]){nm[k]=n;c[k]=0}}));
+  ((tru().groups)||[]).concat([{members:roster().truco||[]}]).forEach(gr=>(gr.members||[]).forEach(n=>{const k=personKey(n);if(k&&!nm[k]){nm[k]=n;c[k]=0}}));
   return Object.keys(c).sort((x,y)=>c[y]-c[x]).map(k=>nm[k])}
 const SP_LBL=sp=>sp==='truco'?'Truco':(SPORTS[sp]?SPORTS[sp].name:sp);
 function nameSports(n){const k=personKey(n),out=[];Object.keys(SPORTS).forEach(sp=>{if(SPORTS[sp].match&&sportNames(sp).some(x=>personKey(x)===k))out.push(sp)});if(truPlayers().some(x=>personKey(x)===k))out.push('truco');return out}
@@ -5402,7 +5417,7 @@ function renderMatches(){const el=$('#fis-matches');
       `<div class="kpi"><span>Partidos importantes</span><b>${st.imp?Math.round(st.impW/st.imp*100)+' % <small>('+st.impW+' de '+st.imp+')</small>':'–'}</b></div></div>`+
       `<div class="mt-notes">${st.streak?`<span class="s">${st.streak}</span>`:''}${st.best?`<span class="s">Mejor partido: ${mtSport==='padel'?rateBadge5(Math.round(st.best.rating*5)/10):rateBadge(st.best.rating)} ${esc(longDate(st.best.date))}</span>`:''}</div>`+
       `<div class="mt-2col"><div><span class="lbl mus-lbl">Partidos</span><ul class="mov-list">${list.slice(0,30).map(([id,a])=>{const t=teamsOf(a);return `<li><button class="mov" type="button" data-sess="m:${esc(id)}">${chip(SPORTS[a.sport].icon,SPORTS[a.sport].color,'sm')}<span class="mov-txt"><span class="t">${isGames(a)?'Sesión · '+(a.games||[]).length+' games':esc(teamName(t.my,'my')+' vs '+teamName(t.rv,'rv'))}</span><span class="s">${esc(parseYmd(a.date).toLocaleDateString('es-AR',{day:'numeric',month:'short'}))} · ${a.sport==='futbol'?'F'+(a.mode||'?')+(a.gender==='mixto'?' mixto':''):(a.mode==='mixto'?'Mixto':'Común')}${a.place?' · '+esc(a.place):''}${+a.importance?' · '+'★'.repeat(+a.importance):''}${a.sport==='futbol'&&(+a.goals||+a.assists)?' · '+(+a.goals||0)+' G · '+(+a.assists||0)+' A':''}</span></span><span class="sess-right">${resPill(a)}${actBadge(a)}</span></button></li>`}).join('')}</ul></div>`+
-      `<div class="hist-card"><div class="block-head"><span class="lbl mus-lbl">Historial</span><button class="btn mini-btn btn-special" type="button" id="hist-open">Ver tabla completa</button></div>${(()=>{const rr=pt.filter(([,r])=>r.v.n).map(([n,r])=>[n,r.v]).sort((x,y)=>y[1].n-x[1].n);const fut=mtSport==='futbol';
+      `<div class="hist-card"><div class="block-head"><span class="lbl mus-lbl">Historial</span><span class="hc-btns"><button class="btn mini-btn" type="button" data-plreg="1">Jugadores</button><button class="btn mini-btn btn-special" type="button" id="hist-open">Ver tabla completa</button></span></div>${(()=>{const rr=pt.filter(([,r])=>r.v.n).map(([n,r])=>[n,r.v]).sort((x,y)=>y[1].n-x[1].n);const fut=mtSport==='futbol';
       return rr.length?`<div class="hist-mini">${rr.slice(0,6).map(([n,r])=>`<button type="button" class="hist-row mini ${recCls(r)}${mtPlayer===n?' sel':''}" data-mplayer="${esc(n)}"><span class="t">${esc(n)}</span><span>${r.n} PJ</span><span>${r.G}-${fut?r.E+'-':''}${r.P}</span></button>`).join('')}</div><span class="s">Tus rivales más frecuentes: verde a favor, amarillo parejo, rojo en contra.</span>`:'<p class="empty" style="margin:0">Cargá los jugadores de cada equipo al registrar un partido y vas a ver tu historial contra cada rival.</p>'})()}</div></div>`
     :`<p class="empty">Todavía no cargaste partidos de ${SPORTS[mtSport].name.toLowerCase()}${mtMode?' en esta modalidad':''}. Cada partido suma a tu calendario de constancia.</p>`)}
 
@@ -6613,6 +6628,106 @@ function openTrucoPlayer(key,back){const p=truStats().find(x=>x.k===key);if(!p){
   const sh=root.querySelector('.sheet');sheetBack=back||null;const rn=sh.querySelector('#tp-ren');if(rn)rn.addEventListener('click',()=>openTrucoRename(p.k,back));sh.querySelector('#tp-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
   const m=sh.querySelector('#tp-more');if(m)m.addEventListener('click',()=>{sh.querySelectorAll('#tp-list .cap-h').forEach(x=>x.classList.remove('cap-h'));m.remove()})}
 const truGroups=()=>(tru().groups||[]);
+/* ---------- registro de jugadores por ámbito (fútbol, pádel, truco) ---------- */
+const AMBS=()=>{const on=Object.keys(SPORTS).filter(k=>SPORTS[k].match&&((prefs().sports||[]).includes(k)||Object.values(state.acts).some(a=>a.sport===k)));return(on.length?on:['futbol','padel']).concat(['truco'])};
+function ambGroups(sp){return sp==='truco'?truGroups():(pgDoc()[sp]||[])}
+function ambGroupsSave(sp,l){if(sp==='truco')truSave({groups:l});else put('meta','pgroups',Object.assign({},pgDoc(),{[sp]:l}))}
+const ambNames=sp=>sp==='truco'?truPlayers():sportNames(sp);
+const zr=()=>({G:0,E:0,P:0,n:0});
+/* récord de cada persona con vos y contra vos en un ámbito, por personKey */
+function ambRec(sp){const o={};
+  if(sp==='truco'){const me=truStats().find(p=>p.k===TRU_ME);if(me){Object.entries(me.mates).forEach(([k,m])=>{(o[k]=o[k]||{name:m.name,w:zr(),v:zr()}).w={G:m.G,E:0,P:m.P,n:m.G+m.P}});Object.entries(me.rivals).forEach(([k,m])=>{(o[k]=o[k]||{name:m.name,w:zr(),v:zr()}).v={G:m.G,E:0,P:m.P,n:m.G+m.P}})}}
+  else playerTable(Object.values(state.acts).filter(a=>a.sport===sp)).forEach(([n,r])=>{const k=personKey(n);const e=o[k]=o[k]||{name:n,w:zr(),v:zr()};['w','v'].forEach(x=>['G','E','P','n'].forEach(f=>e[x][f]+=r[x][f]||0))});
+  return o}
+const recStr=(r,sp)=>r.n?`<span class="c-g">${r.G}</span>-${sp==='futbol'?r.E+'-':''}<span class="c-p">${r.P}</span>`:'–';
+/* reemplaza (o borra, si to='') un nombre en todo un ámbito */
+function ambReplace(sp,key,to){const fix=l=>{const out=[];(l||[]).forEach(n=>{const v=personKey(n)===key?to:n;if(v&&!out.some(x=>personKey(x)===personKey(v)))out.push(v)});return out};
+  if(sp==='truco'){const t=tru();const patch={games:(t.games||[]).map(g=>Object.assign({},g,{us:fix(g.us),them:fix(g.them)}))};if(t.cur)patch.cur=Object.assign({},t.cur,{us:fix(t.cur.us),them:fix(t.cur.them)});truSave(patch)}
+  else Object.entries(state.acts).forEach(([id,a])=>{if(a.sport!==sp)return;const b=JSON.parse(JSON.stringify(a));let ch=false;const one=v=>{if(v&&personKey(v)===key){ch=true;return to||''}return v};
+    ['myTeam','rivalTeam'].forEach(t=>{if(b[t]&&Array.isArray(b[t].players)){const np=fix(b[t].players);if(JSON.stringify(np)!==JSON.stringify(b[t].players)){b[t].players=np;ch=true}}});
+    if(b.partner)b.partner=one(b.partner);if(b.fixP)b.fixP=one(b.fixP);(b.games||[]).forEach(g=>{if(g.p)g.p=one(g.p);if(Array.isArray(g.r))g.r=g.r.map(one)});if(ch)put('acts',id,b)});
+  ambGroupsSave(sp,ambGroups(sp).map(g=>Object.assign({},g,{members:fix(g.members)})));
+  const r=roster();if(r[sp])savePpl({roster:Object.assign({},r,{[sp]:fix(r[sp])})})}
+let plAmb='futbol',plGrp='';
+function openPlayers(sp,back){if(sp)plAmb=sp;const bk=back||null;
+  const draw=()=>{let am=AMBS();if(!am.includes(plAmb))plAmb=am[0];const sp=plAmb;const rec=ambRec(sp),grs=ambGroups(sp);let gr=grs.find(g=>g.id===plGrp);if(!gr)plGrp='';
+    let rows=ambNames(sp).map(n=>{const k=personKey(n),r=rec[k]||{w:zr(),v:zr()};return{n,k,r,pj:r.w.n+r.v.n}});if(gr)rows=rows.filter(x=>(gr.members||[]).some(m=>personKey(m)===x.k));
+    rows.sort((a,b)=>b.pj-a.pj||normS(a.n).localeCompare(normS(b.n)));
+    openSheet(`<div class="sheet-head">${bk?'<button class="iconbtn" type="button" id="pr-back" aria-label="Volver">‹</button>':''}<h2>Jugadores</h2>${closeBtn}</div>`+
+      `<div class="seg" id="pr-amb">${am.map(a=>`<button type="button" data-amb="${a}" aria-pressed="${a===sp}">${esc(SP_LBL(a))}</button>`).join('')}</div>`+
+      `<div class="tru-tabs" id="pr-grp"><button type="button" data-pg="" aria-pressed="${!gr}">Todos (${ambNames(sp).length})</button>${grs.map(g=>`<button type="button" data-pg="${esc(g.id)}" aria-pressed="${gr&&gr.id===g.id}">${esc(g.name)}</button>`).join('')}<button type="button" class="add" data-pgn="1">+ Grupo</button></div>`+
+      (gr?`<div class="actions" style="margin:0"><button class="btn" type="button" data-pgs="1">Estadísticas del grupo</button><div class="right"><button class="btn" type="button" data-pge="1">Editar grupo</button></div></div>`:'')+
+      `<div class="tm-add"><input type="search" id="pr-in" maxlength="30" placeholder="Buscá o agregá un jugador" autocomplete="off" enterkeyhint="done"><button class="btn" type="button" id="pr-add">Agregar</button></div>`+
+      (rows.length?`<div class="preg-list" id="pr-list">${rows.map(x=>`<button type="button" class="preg" data-pn="${esc(x.n)}" data-q="${esc(normS(x.n))}"><span class="t">${esc(x.n)}<span class="s">Con vos ${recStr(x.r.w,sp)} · Contra vos ${recStr(x.r.v,sp)}</span></span><span class="pj">${x.pj} PJ</span><span class="chev">›</span></button>`).join('')}</div>`
+        :`<p class="empty">${gr?'Este grupo está vacío. Tocá «Editar grupo» para sumar gente.':'Todavía no hay jugadores en '+esc(SP_LBL(sp))+'. Se suman solos al cargar partidos, o agregalos acá.'}</p>`)+
+      `<p class="status" style="margin:0">«Con vos» y «Contra vos» son tus resultados: ganados${sp==='futbol'?', empatados':''} y perdidos.</p>`);
+    const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);sheetBack=bk||null;
+    const pb=q('#pr-back');if(pb)pb.addEventListener('click',()=>{sheetBack=null;bk()});
+    q('#pr-in').addEventListener('input',()=>{const nq=normS(q('#pr-in').value.trim());sh.querySelectorAll('.preg').forEach(b=>b.hidden=!!nq&&!b.dataset.q.includes(nq))});
+    const add=async()=>{let n=q('#pr-in').value.trim().replace(/\s+/g,' ');if(!n){q('#pr-in').focus();return}n=n.charAt(0).toUpperCase()+n.slice(1);const pool=ambNames(sp);n=await checkName(n,sp,pool);
+      if(!pool.some(x=>personKey(x)===personKey(n))){const r=roster();savePpl({roster:Object.assign({},r,{[sp]:(r[sp]||[]).concat([n])})})}
+      if(gr&&!(gr.members||[]).some(m=>personKey(m)===personKey(n)))ambGroupsSave(sp,ambGroups(sp).map(g=>g.id===gr.id?Object.assign({},g,{members:(g.members||[]).concat([n])}):g));
+      toast(n+' está en '+SP_LBL(sp)+(gr?' · '+gr.name:''));draw()};
+    q('#pr-add').addEventListener('click',add);q('#pr-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add()}});
+    sh.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+      if(d.amb){plAmb=d.amb;plGrp='';draw();return}
+      if(d.pg!=null){plGrp=d.pg;draw();return}
+      if(d.pgn){openAmbGroupEdit(sp,null,draw);return}
+      if(d.pge){openAmbGroupEdit(sp,gr.id,draw);return}
+      if(d.pgs){if(sp==='truco'){truTab=gr.id;openTrucoHist(draw)}else openSportGroup(sp,gr.id,draw);return}
+      if(d.pn){openPlayerCard(sp,d.pn,draw)}})};
+  draw()}
+/* ficha de un jugador: récord con y contra vos en cada ámbito, grupos, corregir y eliminar */
+function openPlayerCard(sp,name,back){const k=personKey(name);const re=()=>openPlayerCard(sp,shown(),back);const shown=()=>ambNames(sp).find(n=>personKey(n)===k)||name;
+  const xs=(ppl().xs||{})[k];const ambs=[sp].concat(AMBS().filter(a=>a!==sp&&xs!==false&&ambNames(a).some(n=>personKey(n)===k)));
+  const card=a=>{const r=ambRec(a)[k]||{w:zr(),v:zr()};return `<div class="pc-amb"><div class="hd"><b>${esc(SP_LBL(a))}</b><button class="btn mini-btn" type="button" data-ph="${a}">Ver historial</button></div><div class="pc-recs"><div><span>Con vos · ${r.w.n} PJ</span><b>${recStr(r.w,a)}</b></div><div><span>Contra vos · ${r.v.n} PJ</span><b>${recStr(r.v,a)}</b></div></div></div>`};
+  const grs=ambGroups(sp);
+  openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="pc-back" aria-label="Volver">‹</button><h2>${esc(shown())}</h2>${closeBtn}</div>`+
+    ambs.map(card).join('')+
+    (ambs.length>1&&xs==null?`<span class="s">Aparece con el mismo nombre en ${ambs.length} lugares. Si no es la misma persona, tocá «No es la misma».</span><button class="link-btn" type="button" data-pxs="0" style="align-self:flex-start">No es la misma persona</button>`:'')+
+    `<div class="field"><span class="lbl">Grupos de ${esc(SP_LBL(sp))}</span><div class="grp-tg">${grs.map(g=>`<button type="button" data-gt="${esc(g.id)}" aria-pressed="${(g.members||[]).some(m=>personKey(m)===k)}">${esc(g.name)}</button>`).join('')}<button type="button" class="add" data-gtn="1">+ Nuevo grupo</button></div><span class="s">Tocá un grupo para sumarlo o sacarlo.</span></div>`+
+    `<div class="actions"><button class="btn btn-danger" type="button" id="pc-del">Eliminar</button><div class="right"><button class="btn" type="button" id="pc-ren">Corregir nombre / unir</button></div></div>`+
+    `<p class="status" style="margin:0">Eliminar lo saca de ${esc(SP_LBL(sp))}: los partidos quedan con tus resultados, solo se borra su nombre.</p>`);
+  const sh=root.querySelector('.sheet');sheetBack=back||null;sh.querySelector('#pc-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
+  sh.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+    if(d.ph){if(d.ph==='truco')openTrucoPlayer(k,re);else openPlayerProfile(shown(),re,d.ph);return}
+    if(d.pxs){savePpl({xs:Object.assign({},ppl().xs||{},{[k]:false})});re();return}
+    if(d.gt){ambGroupsSave(sp,ambGroups(sp).map(g=>{if(g.id!==d.gt)return g;const has=(g.members||[]).some(m=>personKey(m)===k);return Object.assign({},g,{members:has?g.members.filter(m=>personKey(m)!==k):(g.members||[]).concat([shown()])})}));re();return}
+    if(d.gtn){const before=new Set(ambGroups(sp).map(x=>x.id));openAmbGroupEdit(sp,null,()=>{const g=ambGroups(sp).find(x=>!before.has(x.id));if(g&&!(g.members||[]).some(m=>personKey(m)===k))ambGroupsSave(sp,ambGroups(sp).map(x=>x.id===g.id?Object.assign({},x,{members:(x.members||[]).concat([shown()])}):x));re()});return}
+    if(b.id==='pc-ren'){openAmbRename(sp,k,re,back);return}
+    if(b.id==='pc-del'){if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='¿Seguro? Tocá de nuevo';return}ambReplace(sp,k,'');toast(shown()+' eliminado de '+SP_LBL(sp));sheetBack=null;back?back():closeSheet()}})}
+/* corregir nombre o unir con otro, en cualquier ámbito */
+function openAmbRename(sp,key,back,after){const nm=ambNames(sp).find(n=>personKey(n)===key)||'';const others=ambNames(sp).filter(n=>personKey(n)!==key);
+  openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="ar-back" aria-label="Volver">‹</button><h2>Corregir nombre</h2>${closeBtn}</div>`+
+    `<div class="field"><label for="ar-in">¿Cómo se llama de verdad?</label><input type="text" id="ar-in" maxlength="30" autocomplete="off" value="${esc(nm)}"></div>`+
+    `<div class="field"><span class="lbl">¿O es alguno de estos? Tocalo para unirlos</span><div class="cat-chips tm-freq" id="ar-pool"></div></div>`+
+    `<p class="status" style="margin:0">Se cambia en todos sus partidos de ${esc(SP_LBL(sp))} y en los grupos. Si elegís a otro jugador, quedan como una sola persona con todo sumado.</p>`+
+    `<div class="actions"><div class="right"><button class="btn btn-primary" type="button" id="ar-save">Guardar</button></div></div>`);
+  const sh=root.querySelector('.sheet'),q=y=>sh.querySelector(y);sheetBack=back||null;
+  const drawPool=()=>{const nq=normS(q('#ar-in').value.trim());const sim=similarName(nm,others);let l=others.filter(n=>!nq||normS(n).includes(nq)||n===sim);if(sim)l=[sim].concat(l.filter(n=>n!==sim));
+    q('#ar-pool').innerHTML=l.slice(0,20).map(n=>`<button type="button" data-mg="${esc(n)}">${esc(n)}${n===sim?' · ¿será este?':''}</button>`).join('')||'<span class="s">Nadie parecido.</span>'};
+  const apply=to=>{to=String(to||'').trim().replace(/\s+/g,' ');if(!to)return;to=to.charAt(0).toUpperCase()+to.slice(1);const ex=others.find(n=>personKey(n)===personKey(to));const fin=ex||to;
+    ambReplace(sp,key,fin);toast(ex?nm+' y '+ex+' ahora son la misma persona':'Nombre corregido');sheetBack=null;openPlayerCard(sp,fin,after)};
+  q('#ar-in').addEventListener('input',drawPool);q('#ar-back').addEventListener('click',()=>{sheetBack=null;back()});
+  q('#ar-pool').addEventListener('click',async e=>{const b=e.target.closest('[data-mg]');if(!b)return;if(await askDlg(`¿<b>${esc(nm)}</b> y <b>${esc(b.dataset.mg)}</b> son la misma persona? Se van a sumar todos sus partidos.`,'Sí, unirlos','No'))apply(b.dataset.mg)});
+  q('#ar-save').addEventListener('click',async()=>{const v=q('#ar-in').value.trim();if(!v){toast('Escribí un nombre.');return}const ex=others.find(n=>personKey(n)===personKey(v));
+    if(ex&&!await askDlg(`Ya existe <b>${esc(ex)}</b>. ¿Es la misma persona que <b>${esc(nm)}</b>? Se van a sumar todos sus partidos.`,'Sí, unirlos','No'))return;apply(v)});
+  drawPool()}
+/* estadísticas de un grupo de fútbol o pádel */
+let spGMode='in';
+function openSportGroup(sp,id,back){const draw=()=>{const gr=ambGroups(sp).find(g=>g.id===id);if(!gr){back?back():closeSheet();return}
+    const inG=n=>(gr.members||[]).some(m=>personKey(m)===personKey(n));const all=Object.values(state.acts).filter(a=>a.sport===sp);
+    const list=spGMode==='in'?all.filter(a=>{const ns=actNames(a);return ns.length&&ns.every(inG)}):all.filter(a=>actNames(a).some(inG));
+    const st=matchStats(list);const pt=playerTable(list).filter(([n])=>inG(n));const fut=sp==='futbol';
+    openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="sg-back" aria-label="Volver">‹</button><h2>${esc(gr.name)}</h2>${closeBtn}</div>`+
+      `<div class="seg seg-sm" id="sg-m"><button type="button" data-gm="in" aria-pressed="${spGMode==='in'}">Entre ellos</button><button type="button" data-gm="all" aria-pressed="${spGMode==='all'}">Todos sus partidos</button></div>`+
+      `<span class="s">${spGMode==='in'?'Partidos de '+esc(SP_LBL(sp))+' donde todos los anotados son del grupo.':'Todos los partidos donde jugó alguien del grupo.'}</span>`+
+      `<div class="kpis two"><div class="kpi"><span>Partidos</span><b>${st.n}</b></div><div class="kpi"><span>Vos ${fut?'G · E · P':'G · P'}</span><b>${st.c.G} · ${fut?st.c.E+' · ':''}${st.c.P}</b></div></div>`+
+      (pt.length?`<span class="lbl">Integrantes</span><div class="preg-list">${pt.map(([n,r])=>`<button type="button" class="preg" data-pn="${esc(n)}"><span class="t">${esc(n)}<span class="s">Con vos ${recStr(r.w,sp)} · Contra vos ${recStr(r.v,sp)}</span></span><span class="pj">${r.w.n+r.v.n} PJ</span><span class="chev">›</span></button>`).join('')}</div>`:'<p class="empty">Todavía no hay partidos para este grupo.</p>')+
+      `<div class="actions"><div class="right"><button class="btn" type="button" id="sg-ed">Editar grupo</button></div></div>`);
+    const sh=root.querySelector('.sheet');sheetBack=back||null;sh.querySelector('#sg-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
+    sh.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.gm){spGMode=b.dataset.gm;draw();return}if(b.id==='sg-ed'){openAmbGroupEdit(sp,id,draw);return}if(b.dataset.pn)openPlayerCard(sp,b.dataset.pn,draw)})};
+  draw()}
 const truInGroup=(gr,n)=>(gr.members||[]).some(m=>personKey(m)===personKey(n));
 /* partidas "entre ellos": todos los nombres anotados son del grupo */
 const truGroupGames=gr=>(tru().games||[]).filter(x=>{const ns=(x.us||[]).concat(x.them||[]).filter(Boolean);return ns.length&&ns.every(n=>truInGroup(gr,n))});
@@ -6628,7 +6743,7 @@ function openTrucoHist(back){const draw=()=>{const grs=truGroups();let gr=grs.fi
     const tabs=`<div class="tru-tabs" id="th-tabs"><button type="button" data-tt="" aria-pressed="${!gr}">General</button>${grs.map(x=>`<button type="button" data-tt="${esc(x.id)}" aria-pressed="${gr&&gr.id===x.id}">${esc(x.name)}</button>`).join('')}<button type="button" class="add" data-tg="new">+ Grupo</button></div>`;
     const grHead=gr?`<div class="seg seg-sm" id="th-gm"><button type="button" data-gm="in" aria-pressed="${truGMode==='in'}">Entre ellos</button><button type="button" data-gm="all" aria-pressed="${truGMode==='all'}">Todas sus partidas</button></div>`+
       `<div class="tg-mem">${(gr.members||[]).map(n=>`<span class="pl-chip">${esc(n)}</span>`).join('')||'<span class="s">El grupo está vacío.</span>'}</div><span class="s">${note}</span>`:'';
-    openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="th-back" aria-label="Volver">‹</button><h2>Historial de truco</h2>${closeBtn}</div>`+tabs+grHead+
+    openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="th-back" aria-label="Volver">‹</button><h2>Historial de truco</h2>${closeBtn}</div>`+tabs+grHead+(gr?'':`<button class="btn tru-plbtn" type="button" data-plreg="1">Jugadores de truco · editar, borrar, grupos</button>`)+
       (g.length?truMeHtml(st)+truRankHtml(st,gr?'Tabla de '+esc(gr.name):'')+
         (riv.length&&!gr?`<span class="lbl">Contra cada equipo</span>${riv.map((r,i)=>`<div class="tru-rival${i>=5?' cap-h':''}"><div style="flex:1;min-width:0"><b>vs ${esc(truNames(r.names))}</b><div class="tru-bar"><i style="width:${Math.round(r.w/(r.w+r.l)*100)}%"></i></div></div><span class="tru-rec"><span class="c-g">${r.w}</span> – <span class="c-p">${r.l}</span></span></div>`).join('')}<div id="th-riv"></div>${riv.length>5?`<button class="btn dev-more" type="button" data-capall="riv">Ver todos (${riv.length})</button>`:''}`:'')+
         `<span class="lbl">Partidas</span><div class="tru-hl" id="th-list">${g.map(truGameRow).join('')}</div>${g.length>5?`<button class="btn dev-more" type="button" data-capall="#th-list">Ver todas las partidas (${g.length})</button>`:''}`
@@ -6636,6 +6751,7 @@ function openTrucoHist(back){const draw=()=>{const grs=truGroups();let gr=grs.fi
       (gr?`<div class="actions"><div class="right"><button class="btn" type="button" data-tg="${esc(gr.id)}">Editar grupo</button></div></div>`:''));
     const sh=root.querySelector('.sheet');sheetBack=back||null;sh.querySelector('#th-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
     sh.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+      if(d.plreg){openPlayers('truco',draw);return}
       if(d.tt!=null){truTab=d.tt;draw();return}
       if(d.gm){truGMode=d.gm;draw();return}
       if(d.tg){openTrucoGroup(d.tg==='new'?null:d.tg,draw);return}
@@ -6645,20 +6761,21 @@ function openTrucoHist(back){const draw=()=>{const grs=truGroups();let gr=grs.fi
       if(d.thd){if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='¿?';return}truSave({games:(tru().games||[]).filter(x=>String(x.ts)!==d.thd)});draw()}})};
   draw()}
 /* crear / editar un grupo de truco */
-function openTrucoGroup(id,back){const grs=truGroups();const old=id?grs.find(x=>x.id===id):null;const g={name:old?old.name:'',members:old?(old.members||[]).slice():[]};let showAll=false;
+const openTrucoGroup=(id,back)=>openAmbGroupEdit('truco',id,back);
+function openAmbGroupEdit(sp,id,back){const grs=ambGroups(sp);const old=id?grs.find(x=>x.id===id):null;const g={name:old?old.name:'',members:old?(old.members||[]).slice():[]};let showAll=false;
   const draw=()=>{const nm=sh.querySelector('#tg-name');if(nm)g.name=nm.value;
     openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="tg-back" aria-label="Volver">‹</button><h2>${old?'Editar grupo':'Nuevo grupo'}</h2>${closeBtn}</div>`+
       `<div class="field"><label for="tg-name">Nombre del grupo</label><input type="text" id="tg-name" maxlength="30" value="${esc(g.name)}" placeholder="Ej.: Los del club, Familia"></div>`+
       `<div class="field"><span class="lbl">Integrantes (${g.members.length})</span><div class="tm-list">${g.members.map((n,i)=>`<span class="pl-chip">${esc(n)}<button type="button" data-rm="${i}" aria-label="Quitar ${esc(n)}">×</button></span>`).join('')||'<span class="s">Todavía nadie. Tocá los nombres de abajo.</span>'}</div>`+
       `<div class="tm-add"><input type="search" id="tg-in" maxlength="30" placeholder="Buscá o escribí un nombre" autocomplete="off" enterkeyhint="done"><button class="btn" type="button" id="tg-addb">Agregar</button></div></div>`+
-      `<div class="field"><span class="lbl">Jugadores de truco</span><div class="cat-chips tm-freq" id="tg-pool"></div><button class="link-btn" type="button" id="tg-more" style="align-self:flex-start" hidden></button></div>`+
+      `<div class="field"><span class="lbl">Jugadores de ${esc(SP_LBL(sp))}</span><div class="cat-chips tm-freq" id="tg-pool"></div><button class="link-btn" type="button" id="tg-more" style="align-self:flex-start" hidden></button></div>`+
       `<p class="status" style="margin:0">Vos estás en todos los grupos sin agregarte. Una persona puede estar en varios grupos.</p>`+
       `<div class="actions">${old?'<button class="btn btn-danger" type="button" id="tg-del">Borrar grupo</button>':''}<div class="right"><button class="btn btn-primary" type="button" id="tg-save">Guardar</button></div></div>`);
     sh=root.querySelector('.sheet');sheetBack=back||null;const q=x=>sh.querySelector(x);
-    const pool=truPlayers();const drawPool=()=>{const nq=normS(q('#tg-in').value.trim());let l=pool.filter(n=>!g.members.some(m=>personKey(m)===personKey(n))&&(!nq||normS(n).includes(nq)));const tot=l.length;l=l.slice(0,nq||showAll?60:15);
+    const pool=ambNames(sp);const drawPool=()=>{const nq=normS(q('#tg-in').value.trim());let l=pool.filter(n=>!g.members.some(m=>personKey(m)===personKey(n))&&(!nq||normS(n).includes(nq)));const tot=l.length;l=l.slice(0,nq||showAll?60:15);
       q('#tg-pool').innerHTML=l.map(n=>`<button type="button" data-add="${esc(n)}">+ ${esc(n)}</button>`).join('')||'<span class="s">'+(nq?'Nadie con ese nombre: tocá «Agregar» para sumarlo.':'Ya están todos.')+'</span>';
       const mb=q('#tg-more');mb.hidden=!!nq||tot<=15;mb.textContent=showAll?'Ver menos':'Ver todos ('+tot+')'};
-    const add=async n=>{n=String(n||'').trim();if(!n)return;n=n.charAt(0).toUpperCase()+n.slice(1);n=await checkName(n,'truco',pool);if(!g.members.some(m=>personKey(m)===personKey(n)))g.members.push(n);draw()};
+    const add=async n=>{n=String(n||'').trim();if(!n)return;n=n.charAt(0).toUpperCase()+n.slice(1);n=await checkName(n,sp,pool);if(!g.members.some(m=>personKey(m)===personKey(n)))g.members.push(n);draw()};
     q('#tg-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
     q('#tg-in').addEventListener('input',drawPool);q('#tg-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();q('#tg-addb').click()}});
     q('#tg-addb').addEventListener('click',()=>add(q('#tg-in').value));
@@ -6666,10 +6783,10 @@ function openTrucoGroup(id,back){const grs=truGroups();const old=id?grs.find(x=>
     q('#tg-pool').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(b)add(b.dataset.add)});
     sh.querySelector('.tm-list').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(b){g.name=q('#tg-name').value;g.members.splice(+b.dataset.rm,1);draw()}});
     q('#tg-save').addEventListener('click',()=>{const name=q('#tg-name').value.trim();if(!name){toast('Ponele un nombre al grupo.');q('#tg-name').focus();return}
-      const nid=old?old.id:'g'+Date.now().toString(36);const l=truGroups().filter(x=>x.id!==nid);const ng={id:nid,name,members:g.members};
-      truSave({groups:old?truGroups().map(x=>x.id===nid?ng:x):l.concat([ng])});truTab=nid;toast(old?'Grupo guardado':'Grupo creado');sheetBack=null;back?back():closeSheet()});
+      const nid=old?old.id:'g'+Date.now().toString(36);const l=ambGroups(sp).filter(x=>x.id!==nid);const ng={id:nid,name,members:g.members};
+      ambGroupsSave(sp,old?ambGroups(sp).map(x=>x.id===nid?ng:x):l.concat([ng]));if(sp==='truco')truTab=nid;plGrp=nid;toast(old?'Grupo guardado':'Grupo creado');sheetBack=null;back?back():closeSheet()});
     const del=q('#tg-del');if(del)del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='¿Seguro? Tocá de nuevo';return}
-      truSave({groups:truGroups().filter(x=>x.id!==old.id)});truTab='';toast('Grupo borrado (las partidas no se tocan)');sheetBack=null;back?back():closeSheet()});
+      ambGroupsSave(sp,ambGroups(sp).filter(x=>x.id!==old.id));if(sp==='truco')truTab='';plGrp='';toast('Grupo borrado (los partidos no se tocan)');sheetBack=null;back?back():closeSheet()});
     drawPool()};
   let sh=root.querySelector('.sheet')||document.createElement('div');draw()}
 /* editar una partida ya jugada */
@@ -7478,7 +7595,7 @@ $('#view-entreno').addEventListener('click',e=>{const b=e.target.closest('button
   else if(b.id==='hist-open')openHistory();else if(b.id==='rt-add')openRoutineNew();else if(b.id==='lib-open')openLibrary();else if(d.exo)openExercise(d.exo);else if(b.id==='fg-add'||b.id==='fg-add2')openFGoal();else if(d.fg)openFGoal(d.fg);else if(d.qw)openQuickWeight();else if(b.id==='rt-samples')addSampleRoutines();
   else if(d.rtEdit)openRoutine(d.rtEdit);else if(d.rtStart)startLive(d.rtStart);
   else if(d.prog){openExercise(d.prog)}
-  else if(d.mt){mtSport=d.mt;mtMode='';mtPlayer='';renderMatches()}else if(d.mplayer!=null){if(d.mplayer)openPlayerProfile(d.mplayer,null,mtSport);else{mtPlayer='';renderMatches()}}else if(d.mm!=null){mtMode=d.mm;renderMatches()}
+  else if(d.mt){mtSport=d.mt;mtMode='';mtPlayer='';renderMatches()}else if(d.plreg){openPlayers(mtSport)}else if(d.mplayer!=null){if(d.mplayer)openPlayerProfile(d.mplayer,null,mtSport);else{mtPlayer='';renderMatches()}}else if(d.mm!=null){mtMode=d.mm;renderMatches()}
   else if(b.id==='bd-add'||b.id==='bd-add2')openBody();
   else if(b.id==='fis-sports-btn')renderSportsSetup(true);
   else if(d.cym){cyMonth=shiftMonth(cyMonth,+d.cym);renderCycle()}else if(d.cyday)openCycleLog(d.cyday);
