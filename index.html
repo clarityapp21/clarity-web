@@ -1700,6 +1700,19 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .tru-rk.h>span:nth-child(2){text-align:left}
 .tru-rk.me{background:color-mix(in srgb,var(--hi) 8%,transparent)}
 .tru-prl{display:flex;flex-direction:column}
+.ask-dlg{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:20px}
+.ask-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:380px;width:100%;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.ask-card h3{margin:0;font-size:17px}.ask-card p{margin:0;font-size:15px;line-height:1.4}
+.ask-btns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.tru-me{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--hi) 7%,transparent);color:var(--ink);text-align:left;width:100%;font:inherit}
+.tru-me .t{font-weight:700;font-size:15px}.tru-me .s{font-size:12.5px;color:var(--muted)}.tru-me b{margin-left:auto;font-size:20px;font-variant-numeric:tabular-nums}
+.tru-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.tru-tabs::-webkit-scrollbar{display:none}
+.tru-tabs button{flex:none;border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;padding:7px 13px;font:inherit;font-size:13.5px;white-space:nowrap}
+.tru-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tru-tabs .add{color:var(--muted);border-style:dashed}
+.tru-hrow.ed{grid-template-columns:minmax(0,1fr) auto 30px 30px;gap:4px}
+.tru-hrow .ebtn{border:0;background:none;color:var(--muted);font-size:15px;padding:4px 6px}
+.tg-mem{display:flex;flex-wrap:wrap;gap:6px}
 .tru-pr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line)}
 .tru-pr>span:first-child{font-weight:600}.tru-pr .s{font-size:12px;color:var(--muted)}.tru-pr b{font-variant-numeric:tabular-nums}
 </style>
@@ -4211,8 +4224,8 @@ function openDebtPerson(key){const items=Object.entries(state.debts).filter(([,d
     if(d.debt||d.dev){openDebt(d.debt||d.dev);sheetBack=re}})}
 
 /* ---------- perfil de un jugador (partidos y deportes) ---------- */
-function openPlayerProfile(name,back){const k=personKey(name);const z=()=>({G:0,E:0,P:0,n:0});const tot={w:z(),v:z()},bySp={},games=[];let shown=name;
-  Object.entries(state.acts).forEach(([id,a])=>{if(!(SPORTS[a.sport]&&SPORTS[a.sport].match))return;let w=0,v=0;
+function openPlayerProfile(name,back,sp){const k=personKey(name);if(sp&&(ppl().xs||{})[k]===true)sp=null;const z=()=>({G:0,E:0,P:0,n:0});const tot={w:z(),v:z()},bySp={},games=[];let shown=name;
+  Object.entries(state.acts).forEach(([id,a])=>{if(!(SPORTS[a.sport]&&SPORTS[a.sport].match)||(sp&&a.sport!==sp))return;let w=0,v=0;
     histUnits(a).forEach(u=>{const inW=u.my.players.some(n=>personKey(n)===k),inV=u.rv.players.some(n=>personKey(n)===k);if(!inW&&!inV)return;
       const sp=bySp[a.sport]=bySp[a.sport]||{w:z(),v:z()},r=inW?'w':'v';[tot,sp].forEach(o=>{o[r][u.result]++;o[r].n++});if(inW)w++;else v++;
       (u.my.players.concat(u.rv.players)).forEach(n=>{if(personKey(n)===k&&/^[A-ZÁÉÍÓÚÑ]/.test(n))shown=n})});
@@ -4230,7 +4243,7 @@ function openPlayerProfile(name,back){const k=personKey(name);const z=()=>({G:0,
     `<span class="lbl dl-lbl">Partidos</span><div class="dev-list" id="pp-list">${games.map((g,i)=>`<button type="button" class="row pf-g${i>=5?' cap-h':''}" data-pact="${esc(g.id)}">${chip(SPORTS[g.a.sport].icon,SPORTS[g.a.sport].color,'sm')}<span class="mov-txt"><span class="t">${esc(sportTitle(g.a))}</span><span class="s">${esc(parseYmd(g.a.date).toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'}))}${role(g)?' · '+role(g):''}</span></span>${resPill(g.a)}</button>`).join('')||'<p class="empty">Sin partidos.</p>'}</div>`+
     (games.length>5?`<button class="btn dev-more" type="button" id="pp-more">Ver todos los partidos (${games.length})</button>`:'')+
     (topSp?`<div class="actions"><div class="right"><button class="btn" type="button" id="pp-filter">Ver sus partidos en la lista</button></div></div>`:''));
-  const sh=root.querySelector('.sheet'),re=()=>openPlayerProfile(name,back);sheetBack=null;if(back){sheetBack=back;sh.querySelector('#pp-back').addEventListener('click',()=>{sheetBack=null;back()})}
+  const sh=root.querySelector('.sheet'),re=()=>openPlayerProfile(name,back,sp);sheetBack=null;if(back){sheetBack=back;sh.querySelector('#pp-back').addEventListener('click',()=>{sheetBack=null;back()})}
   sh.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     if(b.id==='pp-more'){sh.querySelectorAll('#pp-list .cap-h').forEach(x=>x.classList.remove('cap-h'));b.remove();return}
     if(b.id==='pp-filter'){mtSport=topSp[0];mtMode='';mtPlayer=shown;closeSheet();renderMatches();$('#fis-matches').scrollIntoView({behavior:'smooth',block:'start'});return}
@@ -4512,7 +4525,7 @@ function openPeople(back){const draw=()=>{const L=ppl().links,fk={},sk={};finNam
     sh.querySelectorAll('[data-pesep]').forEach(b=>b.addEventListener('click',()=>{if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='¿Seguro? Tocá de nuevo';return}savePpl({links:Object.assign({},ppl().links,{[b.dataset.pesep]:false})});toast('Separados');draw()}))};
   draw()}
 function bindPeople(inp,box,opts){opts=opts||{};let all=false;const draw=()=>{const nq=normS(inp.value.trim());const ex=(opts.exclude?opts.exclude():[]).map(personKey);
-    let l=knownPeople(opts.scope).filter(n=>!ex.includes(personKey(n))&&(!nq||normS(n).includes(nq))&&personKey(n)!==personKey(inp.value));const tot=l.length;l=l.slice(0,nq||all?40:10);
+    let l=(opts.names?opts.names():knownPeople(opts.scope)).filter(n=>!ex.includes(personKey(n))&&(!nq||normS(n).includes(nq))&&personKey(n)!==personKey(inp.value));const tot=l.length;l=l.slice(0,nq||all?40:10);
     box.innerHTML=l.map(n=>`<button type="button" data-pp="${esc(n)}">${esc(n)}</button>`).join('')+(!nq&&tot>10?`<button type="button" class="pp-more" data-ppm="1">${all?'Ver menos':'Ver todos ('+tot+')'}</button>`:'');box.hidden=!box.innerHTML};
   inp.addEventListener('input',draw);box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.ppm){all=!all;draw();return}inp.value=b.dataset.pp;draw();if(opts.onPick)opts.onPick(b.dataset.pp)});draw();return draw}
 function openDebt(id,preset){
@@ -5070,7 +5083,32 @@ const IMPORTANCE=['','Amistoso tranqui','Entre amigos','Partido picante','Torneo
 function teamsOf(a){const cp=t=>({name:t&&t.name||'',players:(t&&t.players||[]).slice()});
   return{my:a.myTeam?cp(a.myTeam):{name:a.team||'',players:a.partner?[a.partner]:[]},rv:a.rivalTeam?cp(a.rivalTeam):{name:a.rival||a.rivals||'',players:[]}}}
 const teamName=(t,side)=>(t&&t.name)||(side==='my'?'Mi equipo':'Rival');
-function knownPlayers(){const c={};Object.values(state.acts).forEach(a=>{if(!SPORTS[a.sport]||!SPORTS[a.sport].match)return;const t=teamsOf(a);t.my.players.concat(t.rv.players).forEach(n=>{c[n]=(c[n]||0)+1})});return Object.entries(c).sort((x,y)=>y[1]-x[1]).map(x=>x[0])}
+/* cada deporte tiene su propia lista de jugadores */
+function sportNames(sp){const c={},nm={};const add=n=>{n=String(n||'').trim();if(!n)return;const k=personKey(n);if(!nm[k])nm[k]=n;c[k]=(c[k]||0)+1};
+  Object.values(state.acts).forEach(a=>{if(a.sport!==sp)return;if(isGames(a)){add(a.fixP);(a.games||[]).forEach(g=>{add(g.p);(g.r||[]).forEach(add)})}const t=teamsOf(a);t.my.players.concat(t.rv.players).forEach(add)});
+  return Object.keys(c).sort((x,y)=>c[y]-c[x]).map(k=>nm[k])}
+function truPlayers(){const c={},nm={};(tru().games||[]).forEach(g=>(g.us||[]).concat(g.them||[]).forEach(n=>{n=String(n||'').trim();if(!n)return;const k=personKey(n);if(!nm[k])nm[k]=n;c[k]=(c[k]||0)+1}));
+  ((tru().groups)||[]).forEach(gr=>(gr.members||[]).forEach(n=>{const k=personKey(n);if(k&&!nm[k]){nm[k]=n;c[k]=0}}));
+  return Object.keys(c).sort((x,y)=>c[y]-c[x]).map(k=>nm[k])}
+const SP_LBL=sp=>sp==='truco'?'Truco':(SPORTS[sp]?SPORTS[sp].name:sp);
+function nameSports(n){const k=personKey(n),out=[];Object.keys(SPORTS).forEach(sp=>{if(SPORTS[sp].match&&sportNames(sp).some(x=>personKey(x)===k))out.push(sp)});if(truPlayers().some(x=>personKey(x)===k))out.push('truco');return out}
+function nameDist(a,b){if(a===b)return 0;if(Math.abs(a.length-b.length)>3)return 9;let pr=Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){const cu=[i];for(let j=1;j<=b.length;j++)cu[j]=Math.min(pr[j]+1,cu[j-1]+1,pr[j-1]+(a[i-1]===b[j-1]?0:1));pr=cu}return pr[b.length]}
+function similarName(n,pool){const k=personKey(n);if(!k||pool.some(x=>personKey(x)===k))return null;let best=null,bd=9;
+  pool.forEach(x=>{const kx=personKey(x);if(!kx)return;let d=nameDist(k,kx);const f1=k.split(' ')[0],f2=kx.split(' ')[0];
+    if(d>2&&f1.length>2&&f1===f2&&(k.startsWith(kx)||kx.startsWith(k)))d=1.5;const lim=Math.min(k.length,kx.length)<=4?1:2;if(d<=lim&&d<bd){bd=d;best=x}});return best}
+/* pregunta chiquita encima de lo que esté abierto (no cierra la hoja) */
+function askDlg(html,yes,no){return new Promise(res=>{const d=document.createElement('div');d.className='ask-dlg';
+  d.innerHTML=`<div class="ask-card" role="dialog" aria-modal="true"><h3>¿Es la misma persona?</h3><p>${html}</p><div class="ask-btns"><button class="btn" type="button" data-a="0">${esc(no)}</button><button class="btn btn-primary" type="button" data-a="1">${esc(yes)}</button></div></div>`;
+  document.body.appendChild(d);d.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;d.remove();res(b.dataset.a==='1')})})}
+/* antes de sumar un nombre nuevo: ¿se parece a uno que ya está en este deporte? ¿ya está en otro deporte? */
+async function checkName(n,sp,pool){n=String(n||'').trim().replace(/\s+/g,' ');if(!n)return n;const k=personKey(n);
+  const ex=pool.find(x=>personKey(x)===k);if(ex)return ex;
+  const sim=similarName(n,pool);if(sim&&await askDlg(`En ${esc(SP_LBL(sp))} ya tenés a <b>${esc(sim)}</b>. ¿<b>${esc(n)}</b> es la misma persona?`,'Sí, es '+sim,'No, es otra'))return sim;
+  const xs=ppl().xs||{};if(xs[k]==null){const oth=nameSports(n).filter(x=>x!==sp);if(oth.length){const v=await askDlg(`<b>${esc(n)}</b> ya está anotado en ${oth.map(x=>esc(SP_LBL(x))).join(' y ')}. ¿Es la misma persona que va a jugar ${esc(SP_LBL(sp))}?`,'Sí, la misma','No, es otra');
+    savePpl({xs:Object.assign({},ppl().xs||{},{[k]:v})})}}
+  return n}
+function knownPlayers(sp){if(sp)return sportNames(sp);const c={};Object.values(state.acts).forEach(a=>{if(!SPORTS[a.sport]||!SPORTS[a.sport].match)return;const t=teamsOf(a);t.my.players.concat(t.rv.players).forEach(n=>{c[n]=(c[n]||0)+1})});return Object.entries(c).sort((x,y)=>y[1]-x[1]).map(x=>x[0])}
 function openActivity(id,preset){if(id&&!state.acts[id])return;if((id&&state.acts[id].sport==='fuerza')||(!id&&preset&&preset.sport==='fuerza'))return openWorkLog(id);actId=id||null;actAll=false;
   actDraft=id?Object.assign({level:'mod'},state.acts[id]):Object.assign({date:todayStr(),time:(()=>{const n=new Date();return pad(n.getHours())+':'+pad(n.getMinutes())})(),sport:mySports()[0],intensity:6},preset||{});
   if(!actDraft.level)actDraft.level=SPORTS[actDraft.sport]&&SPORTS[actDraft.sport].match?'comp':'mod';const t=teamsOf(actDraft);actDraft.myTeam=t.my;actDraft.rivalTeam=t.rv;
@@ -5172,21 +5210,21 @@ function openTeamEditor(side){readAct();const a=actDraft,key=side==='my'?'myTeam
   const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);
   const draw=()=>{q('#tm-list').innerHTML=(side==='my'?'<span class="pl-chip me">Vos</span>':'')+t.players.map((n,i)=>`<span class="pl-chip">${esc(n)}<button type="button" data-rm="${i}" aria-label="Quitar ${esc(n)}">×</button></span>`).join('')+(!t.players.length&&side!=='my'?'<span class="s">Sin jugadores todavía.</span>':'');
     drawFreq()};
-  let showAll=false;const pool=(()=>{const c={};Object.values(state.acts).forEach(x=>{if(!SPORTS[x.sport]||!SPORTS[x.sport].match)return;const tt=teamsOf(x);const same=x.sport===a.sport?2:1;(side==='my'?tt.my:tt.rv).players.forEach(n=>{c[n]=(c[n]||0)+2*same});(side==='my'?tt.rv:tt.my).players.forEach(n=>{c[n]=(c[n]||0)+same})});const ks=new Set(Object.keys(c).map(personKey));fisNames().forEach(([n])=>{n=String(n||'').trim();if(n&&!ks.has(personKey(n))){ks.add(personKey(n));c[n]=0.5}});return Object.entries(c).sort((x,y)=>y[1]-x[1]).map(x=>x[0])})();
+  let showAll=false;const pool=(()=>{const c={};Object.values(state.acts).forEach(x=>{if(x.sport!==a.sport)return;const tt=teamsOf(x);(side==='my'?tt.my:tt.rv).players.forEach(n=>{c[n]=(c[n]||0)+2});(side==='my'?tt.rv:tt.my).players.forEach(n=>{c[n]=(c[n]||0)+1})});const ks=new Set(Object.keys(c).map(personKey));sportNames(a.sport).forEach(n=>{if(!ks.has(personKey(n))){ks.add(personKey(n));c[n]=0.5}});return Object.entries(c).sort((x,y)=>y[1]-x[1]).map(x=>x[0])})();
   const drawFreq=()=>{const nq=normS(q('#tm-in').value.trim());const inT=new Set(t.players.map(x=>x.toLowerCase())),inO=new Set(a[oth].players.map(x=>x.toLowerCase()));
     let l=pool.filter(n=>!inT.has(n.toLowerCase())&&(!nq||normS(n).includes(nq)));const tot=l.length,lim=nq||showAll?40:12;l=l.slice(0,lim);
     const exact=nq&&(pool.some(n=>normS(n)===nq)||t.players.some(n=>normS(n)===nq));
     q('#tm-freq-l').textContent=nq?(tot?'Coincidencias':'Jugador nuevo'):'Tocá para sumar · los que más jugaron '+(side==='my'?'con vos':'en contra');
     q('#tm-freq').innerHTML=(nq&&!exact?`<button type="button" class="tm-new" data-add="${esc(q('#tm-in').value.trim())}">+ Agregar "${esc(q('#tm-in').value.trim())}"</button>`:'')+l.map(n=>`<button type="button" data-add="${esc(n)}"${inO.has(n.toLowerCase())?' class="tm-oth" title="Está en el otro equipo: tocá para pasarlo"':''}>+ ${esc(n)}${inO.has(n.toLowerCase())?' ⇄':''}</button>`).join('');
     q('#tm-freq-f').hidden=!l.length&&!nq;const mb=q('#tm-more');mb.hidden=!!nq||tot<=12;mb.textContent=showAll?'Ver menos':'Ver todos ('+tot+')'};
-  const add=n=>{n=String(n||'').trim().replace(/\s+/g,' ');if(!n)return;n=n.charAt(0).toUpperCase()+n.slice(1);if(t.players.some(x=>x.toLowerCase()===n.toLowerCase()))return;
+  const add=async n=>{n=String(n||'').trim().replace(/\s+/g,' ');if(!n)return;n=n.charAt(0).toUpperCase()+n.slice(1);n=await checkName(n,a.sport,pool.concat(t.players,a[oth].players));if(t.players.some(x=>personKey(x)===personKey(n)))return;
     const o=a[oth];const j=o.players.findIndex(x=>x.toLowerCase()===n.toLowerCase());if(j>=0){o.players.splice(j,1);toast(n+' pasó a '+(side==='my'?'tu equipo':'el equipo rival'))}t.players.push(n);draw()};
   q('#tm-addb').addEventListener('click',()=>{add(q('#tm-in').value);q('#tm-in').value='';drawFreq()});
   q('#tm-in').addEventListener('input',drawFreq);q('#tm-more').addEventListener('click',()=>{showAll=!showAll;drawFreq()});
   q('#tm-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();q('#tm-addb').click()}});
   q('#tm-list').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(b){t.players.splice(+b.dataset.rm,1);draw()}});
   q('#tm-freq').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(b){add(b.dataset.add);if(q('#tm-in').value){q('#tm-in').value='';drawFreq()}}});
-  q('#tm-done').addEventListener('click',()=>{const pend=q('#tm-in').value.trim();if(pend)add(pend);t.name=q('#tm-name').value.trim();renderActSheet()});
+  q('#tm-done').addEventListener('click',async()=>{const pend=q('#tm-in').value.trim();if(pend)await add(pend);t.name=q('#tm-name').value.trim();renderActSheet()});
   draw()}
 
 /* ---------- pádel: sesión por games (triangular, americano, etc.) ---------- */
@@ -5210,7 +5248,7 @@ const sessNames=a=>[...new Set((a.games||[]).flatMap(x=>[x.p].concat(x.r||[])).c
 
 /* elegir un jugador: los de la sesión primero, después los que más jugaron */
 function openPlayerPick(o,cb){const sess=o.sess||[];const seen=new Set(),pool=[];
-  sess.concat(knownPlayers(),fisNames().map(x=>x[0])).forEach(n=>{n=String(n||'').trim();const k=personKey(n);if(n&&!seen.has(k)){seen.add(k);pool.push(n)}});
+  sess.concat(sportNames(o.sport||'padel')).forEach(n=>{n=String(n||'').trim();const k=personKey(n);if(n&&!seen.has(k)){seen.add(k);pool.push(n)}});
   openSheet(`<div class="sheet-head"><h2>${esc(o.title)}</h2>${closeBtn}</div>`+
     `<div class="tm-add"><input type="search" id="pp-in" maxlength="30" placeholder="Buscá o escribí un nombre" autocomplete="off" enterkeyhint="done"><button class="btn" type="button" id="pp-ok">Usar</button></div>`+
     `<div class="field"><span class="lbl" id="pp-l"></span><div class="cat-chips tm-freq" id="pp-list"></div></div>`+
@@ -5218,7 +5256,7 @@ function openPlayerPick(o,cb){const sess=o.sess||[];const seen=new Set(),pool=[]
     `<p class="status" style="margin:0">Si un lugar queda vacío, ese jugador no suma al historial.</p>`);
   if(o.back)sheetBack=o.back;
   const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);const ex=new Set((o.exclude||[]).filter(Boolean).map(personKey));
-  const done=n=>{n=String(n||'').trim().replace(/\s+/g,' ');if(n)n=n.charAt(0).toUpperCase()+n.slice(1);sheetBack=null;cb(n)};
+  const done=async n=>{n=String(n||'').trim().replace(/\s+/g,' ');if(n)n=n.charAt(0).toUpperCase()+n.slice(1);if(n)n=await checkName(n,o.sport||'padel',pool);sheetBack=null;cb(n)};
   const draw=()=>{const raw=q('#pp-in').value.trim(),nq=normS(raw);const l=pool.filter(n=>!ex.has(personKey(n))&&(!nq||normS(n).includes(nq)));const exact=nq&&pool.some(n=>normS(n)===nq);
     q('#pp-l').textContent=nq?(l.length?'Coincidencias':'Jugador nuevo'):(sess.length?'Tocá para elegir · los de hoy primero':'Tocá para elegir');
     q('#pp-list').innerHTML=(nq&&!exact?`<button type="button" class="tm-new" data-pp="${esc(raw)}">+ Agregar "${esc(raw)}"</button>`:'')+l.slice(0,30).map(n=>`<button type="button" data-pp="${esc(n)}"${sess.some(x=>personKey(x)===personKey(n))?' class="pp-today"':''}>${esc(n)}</button>`).join('')};
@@ -5725,7 +5763,7 @@ function openHistory(){const list=Object.values(state.acts).filter(a=>a.sport===
       :`<p class="empty">${histTab==='tm'?'Ponele nombre al equipo rival cuando cargues un partido para verlo acá.':'Cargá los jugadores de cada equipo al registrar un partido para ver tu historial con cada persona.'}</p>`)+
     `<p class="status" style="margin:0">${histTab==='w'?'Tus resultados jugando en el mismo equipo.':'Tus resultados enfrentando a cada uno.'} Verde: ganaste más de lo que perdiste. Amarillo: parejo. Rojo: perdiste más.${histTab==='tm'?'':' Tocá un nombre para ver su perfil.'}</p>`);
   const sh=root.querySelector('.sheet');sh.querySelector('[data-hist]').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(!b)return;histTab=b.dataset.v;openHistory()});
-  sh.addEventListener('click',e=>{const b=e.target.closest('[data-hp]');if(!b)return;openPlayerProfile(b.dataset.hp,openHistory)})}
+  sh.addEventListener('click',e=>{const b=e.target.closest('[data-hp]');if(!b)return;openPlayerProfile(b.dataset.hp,openHistory,mtSport)})}
 
 /* ---------- render de Físico ---------- */
 let pcMonth=thisMonth(),pcDay=todayStr(),progEx='';
@@ -6503,12 +6541,12 @@ function openTrucoSetup(pre){const c=Object.assign({fmt:2,flor:false,to:30,us:[]
       `<div class="actions"><button class="btn" type="button" id="ts-hist">Historial</button><div class="right"><button class="btn btn-primary" type="button" id="ts-go">Empezar</button></div></div>`);
     const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);
     const read=()=>{c.us=[];c.them=[];sh.querySelectorAll('.ts-in').forEach(i=>{(i.dataset.side==='us'?c.us:c.them)[+i.dataset.i]=i.value.trim()})};
-    const dr=[];const redrawAll=()=>dr.forEach(f=>f());sh.querySelectorAll('.ts-in').forEach(inp=>{dr.push(bindPeople(inp,sh.querySelector(`[data-ppfor="${inp.dataset.side}${inp.dataset.i}"]`),{scope:'fis',exclude:()=>[...sh.querySelectorAll('.ts-in')].filter(x=>x!==inp).map(x=>x.value).filter(Boolean),onPick:redrawAll}));inp.addEventListener('change',redrawAll)});
+    const dr=[];const redrawAll=()=>dr.forEach(f=>f());sh.querySelectorAll('.ts-in').forEach(inp=>{dr.push(bindPeople(inp,sh.querySelector(`[data-ppfor="${inp.dataset.side}${inp.dataset.i}"]`),{names:truPlayers,exclude:()=>[...sh.querySelectorAll('.ts-in')].filter(x=>x!==inp).map(x=>x.value).filter(Boolean),onPick:redrawAll}));inp.addEventListener('change',redrawAll)});
     q('#ts-f').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;read();c.fmt=+b.dataset.f;draw()});
     q('#ts-fl').addEventListener('click',e=>{const b=e.target.closest('[data-fl]');if(!b)return;c.flor=b.dataset.fl==='1';q('#ts-fl').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
     q('#ts-to').addEventListener('click',e=>{const b=e.target.closest('[data-to]');if(!b)return;c.to=+b.dataset.to;q('#ts-to').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
     q('#ts-hist').addEventListener('click',()=>{read();openTrucoHist(()=>openTrucoSetup(c))});
-    q('#ts-go').addEventListener('click',()=>{read();const cur={fmt:c.fmt,flor:c.flor,to:c.to,us:c.us.slice(0,c.fmt-1).filter(Boolean),them:c.them.slice(0,c.fmt).filter(Boolean),log:[],start:Date.now(),date:todayStr()};truSave({cur});openTruco()})};
+    q('#ts-go').addEventListener('click',async()=>{read();const pool=truPlayers();for(const sd of ['us','them'])for(let i=0;i<c[sd].length;i++){if(!c[sd][i])continue;let v=c[sd][i];v=v.charAt(0).toUpperCase()+v.slice(1);v=await checkName(v,'truco',pool);c[sd][i]=v;if(!pool.some(x=>personKey(x)===personKey(v)))pool.push(v)}const cur={fmt:c.fmt,flor:c.flor,to:c.to,us:c.us.slice(0,c.fmt-1).filter(Boolean),them:c.them.slice(0,c.fmt).filter(Boolean),log:[],start:Date.now(),date:todayStr()};truSave({cur});openTruco()})};
   draw()}
 function openTruco(){const t=tru();const cur=t.cur;if(!cur){openTrucoSetup();return}
   const sc=()=>({n:cur.log.filter(x=>x==='n').length,e:cur.log.filter(x=>x==='e').length});
@@ -6546,17 +6584,20 @@ function openTrucoCantos(flor,back){let tab='env';const draw=()=>{const T=(rows)
   draw()}
 /* ---------- récord individual de cada jugador de truco (incluido "Vos"), sin importar el equipo ---------- */
 const TRU_ME='__vos';
-function truStats(){const by={};const add=(k,n)=>by[k]=by[k]||{k,name:n,G:0,P:0,pf:0,pc:0,mates:{},rivals:{},games:[]};
-  (tru().games||[]).forEach(x=>{const sides=[{ids:[[TRU_ME,'Vos']].concat((x.us||[]).filter(Boolean).map(n=>[personKey(n),n])),won:x.w==='n',pf:+x.n||0,pc:+x.e||0},
+function truStats(list){const by={};const add=(k,n)=>by[k]=by[k]||{k,name:n,G:0,P:0,pf:0,pc:0,mates:{},rivals:{},games:[]};
+  (list||tru().games||[]).forEach(x=>{const sides=[{ids:[[TRU_ME,'Vos']].concat((x.us||[]).filter(Boolean).map(n=>[personKey(n),n])),won:x.w==='n',pf:+x.n||0,pc:+x.e||0},
       {ids:(x.them||[]).filter(Boolean).map(n=>[personKey(n),n]),won:x.w==='e',pf:+x.e||0,pc:+x.n||0}];
     sides.forEach((sd,si)=>{const ot=sides[1-si];sd.ids.forEach(([k,n])=>{const p=add(k,n),r=sd.won?'G':'P';p[r]++;p.pf+=sd.pf;p.pc+=sd.pc;
       p.games.push({x,won:sd.won,pf:sd.pf,pc:sd.pc,mates:sd.ids.filter(i=>i[0]!==k).map(i=>i[1]),rivals:ot.ids.map(i=>i[1])});
       sd.ids.forEach(([k2,n2])=>{if(k2===k)return;const m=p.mates[k2]=p.mates[k2]||{name:n2,G:0,P:0};m[r]++});
       ot.ids.forEach(([k2,n2])=>{const o=p.rivals[k2]=p.rivals[k2]||{name:n2,G:0,P:0};o[r]++})})})});
   return Object.values(by).map(p=>Object.assign(p,{n:p.G+p.P,pct:p.G+p.P?p.G/(p.G+p.P):0})).sort((a,b)=>b.pct-a.pct||b.n-a.n||b.G-a.G)}
-function truRankHtml(){const l=truStats();if(l.length<2)return'';
-  return `<span class="lbl">Jugadores · cada uno con sus victorias, juegue en el equipo que juegue</span><div class="tru-rank"><div class="tru-rk h"><span>#</span><span>Jugador</span><span>PJ</span><span>G</span><span>P</span><span>%</span></div>`+
-    l.map((p,i)=>`<button type="button" class="tru-rk${p.k===TRU_ME?' me':''}" data-tp="${esc(p.k)}"><span>${i+1}</span><span class="nm">${esc(p.name)}</span><span>${p.n}</span><span class="c-g">${p.G}</span><span class="c-p">${p.P}</span><span><b>${Math.round(p.pct*100)}</b></span></button>`).join('')+`</div>`}
+function truRankHtml(st,lbl){const l=st.filter(p=>p.k!==TRU_ME);if(!l.length)return'';
+  return `<span class="lbl">${lbl||'Jugadores · cada uno con sus victorias, juegue en el equipo que juegue'}</span><div class="tru-rank"><div class="tru-rk h"><span>#</span><span>Jugador</span><span>PJ</span><span>G</span><span>P</span><span>%</span></div>`+
+    l.map((p,i)=>`<button type="button" class="tru-rk${i>=10?' cap-h':''}" data-tp="${esc(p.k)}"><span>${i+1}</span><span class="nm">${esc(p.name)}</span><span>${p.n}</span><span class="c-g">${p.G}</span><span class="c-p">${p.P}</span><span><b>${Math.round(p.pct*100)}</b></span></button>`).join('')+`</div>`+
+    (l.length>10?`<button class="btn dev-more" type="button" data-capall=".tru-rank">Ver todos (${l.length})</button>`:'')}
+function truMeHtml(st){const m=st.find(p=>p.k===TRU_ME);if(!m)return'';
+  return `<button type="button" class="tru-me" data-tp="${TRU_ME}"><span><span class="t">Vos</span><br><span class="s"><span class="c-g">${m.G}</span> ganadas · <span class="c-p">${m.P}</span> perdidas · ${m.n} jugadas</span></span><b>${Math.round(m.pct*100)} %</b></button>`}
 function openTrucoPlayer(key,back){const p=truStats().find(x=>x.k===key);if(!p){back?back():closeSheet();return}
   const gs=p.games.slice().sort((a,b)=>(b.x.ts||0)-(a.x.ts||0));let st=0,sk=null;for(const g of gs){if(sk===null)sk=g.won;if(g.won!==sk)break;st++}
   const recL=o=>Object.values(o).sort((a,b)=>(b.G+b.P)-(a.G+a.P)||b.G-a.G).map(m=>`<div class="tru-pr"><span>${esc(m.name)}</span><span class="s">${m.G+m.P} PJ · ${Math.round(m.G/(m.G+m.P)*100)} %</span><b><span class="c-g">${m.G}</span> – <span class="c-p">${m.P}</span></b></div>`).join('');
@@ -6567,21 +6608,118 @@ function openTrucoPlayer(key,back){const p=truStats().find(x=>x.k===key);if(!p){
     (Object.keys(p.mates).length?`<span class="lbl dl-lbl">Con cada compañero</span><div class="tru-prl">${recL(p.mates)}</div>`:'')+
     (Object.keys(p.rivals).length?`<span class="lbl dl-lbl">Contra cada rival</span><div class="tru-prl">${recL(p.rivals)}</div>`:'')+
     `<span class="lbl dl-lbl">Partidas</span><div class="tru-hl" id="tp-list">${gs.map((g,i)=>`<div class="tru-hrow${i>=5?' cap-h':''}"><span><b>${g.won?who:whoL}${g.rivals.length?' vs '+g.rivals.map(nm).join(' y '):''}</b><span class="s">${g.mates.length?'Con '+g.mates.map(nm).join(' y ')+' · ':''}${esc(parseYmd(g.x.date).toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}))}${g.x.min?' · '+g.x.min+' min':''} · a ${g.x.to}</span></span><span class="tru-res"><span class="${g.won?'c-g':''}">${g.pf}</span> – <span class="${g.won?'':'c-p'}">${g.pc}</span></span></div>`).join('')}</div>`+
-    (gs.length>5?`<button class="btn dev-more" type="button" id="tp-more">Ver todas las partidas (${gs.length})</button>`:''));
-  const sh=root.querySelector('.sheet');sheetBack=back||null;sh.querySelector('#tp-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
+    (gs.length>5?`<button class="btn dev-more" type="button" id="tp-more">Ver todas las partidas (${gs.length})</button>`:'')+
+    (p.k!==TRU_ME?`<div class="actions"><div class="right"><button class="btn" type="button" id="tp-ren">Corregir nombre / unir con otro</button></div></div>`:''));
+  const sh=root.querySelector('.sheet');sheetBack=back||null;const rn=sh.querySelector('#tp-ren');if(rn)rn.addEventListener('click',()=>openTrucoRename(p.k,back));sh.querySelector('#tp-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
   const m=sh.querySelector('#tp-more');if(m)m.addEventListener('click',()=>{sh.querySelectorAll('#tp-list .cap-h').forEach(x=>x.classList.remove('cap-h'));m.remove()})}
-function openTrucoHist(back){const draw=()=>{const g=(tru().games||[]).slice().reverse();const by={};g.forEach(x=>{const k=truKey(x.them);if(!k)return;(by[k]=by[k]||{names:x.them,w:0,l:0}).w+=x.w==='n'?1:0;by[k].l+=x.w==='e'?1:0});
-    const riv=Object.values(by).sort((a,b)=>(b.w+b.l)-(a.w+a.l));const W=g.filter(x=>x.w==='n').length;
-    openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="th-back" aria-label="Volver">‹</button><h2>Historial de truco</h2>${closeBtn}</div>`+
-      (g.length?`<div class="kpis two"><div class="kpi"><span>Partidas</span><b>${g.length}</b></div><div class="kpi"><span>Ganadas</span><b>${W} <small>(${Math.round(W/g.length*100)} %)</small></b></div></div>`+
-        truRankHtml()+
-        (riv.length?`<span class="lbl">Contra cada equipo</span>${riv.map(r=>`<div class="tru-rival"><div style="flex:1;min-width:0"><b>vs ${esc(truNames(r.names))}</b><div class="tru-bar"><i style="width:${Math.round(r.w/(r.w+r.l)*100)}%"></i></div></div><span class="tru-rec"><span class="c-g">${r.w}</span> – <span class="c-p">${r.l}</span></span></div>`).join('')}`:'')+
-        `<span class="lbl">Partidas</span><div class="tru-hl">${g.slice(0,60).map(x=>`<div class="tru-hrow"><span><b>${x.w==='n'?'Ganaron':'Perdieron'}${x.them&&x.them.length?' vs '+esc(truNames(x.them)):''}</b><span class="s">${esc(['Vos'].concat(x.us||[]).join(', '))} · ${esc(parseYmd(x.date).toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}))}${x.min?' · '+x.min+' min':''} · a ${x.to}${x.flor?' con flor':''}</span></span><span class="tru-res"><span class="${x.w==='n'?'c-g':''}">${x.n}</span> – <span class="${x.w==='e'?'c-p':''}">${x.e}</span></span><button class="xbtn" type="button" data-thd="${x.ts}" aria-label="Borrar partida">×</button></div>`).join('')}</div>`
-      :'<p class="empty">Todavía no terminaste ninguna partida. Cuando un equipo llega a los puntos, queda guardada acá.</p>'));
-    const sh=root.querySelector('.sheet');if(back)sheetBack=back;sh.querySelector('#th-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
-    sh.querySelectorAll('[data-tp]').forEach(b=>b.addEventListener('click',()=>openTrucoPlayer(b.dataset.tp,draw)));
-    sh.querySelectorAll('[data-thd]').forEach(b=>b.addEventListener('click',()=>{if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='¿?';return}truSave({games:(tru().games||[]).filter(x=>String(x.ts)!==b.dataset.thd)});draw()}))};
+const truGroups=()=>(tru().groups||[]);
+const truInGroup=(gr,n)=>(gr.members||[]).some(m=>personKey(m)===personKey(n));
+/* partidas "entre ellos": todos los nombres anotados son del grupo */
+const truGroupGames=gr=>(tru().games||[]).filter(x=>{const ns=(x.us||[]).concat(x.them||[]).filter(Boolean);return ns.length&&ns.every(n=>truInGroup(gr,n))});
+let truTab='',truGMode='in';
+function truGameRow(x,i){return `<div class="tru-hrow ed${i>=5?' cap-h':''}"><span><b>${x.w==='n'?'Ganaron':'Perdieron'}${x.them&&x.them.length?' vs '+esc(truNames(x.them)):''}</b><span class="s">${esc(['Vos'].concat(x.us||[]).join(', '))} · ${esc(parseYmd(x.date).toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}))}${x.min?' · '+x.min+' min':''} · a ${x.to}${x.flor?' con flor':''}</span></span><span class="tru-res"><span class="${x.w==='n'?'c-g':''}">${x.n}</span> – <span class="${x.w==='e'?'c-p':''}">${x.e}</span></span><button class="ebtn" type="button" data-the="${x.ts}" aria-label="Editar partida">✎</button><button class="xbtn" type="button" data-thd="${x.ts}" aria-label="Borrar partida">×</button></div>`}
+function openTrucoHist(back){const draw=()=>{const grs=truGroups();let gr=grs.find(x=>x.id===truTab);if(!gr)truTab='';
+    const all=(tru().games||[]);let g,st,note='';
+    if(gr){if(truGMode==='in'){g=truGroupGames(gr);st=truStats(g);note='Partidas donde todos los anotados son del grupo.'}
+      else{g=all.filter(x=>(x.us||[]).concat(x.them||[]).some(n=>n&&truInGroup(gr,n)));st=truStats(g).filter(p=>p.k===TRU_ME||truInGroup(gr,p.name));note='Todas las partidas de cada integrante, con quien sea.'}}
+    else{g=all;st=truStats(g)}
+    g=g.slice().reverse();const by={};g.forEach(x=>{const k=truKey(x.them);if(!k)return;(by[k]=by[k]||{names:x.them,w:0,l:0}).w+=x.w==='n'?1:0;by[k].l+=x.w==='e'?1:0});
+    const riv=Object.values(by).sort((a,b)=>(b.w+b.l)-(a.w+a.l));
+    const tabs=`<div class="tru-tabs" id="th-tabs"><button type="button" data-tt="" aria-pressed="${!gr}">General</button>${grs.map(x=>`<button type="button" data-tt="${esc(x.id)}" aria-pressed="${gr&&gr.id===x.id}">${esc(x.name)}</button>`).join('')}<button type="button" class="add" data-tg="new">+ Grupo</button></div>`;
+    const grHead=gr?`<div class="seg seg-sm" id="th-gm"><button type="button" data-gm="in" aria-pressed="${truGMode==='in'}">Entre ellos</button><button type="button" data-gm="all" aria-pressed="${truGMode==='all'}">Todas sus partidas</button></div>`+
+      `<div class="tg-mem">${(gr.members||[]).map(n=>`<span class="pl-chip">${esc(n)}</span>`).join('')||'<span class="s">El grupo está vacío.</span>'}</div><span class="s">${note}</span>`:'';
+    openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="th-back" aria-label="Volver">‹</button><h2>Historial de truco</h2>${closeBtn}</div>`+tabs+grHead+
+      (g.length?truMeHtml(st)+truRankHtml(st,gr?'Tabla de '+esc(gr.name):'')+
+        (riv.length&&!gr?`<span class="lbl">Contra cada equipo</span>${riv.map((r,i)=>`<div class="tru-rival${i>=5?' cap-h':''}"><div style="flex:1;min-width:0"><b>vs ${esc(truNames(r.names))}</b><div class="tru-bar"><i style="width:${Math.round(r.w/(r.w+r.l)*100)}%"></i></div></div><span class="tru-rec"><span class="c-g">${r.w}</span> – <span class="c-p">${r.l}</span></span></div>`).join('')}<div id="th-riv"></div>${riv.length>5?`<button class="btn dev-more" type="button" data-capall="riv">Ver todos (${riv.length})</button>`:''}`:'')+
+        `<span class="lbl">Partidas</span><div class="tru-hl" id="th-list">${g.map(truGameRow).join('')}</div>${g.length>5?`<button class="btn dev-more" type="button" data-capall="#th-list">Ver todas las partidas (${g.length})</button>`:''}`
+      :`<p class="empty">${gr?'Todavía no hay partidas para este grupo. Sumá gente con «Editar grupo».':'Todavía no terminaste ninguna partida. Cuando un equipo llega a los puntos, queda guardada acá.'}</p>`)+
+      (gr?`<div class="actions"><div class="right"><button class="btn" type="button" data-tg="${esc(gr.id)}">Editar grupo</button></div></div>`:''));
+    const sh=root.querySelector('.sheet');sheetBack=back||null;sh.querySelector('#th-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
+    sh.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+      if(d.tt!=null){truTab=d.tt;draw();return}
+      if(d.gm){truGMode=d.gm;draw();return}
+      if(d.tg){openTrucoGroup(d.tg==='new'?null:d.tg,draw);return}
+      if(d.capall){const box=d.capall==='riv'?sh:sh.querySelector(d.capall);(d.capall==='riv'?sh.querySelectorAll('.tru-rival.cap-h'):box.querySelectorAll('.cap-h')).forEach(x=>x.classList.remove('cap-h'));b.remove();return}
+      if(d.tp){openTrucoPlayer(d.tp,draw);return}
+      if(d.the){openTrucoGame(d.the,draw);return}
+      if(d.thd){if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='¿?';return}truSave({games:(tru().games||[]).filter(x=>String(x.ts)!==d.thd)});draw()}})};
   draw()}
+/* crear / editar un grupo de truco */
+function openTrucoGroup(id,back){const grs=truGroups();const old=id?grs.find(x=>x.id===id):null;const g={name:old?old.name:'',members:old?(old.members||[]).slice():[]};let showAll=false;
+  const draw=()=>{const nm=sh.querySelector('#tg-name');if(nm)g.name=nm.value;
+    openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="tg-back" aria-label="Volver">‹</button><h2>${old?'Editar grupo':'Nuevo grupo'}</h2>${closeBtn}</div>`+
+      `<div class="field"><label for="tg-name">Nombre del grupo</label><input type="text" id="tg-name" maxlength="30" value="${esc(g.name)}" placeholder="Ej.: Los del club, Familia"></div>`+
+      `<div class="field"><span class="lbl">Integrantes (${g.members.length})</span><div class="tm-list">${g.members.map((n,i)=>`<span class="pl-chip">${esc(n)}<button type="button" data-rm="${i}" aria-label="Quitar ${esc(n)}">×</button></span>`).join('')||'<span class="s">Todavía nadie. Tocá los nombres de abajo.</span>'}</div>`+
+      `<div class="tm-add"><input type="search" id="tg-in" maxlength="30" placeholder="Buscá o escribí un nombre" autocomplete="off" enterkeyhint="done"><button class="btn" type="button" id="tg-addb">Agregar</button></div></div>`+
+      `<div class="field"><span class="lbl">Jugadores de truco</span><div class="cat-chips tm-freq" id="tg-pool"></div><button class="link-btn" type="button" id="tg-more" style="align-self:flex-start" hidden></button></div>`+
+      `<p class="status" style="margin:0">Vos estás en todos los grupos sin agregarte. Una persona puede estar en varios grupos.</p>`+
+      `<div class="actions">${old?'<button class="btn btn-danger" type="button" id="tg-del">Borrar grupo</button>':''}<div class="right"><button class="btn btn-primary" type="button" id="tg-save">Guardar</button></div></div>`);
+    sh=root.querySelector('.sheet');sheetBack=back||null;const q=x=>sh.querySelector(x);
+    const pool=truPlayers();const drawPool=()=>{const nq=normS(q('#tg-in').value.trim());let l=pool.filter(n=>!g.members.some(m=>personKey(m)===personKey(n))&&(!nq||normS(n).includes(nq)));const tot=l.length;l=l.slice(0,nq||showAll?60:15);
+      q('#tg-pool').innerHTML=l.map(n=>`<button type="button" data-add="${esc(n)}">+ ${esc(n)}</button>`).join('')||'<span class="s">'+(nq?'Nadie con ese nombre: tocá «Agregar» para sumarlo.':'Ya están todos.')+'</span>';
+      const mb=q('#tg-more');mb.hidden=!!nq||tot<=15;mb.textContent=showAll?'Ver menos':'Ver todos ('+tot+')'};
+    const add=async n=>{n=String(n||'').trim();if(!n)return;n=n.charAt(0).toUpperCase()+n.slice(1);n=await checkName(n,'truco',pool);if(!g.members.some(m=>personKey(m)===personKey(n)))g.members.push(n);draw()};
+    q('#tg-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
+    q('#tg-in').addEventListener('input',drawPool);q('#tg-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();q('#tg-addb').click()}});
+    q('#tg-addb').addEventListener('click',()=>add(q('#tg-in').value));
+    q('#tg-more').addEventListener('click',()=>{showAll=!showAll;drawPool()});
+    q('#tg-pool').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(b)add(b.dataset.add)});
+    sh.querySelector('.tm-list').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(b){g.name=q('#tg-name').value;g.members.splice(+b.dataset.rm,1);draw()}});
+    q('#tg-save').addEventListener('click',()=>{const name=q('#tg-name').value.trim();if(!name){toast('Ponele un nombre al grupo.');q('#tg-name').focus();return}
+      const nid=old?old.id:'g'+Date.now().toString(36);const l=truGroups().filter(x=>x.id!==nid);const ng={id:nid,name,members:g.members};
+      truSave({groups:old?truGroups().map(x=>x.id===nid?ng:x):l.concat([ng])});truTab=nid;toast(old?'Grupo guardado':'Grupo creado');sheetBack=null;back?back():closeSheet()});
+    const del=q('#tg-del');if(del)del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='¿Seguro? Tocá de nuevo';return}
+      truSave({groups:truGroups().filter(x=>x.id!==old.id)});truTab='';toast('Grupo borrado (las partidas no se tocan)');sheetBack=null;back?back():closeSheet()});
+    drawPool()};
+  let sh=root.querySelector('.sheet')||document.createElement('div');draw()}
+/* editar una partida ya jugada */
+function openTrucoGame(ts,back){const x=(tru().games||[]).find(y=>String(y.ts)===String(ts));if(!x){back?back():closeSheet();return}
+  const c={date:x.date,fmt:x.fmt||Math.max((x.us||[]).length+1,(x.them||[]).length,1),flor:!!x.flor,to:x.to||30,n:+x.n||0,e:+x.e||0,min:x.min||'',us:(x.us||[]).slice(),them:(x.them||[]).slice()};
+  const draw=()=>{const n=c.fmt;
+    openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="tgm-back" aria-label="Volver">‹</button><h2>Editar partida</h2>${closeBtn}</div>`+
+      `<div class="row2"><div class="field"><label for="tgm-date">Fecha</label><input type="date" id="tgm-date" value="${esc(c.date||'')}"></div><div class="field"><label for="tgm-min">Minutos</label><input type="number" inputmode="numeric" id="tgm-min" min="0" max="600" value="${esc(String(c.min||''))}" placeholder="–"></div></div>`+
+      `<div class="field"><span class="lbl">¿Cuántos por equipo?</span><div class="seg" id="tgm-f">${[1,2,3].map(k=>`<button type="button" data-f="${k}" aria-pressed="${n===k}">${k} vs ${k}</button>`).join('')}</div></div>`+
+      `<div class="row2"><div class="field"><span class="lbl">Flor</span><div class="seg" id="tgm-fl"><button type="button" data-fl="0" aria-pressed="${!c.flor}">Sin flor</button><button type="button" data-fl="1" aria-pressed="${c.flor}">Con flor</button></div></div>`+
+      `<div class="field"><span class="lbl">¿A cuántos?</span><div class="seg" id="tgm-to"><button type="button" data-to="30" aria-pressed="${c.to===30}">A 30</button><button type="button" data-to="15" aria-pressed="${c.to===15}">A 15</button></div></div></div>`+
+      `<div class="row2"><div class="field"><label for="tgm-n">Puntos nosotros</label><input type="number" inputmode="numeric" id="tgm-n" min="0" max="40" value="${c.n}"></div><div class="field"><label for="tgm-e">Puntos ellos</label><input type="number" inputmode="numeric" id="tgm-e" min="0" max="40" value="${c.e}"></div></div>`+
+      `<div class="field"><span class="lbl">Nosotros</span><div class="ts-pl"><span class="pl-chip me">Vos</span></div>${Array.from({length:n-1},(_,i)=>`<input type="text" class="ts-in" data-side="us" data-i="${i}" maxlength="30" autocomplete="off" value="${esc(c.us[i]||'')}" placeholder="Compañero${n>2?' '+(i+1):''}"><div class="cat-chips pp-chips" data-ppfor="us${i}"></div>`).join('')}</div>`+
+      `<div class="field"><span class="lbl">Ellos</span>${Array.from({length:n},(_,i)=>`<input type="text" class="ts-in" data-side="them" data-i="${i}" maxlength="30" autocomplete="off" value="${esc(c.them[i]||'')}" placeholder="Rival${n>1?' '+(i+1):''}"><div class="cat-chips pp-chips" data-ppfor="them${i}"></div>`).join('')}</div>`+
+      `<p class="status" style="margin:0">Gana el equipo con más puntos. Si un nombre estaba mal escrito, corregilo acá; para arreglarlo en todas las partidas de una, usá «Corregir nombre» en el perfil del jugador.</p>`+
+      `<div class="actions"><div class="right"><button class="btn btn-primary" type="button" id="tgm-save">Guardar cambios</button></div></div>`);
+    const sh=root.querySelector('.sheet'),q=y=>sh.querySelector(y);sheetBack=back||null;
+    const read=()=>{c.date=q('#tgm-date').value||c.date;c.min=q('#tgm-min').value;c.n=+q('#tgm-n').value||0;c.e=+q('#tgm-e').value||0;c.us=[];c.them=[];sh.querySelectorAll('.ts-in').forEach(i=>{(i.dataset.side==='us'?c.us:c.them)[+i.dataset.i]=i.value.trim()})};
+    const dr=[];const redrawAll=()=>dr.forEach(f=>f());sh.querySelectorAll('.ts-in').forEach(inp=>{dr.push(bindPeople(inp,sh.querySelector(`[data-ppfor="${inp.dataset.side}${inp.dataset.i}"]`),{names:truPlayers,exclude:()=>[...sh.querySelectorAll('.ts-in')].filter(y=>y!==inp).map(y=>y.value).filter(Boolean),onPick:redrawAll}));inp.addEventListener('change',redrawAll)});
+    q('#tgm-back').addEventListener('click',()=>{sheetBack=null;back?back():closeSheet()});
+    q('#tgm-f').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;read();c.fmt=+b.dataset.f;draw()});
+    q('#tgm-fl').addEventListener('click',e=>{const b=e.target.closest('[data-fl]');if(!b)return;c.flor=b.dataset.fl==='1';q('#tgm-fl').querySelectorAll('button').forEach(y=>y.setAttribute('aria-pressed',y===b))});
+    q('#tgm-to').addEventListener('click',e=>{const b=e.target.closest('[data-to]');if(!b)return;c.to=+b.dataset.to;q('#tgm-to').querySelectorAll('button').forEach(y=>y.setAttribute('aria-pressed',y===b))});
+    q('#tgm-save').addEventListener('click',async()=>{read();if(c.n===c.e){toast('Tiene que haber un ganador: revisá los puntos.');return}
+      const own=new Set((x.us||[]).concat(x.them||[]).map(personKey));const pool=truPlayers().filter(y=>!own.has(personKey(y))||(tru().games||[]).some(z=>z!==x&&(z.us||[]).concat(z.them||[]).some(w=>personKey(w)===personKey(y))));
+      for(const sd of ['us','them'])for(let i=0;i<c[sd].length;i++){let v=c[sd][i];if(!v)continue;v=v.charAt(0).toUpperCase()+v.slice(1);v=await checkName(v,'truco',pool);c[sd][i]=v;if(!pool.some(y=>personKey(y)===personKey(v)))pool.push(v)}
+      const ng=Object.assign({},x,{date:c.date,fmt:c.fmt,flor:c.flor,to:c.to,n:c.n,e:c.e,w:c.n>c.e?'n':'e',min:+c.min||0,us:c.us.slice(0,c.fmt-1).filter(Boolean),them:c.them.slice(0,c.fmt).filter(Boolean)});
+      truSave({games:(tru().games||[]).map(y=>y===x?ng:y)});toast('Partida corregida');sheetBack=null;back?back():closeSheet()})};
+  draw()}
+/* corregir el nombre de un jugador (o unir dos que son la misma persona) en todas las partidas */
+function openTrucoRename(key,back){const p=truStats().find(y=>y.k===key);if(!p){back?back():closeSheet();return}
+  openSheet(`<div class="sheet-head"><button class="iconbtn" type="button" id="tr-back" aria-label="Volver">‹</button><h2>Corregir nombre</h2>${closeBtn}</div>`+
+    `<div class="field"><label for="tr-in">¿Cómo se llama de verdad?</label><input type="text" id="tr-in" maxlength="30" autocomplete="off" value="${esc(p.name)}"></div>`+
+    `<div class="field"><span class="lbl">¿O es alguno de estos? Tocalo para unirlos</span><div class="cat-chips tm-freq" id="tr-pool"></div></div>`+
+    `<p class="status" style="margin:0">Se cambia en todas sus partidas (${p.n}) y en los grupos. Si elegís a otro jugador, los dos quedan como una sola persona con todo sumado.</p>`+
+    `<div class="actions"><div class="right"><button class="btn btn-primary" type="button" id="tr-save">Guardar</button></div></div>`);
+  const sh=root.querySelector('.sheet'),q=y=>sh.querySelector(y);sheetBack=back||null;
+  const others=truPlayers().filter(n=>personKey(n)!==key);
+  const drawPool=()=>{const nq=normS(q('#tr-in').value.trim());const sim=similarName(p.name,others);let l=others.filter(n=>!nq||normS(n).includes(nq)||n===sim);if(sim)l=[sim].concat(l.filter(n=>n!==sim));
+    q('#tr-pool').innerHTML=l.slice(0,20).map(n=>`<button type="button" data-mg="${esc(n)}">${esc(n)}${n===sim?' · ¿será este?':''}</button>`).join('')||'<span class="s">Nadie parecido.</span>'};
+  const apply=to=>{to=String(to||'').trim().replace(/\s+/g,' ');if(!to)return;to=to.charAt(0).toUpperCase()+to.slice(1);const ex=others.find(n=>personKey(n)===personKey(to));const fin=ex||to;
+    const fix=l=>{const out=[];(l||[]).forEach(n=>{const v=personKey(n)===key?fin:n;if(!out.some(o=>personKey(o)===personKey(v)))out.push(v)});return out};
+    const t=tru();const patch={games:(t.games||[]).map(g=>Object.assign({},g,{us:fix(g.us),them:fix(g.them)})),groups:(t.groups||[]).map(gr=>Object.assign({},gr,{members:fix(gr.members)}))};
+    if(t.cur)patch.cur=Object.assign({},t.cur,{us:fix(t.cur.us),them:fix(t.cur.them)});truSave(patch);
+    toast(ex?p.name+' y '+ex+' ahora son la misma persona':'Nombre corregido');const nk=personKey(fin);sheetBack=null;openTrucoPlayer(nk,back)};
+  q('#tr-in').addEventListener('input',drawPool);q('#tr-back').addEventListener('click',()=>{sheetBack=null;openTrucoPlayer(key,back)});
+  q('#tr-pool').addEventListener('click',async e=>{const b=e.target.closest('[data-mg]');if(!b)return;if(await askDlg(`¿<b>${esc(p.name)}</b> y <b>${esc(b.dataset.mg)}</b> son la misma persona? Se van a sumar todas sus partidas.`,'Sí, unirlos','No'))apply(b.dataset.mg)});
+  q('#tr-save').addEventListener('click',async()=>{const v=q('#tr-in').value.trim();if(!v){toast('Escribí un nombre.');return}const ex=others.find(n=>personKey(n)===personKey(v));
+    if(ex&&!await askDlg(`Ya existe <b>${esc(ex)}</b>. ¿Es la misma persona que <b>${esc(p.name)}</b>? Se van a sumar todas sus partidas.`,'Sí, unirlos','No'))return;apply(v)});
+  drawPool()}
 setTimeout(truLive,1500);$('#truco-hist').addEventListener('click',()=>openTrucoHist());$('#truco-open').addEventListener('click',()=>{tru().cur?openTruco():openTrucoSetup()});
 /* ---------- detalle de cada comida (desayuno, almuerzo...) ---------- */
 function openSlotDetail(sl){const draw=()=>{const l=mealsOf(cmDay).filter(([,m])=>m.slot===sl),s=sumM(l);const yday=mealsOf(shiftDay(cmDay,-1)).some(([,m])=>m.slot===sl);
@@ -7340,7 +7478,7 @@ $('#view-entreno').addEventListener('click',e=>{const b=e.target.closest('button
   else if(b.id==='hist-open')openHistory();else if(b.id==='rt-add')openRoutineNew();else if(b.id==='lib-open')openLibrary();else if(d.exo)openExercise(d.exo);else if(b.id==='fg-add'||b.id==='fg-add2')openFGoal();else if(d.fg)openFGoal(d.fg);else if(d.qw)openQuickWeight();else if(b.id==='rt-samples')addSampleRoutines();
   else if(d.rtEdit)openRoutine(d.rtEdit);else if(d.rtStart)startLive(d.rtStart);
   else if(d.prog){openExercise(d.prog)}
-  else if(d.mt){mtSport=d.mt;mtMode='';mtPlayer='';renderMatches()}else if(d.mplayer!=null){if(d.mplayer)openPlayerProfile(d.mplayer);else{mtPlayer='';renderMatches()}}else if(d.mm!=null){mtMode=d.mm;renderMatches()}
+  else if(d.mt){mtSport=d.mt;mtMode='';mtPlayer='';renderMatches()}else if(d.mplayer!=null){if(d.mplayer)openPlayerProfile(d.mplayer,null,mtSport);else{mtPlayer='';renderMatches()}}else if(d.mm!=null){mtMode=d.mm;renderMatches()}
   else if(b.id==='bd-add'||b.id==='bd-add2')openBody();
   else if(b.id==='fis-sports-btn')renderSportsSetup(true);
   else if(d.cym){cyMonth=shiftMonth(cyMonth,+d.cym);renderCycle()}else if(d.cyday)openCycleLog(d.cyday);
