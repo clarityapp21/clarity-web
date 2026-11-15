@@ -1201,7 +1201,20 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .cfg-t b{display:block;font-weight:600;font-size:14.5px}.cfg-t small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}.cfg-n{font-size:12px;font-weight:700;color:var(--muted);background:var(--surface-2);border-radius:999px;padding:2px 8px}
 .wt-cy{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--c5) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--c5) 35%,var(--line))}
 .wt-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);align-items:center}.wt-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;opacity:.5;margin-right:5px;vertical-align:-1px}.wt-clean{margin-left:auto}.wt-clean b.up{color:var(--q-do)}.wt-clean b.down{color:#3A9D45}
-.pp-chips{margin-top:6px}.pp-chips:empty{display:none}.pp-chips .pp-more{border-style:dashed}.debt-otros{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.pp-chips{margin-top:6px}.pp-chips:empty{display:none}.pp-chips .pp-more{border-style:dashed}.sh-amt{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}.sh-amt small{font-family:var(--font-body);font-size:11.5px;color:var(--muted);font-weight:500}
+.shr-p-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0}
+.sc-list{display:flex;flex-direction:column;gap:8px}
+.sc-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 34px;gap:6px;align-items:center}
+.sc-row.eq{grid-template-columns:minmax(0,1fr) 34px}
+.sc-row .me{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sc-row input{width:100%;min-width:0}
+.sc-out{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid var(--line);border-radius:14px}
+.sc-out .r{display:flex;justify-content:space-between;gap:8px;font-size:14px}.sc-out .r b{font-variant-numeric:tabular-nums}
+.sc-out .owe{border-top:1px dashed var(--line);padding-top:8px;margin-top:2px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.sc-warn{color:var(--danger,#b5432f);font-weight:600;font-size:13.5px}
+.shv-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.shv-row .t{font-weight:600}.shv-row .s{display:block;font-size:12.5px;color:var(--muted)}
+.debt-otros{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
 .mi-more{border:1px solid var(--line);border-radius:12px;padding:8px 12px}.mi-more summary{cursor:pointer;font-weight:600;font-size:14px}.mi-more .nut-grid{margin-top:10px}
 .rb-addrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.rb-addrow .btn{flex:1 1 140px} .shr-list{display:flex;flex-direction:column;gap:6px}.shr-row{display:flex;gap:6px;align-items:center}.shr-row .shr-p{flex:1 1 auto;min-width:0}.shr-row .shr-o{flex:0 0 38%;min-width:0}.shr-row .xbtn{flex:none} .shr-box.off{opacity:.45;filter:grayscale(1);border-style:dashed;border-color:var(--line)}
 .cm-add-sheet .cm-add-row{display:flex;gap:8px}.cm-add-sheet .cm-add-row input{flex:1;min-width:0}
@@ -1891,7 +1904,7 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
           <section class="fin-block span-all cards-sec"><div id="f-cards" class="cards-grid"></div></section>
           <section class="fin-block span-all"><div class="block-head"><h3>Cuotas que vienen</h3></div><div id="f-cuotas" class="stack"></div><div class="ruled" aria-hidden="true"></div></section>
         </div>
-        <div class="pane-head econ-head news-head"><h2>Préstamos y deudas</h2><button class="btn mini-btn sec-btn" type="button" id="f-debt-add">+ Anotar</button></div>
+        <div class="pane-head econ-head news-head"><h2>Préstamos y deudas</h2><span class="hc-btns"><button class="btn mini-btn sec-btn" type="button" id="f-shr-new">+ Gasto compartido</button><button class="btn mini-btn sec-btn" type="button" id="f-debt-add">+ Anotar</button></span></div>
         <div class="fin-grid"><section class="fin-block span-all"><div id="f-debts" class="stack"></div><div class="ruled" aria-hidden="true"></div></section></div>
         <div class="pane-head econ-head news-head"><h2>Objetivos y sueños</h2><button class="link-btn" type="button" id="f-goal-add">Nuevo</button></div>
         <div class="fin-grid"><section class="fin-block span-all"><div id="f-goals" class="stack"></div><div class="ruled" aria-hidden="true"></div></section></div>
@@ -3501,7 +3514,7 @@ function openMov(kind,id,preset){
   body=body.replace('<!--PAY-->',pay);
   body+='<div class="row2"><div class="field"><label for="m-date">Fecha</label><input type="date" id="m-date" value="'+esc(m.date)+'"></div><div class="field"><label for="m-note">Nota (opcional)</label><input type="text" id="m-note" maxlength="80" value="'+esc(m.note||'')+'" placeholder="Ej.: verdulería"></div></div>';
   openSheet('<div class="sheet-head"><h2>'+(cardPayMode&&!id?'Pagar resumen':(id||m._replace?'Editar ':'Nuevo ')+(cardPayMode?'pago de tarjeta':titles[kind].toLowerCase()))+'</h2>'+closeBtn+'</div>'+segs+body+
-    (kind==='gasto'&&!m.goalId?(m.shared&&shrList(m.shared).some(x=>state.debts[x.debtId])?'<div class="shr-info">👥 Compartido con '+shrList(m.shared).filter(x=>state.debts[x.debtId]).map(x=>'<b>'+esc(x.person)+'</b> (te debe '+money(+state.debts[x.debtId].amount||0)+')').join(', ')+'. Se ve en Deudas y préstamos.</div>':
+    (kind==='gasto'&&!m.goalId&&m.splitId&&splits()[m.splitId]?'<div class="shr-info"><div class="shr-p-row"><span>👥 Es un gasto compartido.</span><button class="btn mini-btn" type="button" id="m-shv">Ver y saldar</button></div></div>':kind==='gasto'&&!m.goalId?(m.shared&&shrList(m.shared).some(x=>state.debts[x.debtId])?'<div class="shr-info">👥 Compartido con '+shrList(m.shared).filter(x=>state.debts[x.debtId]).map(x=>{const dd=state.debts[x.debtId],l=debtLeft(dd);return '<div class="shr-p-row"><span><b>'+esc(x.person)+'</b> '+(l>0.5?'te debe '+money(l)+(debtPaid(dd)>0.5?' de '+money(+dd.amount||0):''):'ya te pagó ✓')+'</span>'+(l>0.5?'<button class="btn mini-btn" type="button" data-shpay="'+esc(x.debtId)+'">Saldar</button>':'')+'</div>'}).join('')+'<span class="s">Cuando te pagan, entra como ingreso (reintegro).</span></div>':
       '<div class="switch-row"><span>Gasto compartido<small>Pagaste vos y una o más personas te tienen que devolver una parte.</small></span><button class="switch" type="button" role="switch" id="m-shr" aria-checked="false"></button></div>'+
       '<div class="shr-box off" id="m-shr-box"><div class="field"><span class="lbl">¿Con quién?</span><div class="shr-list" id="m-shr-list">'+shrRow()+'</div><datalist id="shr-names">'+[...new Set(Object.values(state.debts).map(x=>x.person).concat(fin().splitNames||[]))].filter(Boolean).map(n=>'<option value="'+esc(n)+'">').join('')+'</datalist>'+
       '<button class="link-btn" type="button" id="m-shr-add" style="align-self:flex-start">+ Agregar otra persona</button></div>'+
@@ -3509,6 +3522,8 @@ function openMov(kind,id,preset){
       '<span class="s" id="m-shr-s"></span></div>'):'')+
     '<div class="actions">'+(id||m._replace?'<button class="btn btn-danger" type="button" id="m-del">Eliminar</button>':'')+'<div class="right"><button class="btn btn-primary" type="button" id="m-save">Guardar</button></div></div>');
   const sh=root.querySelector('.sheet');const q=x=>sh.querySelector(x);
+  if(q('#m-shv'))q('#m-shv').addEventListener('click',()=>{const mid=id||m._replace;openSharedView(m.splitId,()=>openMov(null,mid))});
+  sh.querySelectorAll('[data-shpay]').forEach(b=>b.addEventListener('click',()=>{const mid=id||m._replace;openDebtPay(b.dataset.shpay,true);sheetBack=mid?()=>openMov(null,mid):null}));
   let shrK='half';
   const shrRows=()=>[...sh.querySelectorAll('#m-shr-list .shr-row')];
   const shrPeople=()=>{const a=parseMoney(q('#m-amt').value)||0;const rows=shrRows().map(r=>({person:r.querySelector('.shr-p').value.trim(),o:parseMoney(r.querySelector('.shr-o').value)||0})).filter(x=>x.person);const n=rows.length;
@@ -3865,7 +3880,7 @@ $('#view-finanzas').addEventListener('click',e=>{const b=e.target.closest('butto
   else if(b.id==='v-back'){finSub='main';renderFinance();window.scrollTo(0,0)}
   else if(d.pie){pieMode=d.pie;renderFinance()}
   else if(b.id==='f-goal-add')openGoal();
-  else if(b.id==='f-debt-add')openDebt();else if(b.id==='f-mine-edit')openMineAdjust();
+  else if(b.id==='f-debt-add')openDebt();else if(b.id==='f-shr-new')openShared(null);else if(d.shv)openSharedView(d.shv);else if(d.shall)openSharedAll();else if(b.id==='f-mine-edit')openMineAdjust();
   else if(d.debt)openDebt(d.debt);else if(d.dperson)openDebtPerson(d.dperson);else if(d.dev)openDebt(d.dev);else if(d.devall)openDebtEvents();
   else if(d.debtpay)openDebtPay(d.debtpay);
   else if(d.debtall)openDebtPay(d.debtall,true);else if(d.offset!=null)offsetDebts(d.offset);
@@ -4179,6 +4194,100 @@ function debtRow(id,d,nested){return '<div class="debt'+(nested?' nested':'')+'"
 function otrosRow(id,d){const me=d.payer!=='them';return '<div class="debt otros"><div class="row">'+chip('users2',4,'sm')+'<button class="link-plain" type="button" data-debt="'+esc(id)+'"><span class="t">'+esc(d.person)+' → '+esc(d.creditor||'')+'</span><span class="s">'+[esc(d.person)+' le debe a '+esc(d.creditor||''),me?'lo devolvés vos':'lo devuelve '+esc(d.person),d.note?esc(d.note):''].filter(Boolean).join(' · ')+'</span></button><span class="amt">'+money(debtLeft(d))+'</span></div>'+
   ((d.payments||[]).length?'<span class="s">Devuelto '+money(debtPaid(d))+' de '+money(d.amount)+'</span>':'')+
   '<div class="vsec-actions"><button class="btn mini-btn" type="button" data-debtpay="'+esc(id)+'">Registrar pago</button><button class="btn mini-btn" type="button" data-debtall="'+esc(id)+'">Saldar todo</button></div></div>'}
+/* ---------- gastos compartidos: quién pagó, cómo se divide y quién le debe a quién ---------- */
+const SH_ME='__vos';
+const splits=()=>fin().splits||{};
+const shIncCat=()=>{const ic=incCats();return(ic.find(c=>c.id==='reintegros')||ic.find(c=>/reintegr|devol/i.test(c.name||''))||ic[ic.length-1]||{id:'otros_ing'}).id};
+/* si la deuda viene de un gasto compartido: {cat,note} */
+function debtShared(d){if(d.splitId&&splits()[d.splitId]){const x=splits()[d.splitId];return{cat:x.cat,note:x.note||catName(x.cat)}}
+  if(d.movId&&state.movs[d.movId]&&state.movs[d.movId].kind==='gasto'){const m=state.movs[d.movId];return{cat:m.cat,note:m.note||catName(m.cat)}}
+  if(/^Gasto compartido/i.test(d.note||'')){return{cat:(cats()[0]||{}).id,note:(d.note||'').replace(/^Gasto compartido:?\s*/i,'')}}return null}
+function shCalc(c){const tot=+parseMoney(String(c.total||''))||0;const ps=[];if(c.me)ps.push({name:'Vos',me:true,v:c.meV});(c.people||[]).forEach(x=>{if(String(x.name||'').trim())ps.push({name:x.name.trim(),v:x.v})});
+  const n=ps.length;ps.forEach(x=>{const v=parseMoney(String(x.v||''));x.part=c.mode==='amt'?(isNaN(v)?0:v):c.mode==='pct'?(isNaN(v)?0:tot*v/100):(n?tot/n:0);x.part=Math.round(x.part*100)/100});
+  const sum=ps.reduce((a,x)=>a+x.part,0);const payer=c.payer===SH_ME?'Vos':c.payer;const owe=[];
+  if(c.payer===SH_ME)ps.filter(x=>!x.me&&x.part>0.5).forEach(x=>owe.push({person:x.name,dir:'me',amount:x.part}));
+  else if(c.payer){const mp=ps.find(x=>x.me);if(mp&&mp.part>0.5)owe.push({person:c.payer,dir:'debo',amount:mp.part})}
+  const others=c.payer&&c.payer!==SH_ME?ps.filter(x=>!x.me&&personKey(x.name)!==personKey(c.payer)&&x.part>0.5):[];
+  return{tot,ps,sum,miss:Math.round((tot-sum)*100)/100,payer,owe,others}}
+/* todos los gastos compartidos: los nuevos y los que se marcaron desde un gasto */
+function sharedList(){const l=Object.entries(splits()).map(([sid,x])=>({sid,date:x.date||'',note:x.note||catName(x.cat),total:+x.total||0,payer:x.payer===SH_ME?'Vos':x.payer,debts:(x.debts||[]).filter(i=>state.debts[i])}));
+  Object.entries(state.movs).forEach(([mid,m])=>{if(m.kind!=='gasto'||!m.shared||m.splitId)return;const ds=shrList(m.shared).map(x=>x.debtId).filter(i=>state.debts[i]);if(!ds.length)return;l.push({mid,date:m.date||'',note:m.note||catName(m.cat),total:+m.amount||0,payer:'Vos',debts:ds})});
+  l.forEach(x=>{x.me=0;x.yo=0;x.debts.forEach(i=>{const d=state.debts[i],r=debtLeft(d);if(d.dir==='debo')x.yo+=r;else x.me+=r})});
+  return l.sort((a,b)=>((b.me+b.yo>0.5)-(a.me+a.yo>0.5))||(a.date<b.date?1:a.date>b.date?-1:0))}
+const shRow=x=>`<button type="button" class="row dev-row" data-shv="${esc(x.sid||'m:'+x.mid)}">${chip('users2',x.yo>0.5?6:x.me>0.5?3:4,'sm')}<span class="mov-txt"><span class="t">${esc(x.note||'Gasto compartido')}</span><span class="s">${money(x.total)} · ${x.payer==='Vos'?'pagaste vos':'pagó '+esc(x.payer||'')} · ${esc(parseYmd(x.date).toLocaleDateString('es-AR',{day:'numeric',month:'short'}))}</span></span><span class="amt sh-amt ${x.yo>0.5?'neg':x.me>0.5?'pos':''}">${x.me>0.5?'<small>Te deben</small>'+money(x.me):x.yo>0.5?'<small>Debés</small>'+money(x.yo):'<small>Saldado ✓</small>'}</span></button>`;
+function openSharedAll(){const l=sharedList();openSheet(`<div class="sheet-head"><h2>Gastos compartidos</h2>${closeBtn}</div><div class="dev-list">${l.map(shRow).join('')}</div>`);
+  const sh=root.querySelector('.sheet');sheetBack=null;sh.addEventListener('click',e=>{const b=e.target.closest('[data-shv]');if(b)openSharedView(b.dataset.shv,openSharedAll)})}
+/* detalle: cada persona con lo que debe y su botón para saldar */
+function openSharedView(key,back){if(key.startsWith('m:')){openMov(null,key.slice(2));if(back)sheetBack=back;return}
+  const x=splits()[key];if(!x){back?back():closeSheet();return}const r=shCalc(x);const re=()=>openSharedView(key,back);
+  const rows=(x.debts||[]).filter(i=>state.debts[i]).map(i=>{const d=state.debts[i],l=debtLeft(d);return `<div class="shv-row"><span><span class="t">${d.dir==='debo'?'Le debés a '+esc(d.person):esc(d.person)+' te debe'}</span><span class="s">${l>0.5?money(l)+(debtPaid(d)>0.5?' de '+money(+d.amount||0):''):'Saldado ✓ · '+money(+d.amount||0)}</span></span>${l>0.5?`<button class="btn mini-btn btn-primary" type="button" data-sp="${esc(i)}">Saldar</button>`:''}</div>`}).join('');
+  openSheet(`<div class="sheet-head">${back?'<button class="iconbtn" type="button" id="shv-back" aria-label="Volver">‹</button>':''}<h2>${esc(x.note||catName(x.cat)||'Gasto compartido')}</h2>${closeBtn}</div>`+
+    `<div class="debt-total"><span class="lbl">Total · ${x.payer===SH_ME?'pagaste vos':'pagó '+esc(r.payer)}</span><b>${money(r.tot)}</b><div class="debt-sub"><span>${esc(longDate(x.date))}</span><span>${esc(catName(x.cat))}</span></div></div>`+
+    `<span class="lbl dl-lbl">Cómo se dividió</span><div class="sc-out">${r.ps.map(p=>`<div class="r"><span>${esc(p.name)}</span><b>${money(p.part)}</b></div>`).join('')}</div>`+
+    (rows?`<span class="lbl dl-lbl">Quién le debe a quién</span><div>${rows}</div>`:'<p class="status" style="margin:0">Nadie te debe ni le debés nada por este gasto.</p>')+
+    (r.others.length?`<span class="s">${r.others.map(p=>esc(p.name)+' le debe '+money(p.part)+' a '+esc(r.payer)).join(' · ')} (entre ellos, no lo sigue la app).</span>`:'')+
+    `<p class="status" style="margin:0">Saldar ${x.payer===SH_ME?'lo que te deben entra como <b>ingreso</b> (reintegro)':'lo que debés sale como <b>gasto</b> de tu parte'} en la cuenta que elijas.</p>`+
+    `<div class="actions"><div class="right"><button class="btn" type="button" id="shv-ed">Editar</button></div></div>`);
+  const sh=root.querySelector('.sheet');sheetBack=back||null;const bb=sh.querySelector('#shv-back');if(bb)bb.addEventListener('click',()=>{sheetBack=null;back()});
+  sh.querySelector('#shv-ed').addEventListener('click',()=>openShared(key,re));
+  sh.querySelectorAll('[data-sp]').forEach(b=>b.addEventListener('click',()=>{openDebtPay(b.dataset.sp,true);sheetBack=re}))}
+/* crear o editar un gasto compartido: quién pagó y cómo se divide (partes iguales, montos o porcentajes) */
+function openShared(sid,back){const old=sid?splits()[sid]:null;
+  const c=old?JSON.parse(JSON.stringify(old)):{date:todayStr(),note:'',cat:(cats().find(x=>catEat(x.id))||cats()[0]||{}).id,total:'',payer:SH_ME,mode:'eq',me:true,meV:'',people:[{name:'',v:''}],account:defAcc()||''};
+  if(!c.people.length)c.people.push({name:'',v:''});
+  const names=()=>[...new Set(Object.values(state.debts).map(x=>x.person).concat(fin().splitNames||[]).filter(Boolean))];
+  const draw=()=>{const eq=c.mode==='eq';const ph=c.mode==='pct'?'%':'$';
+    openSheet(`<div class="sheet-head">${back?'<button class="iconbtn" type="button" id="sc-back" aria-label="Volver">‹</button>':''}<h2>${old?'Editar gasto compartido':'Gasto compartido'}</h2>${closeBtn}</div>`+
+      `<datalist id="sc-names">${names().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`+
+      `<div class="field"><label for="sc-note">¿Qué fue?</label><input type="text" id="sc-note" maxlength="60" value="${esc(c.note||'')}" placeholder="Ej.: asado del sábado, nafta del viaje"></div>`+
+      `<div class="row2"><div class="field"><label for="sc-tot">Total</label><input type="text" inputmode="decimal" data-money="1" id="sc-tot" value="${esc(String(c.total||''))}" placeholder="$ 0"></div><div class="field"><label for="sc-date">Fecha</label><input type="date" id="sc-date" value="${esc(c.date)}"></div></div>`+
+      `<div class="field"><label for="sc-cat">Categoría</label><select id="sc-cat">${cats().map(x=>`<option value="${esc(x.id)}"${x.id===c.cat?' selected':''}>${esc(x.name)}</option>`).join('')}</select></div>`+
+      `<div class="field"><span class="lbl">¿Cómo lo dividen?</span><div class="seg" id="sc-mode"><button type="button" data-md="eq" aria-pressed="${eq}">Partes iguales</button><button type="button" data-md="amt" aria-pressed="${c.mode==='amt'}">Montos</button><button type="button" data-md="pct" aria-pressed="${c.mode==='pct'}">Porcentajes</button></div></div>`+
+      `<div class="field"><span class="lbl">¿Entre quiénes?</span><div class="sc-list">`+
+        `<div class="sc-row${eq?' eq':''}"><div class="me"><span>Vos</span><button class="switch" type="button" role="switch" id="sc-me" aria-checked="${!!c.me}" aria-label="Participo"></button></div>${eq?'':`<input type="text" inputmode="decimal" id="sc-mev" value="${esc(String(c.meV||''))}" placeholder="${ph}" ${c.me?'':'disabled'}>`}<span></span></div>`+
+        c.people.map((x,i)=>`<div class="sc-row${eq?' eq':''}"><input type="text" class="sc-p" data-i="${i}" maxlength="40" list="sc-names" value="${esc(x.name||'')}" placeholder="Nombre" autocomplete="off">${eq?'':`<input type="text" inputmode="decimal" class="sc-v" data-i="${i}" value="${esc(String(x.v||''))}" placeholder="${ph}">`}<button class="xbtn" type="button" data-rm="${i}" aria-label="Quitar">×</button></div>`).join('')+
+      `</div><button class="link-btn" type="button" id="sc-add" style="align-self:flex-start">+ Agregar persona</button></div>`+
+      `<div class="field"><span class="lbl">¿Quién pagó?</span><div class="grp-tg" id="sc-payer"></div></div>`+
+      `<div class="field" id="sc-acc-f"><label for="sc-acc">¿De qué cuenta salió?</label><select id="sc-acc"><option value="">Ninguna, solo anotar la división</option>${accounts().map(([i,a])=>`<option value="${esc(i)}"${i===c.account?' selected':''}>${esc(a.name)}</option>`).join('')}</select><span class="s">Se anota el total como gasto tuyo; cuando te devuelven, entra como ingreso y te queda solo tu parte.</span></div>`+
+      `<div class="field"><span class="lbl">Resultado</span><div class="sc-out" id="sc-out"></div></div>`+
+      `<div class="actions">${old?'<button class="btn btn-danger" type="button" id="sc-del">Eliminar</button>':''}<div class="right"><button class="btn btn-primary" type="button" id="sc-save">Guardar</button></div></div>`);
+    const sh=root.querySelector('.sheet'),q=y=>sh.querySelector(y);sheetBack=back||null;
+    const read=()=>{c.note=q('#sc-note').value.trim();c.total=q('#sc-tot').value;c.date=q('#sc-date').value||c.date;c.cat=q('#sc-cat').value;c.account=q('#sc-acc').value;const mv=q('#sc-mev');if(mv)c.meV=mv.value;
+      sh.querySelectorAll('.sc-p').forEach(i=>c.people[+i.dataset.i].name=i.value);sh.querySelectorAll('.sc-v').forEach(i=>c.people[+i.dataset.i].v=i.value)};
+    const out=()=>{read();const r=shCalc(c);const pl=[SH_ME].concat(c.people.map(x=>String(x.name||'').trim()).filter(Boolean));if(c.payer!==SH_ME&&!pl.some(n=>personKey(n)===personKey(c.payer||'')))c.payer=SH_ME;
+      const ph2=pl.map(n=>`<button type="button" data-py="${esc(n)}" aria-pressed="${n===SH_ME?c.payer===SH_ME:personKey(n)===personKey(c.payer||'')}">${n===SH_ME?'Vos':esc(n)}</button>`).join('');if(q('#sc-payer').innerHTML!==ph2)q('#sc-payer').innerHTML=ph2;
+      q('#sc-acc-f').hidden=c.payer!==SH_ME;
+      q('#sc-out').innerHTML=!r.tot?'<span class="s">Poné el total y quiénes participan.</span>':
+        r.ps.map(p=>`<div class="r"><span>${esc(p.name)}${c.mode==='pct'&&p.v?' · '+esc(String(p.v))+' %':''}</span><b>${money(p.part)}</b></div>`).join('')+
+        (Math.abs(r.miss)>1?`<span class="sc-warn">${r.miss>0?'Faltan repartir '+money(r.miss):'Te pasaste por '+money(-r.miss)}</span>`:'')+
+        `<div class="owe">${r.owe.length?r.owe.map(o=>o.dir==='me'?`<span><b>${esc(o.person)}</b> te debe <b>${money(o.amount)}</b></span>`:`<span>Le debés <b>${money(o.amount)}</b> a <b>${esc(o.person)}</b></span>`).join(''):'<span class="s">Nadie te debe ni le debés nada.</span>'}${r.others.length?`<span class="s">${r.others.map(p=>esc(p.name)+' le debe '+money(p.part)+' a '+esc(r.payer)).join(' · ')}</span>`:''}</div>`};
+    sh.addEventListener('input',e=>{if(e.target.matches('input'))out()});sh.addEventListener('change',out);
+    q('#sc-mode').addEventListener('click',e=>{const b=e.target.closest('[data-md]');if(!b)return;read();c.mode=b.dataset.md;draw()});
+    q('#sc-me').addEventListener('click',()=>{read();c.me=!c.me;draw()});
+    q('#sc-add').addEventListener('click',()=>{read();c.people.push({name:'',v:''});draw();const l=[...root.querySelectorAll('.sc-p')];if(l.length)l[l.length-1].focus()});
+    sh.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{read();c.people.splice(+b.dataset.rm,1);if(!c.people.length)c.people.push({name:'',v:''});draw()}));
+    q('#sc-payer').addEventListener('click',e=>{const b=e.target.closest('[data-py]');if(!b)return;c.payer=b.dataset.py;out()});
+    const bb=q('#sc-back');if(bb)bb.addEventListener('click',()=>{sheetBack=null;back()});
+    q('#sc-save').addEventListener('click',()=>{read();const r=shCalc(c);
+      if(!(r.tot>0)){toast('Poné el total.');q('#sc-tot').focus();return}
+      if(r.ps.filter(p=>!p.me).length<1){toast('Agregá al menos una persona.');return}
+      if(Math.abs(r.miss)>1){toast(r.miss>0?'Faltan repartir '+money(r.miss)+'.':'Las partes suman más que el total.');return}
+      const id=sid||uid();const keep=[];const prev=(old&&old.debts||[]).filter(i=>state.debts[i]);
+      r.owe.forEach(o=>{const ex=prev.find(i=>{const d=state.debts[i];return d.dir===o.dir&&personKey(d.person)===personKey(o.person)&&!keep.includes(i)});
+        const base={person:o.person,amount:o.amount,dir:o.dir,date:c.date,note:'Gasto compartido: '+(c.note||catName(c.cat)),splitId:id};
+        if(ex){put('debts',ex,Object.assign({},state.debts[ex],base));keep.push(ex)}else{const did=uid();put('debts',did,Object.assign(base,{payments:[],createdAt:Date.now()}));keep.push(did)}});
+      prev.filter(i=>!keep.includes(i)).forEach(i=>{if((state.debts[i].payments||[]).length)keep.push(i);else remove('debts',i)});
+      let movId=old&&old.movId&&state.movs[old.movId]?old.movId:null;
+      if(c.payer===SH_ME&&c.account){const mv={kind:'gasto',amount:r.tot,account:c.account,date:c.date,note:c.note||'',cat:c.cat,group:null,method:isCredit(c.account)?'credito':defMethod(c.account),cuotas:1,splitId:id};
+        if(movId)put('movs',movId,Object.assign({},state.movs[movId],mv));else{movId=uid();put('movs',movId,Object.assign(mv,{createdAt:Date.now()}))}}
+      else if(movId){remove('movs',movId);movId=null}
+      const rec={date:c.date,note:c.note,cat:c.cat,total:r.tot,payer:c.payer===SH_ME?SH_ME:r.payer,mode:c.mode,me:c.me,meV:c.meV,people:c.people.filter(x=>String(x.name||'').trim()),account:c.payer===SH_ME?c.account:'',movId,debts:keep,createdAt:old&&old.createdAt||Date.now()};
+      const nm=rec.people.map(x=>x.name.trim());saveFin({splits:Object.assign({},splits(),{[id]:rec}),splitNames:[...new Set(nm.concat(fin().splitNames||[]))].slice(0,30)});
+      toast(old?'Gasto compartido actualizado':'Gasto compartido guardado');sheetBack=null;openSharedView(id,back||null)});
+    const del=q('#sc-del');if(del)del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='¿Seguro? Tocá de nuevo';return}
+      (old.debts||[]).forEach(i=>{if(state.debts[i])remove('debts',i)});if(old.movId&&state.movs[old.movId])remove('movs',old.movId);const o=Object.assign({},splits());delete o[sid];saveFin({splits:o});toast('Gasto compartido eliminado');sheetBack=null;closeSheet()});
+    out()};
+  draw()}
 /* ---------- préstamos: total, últimos movimientos, personas y perfil de cada persona ---------- */
 function debtEvents(key){const ev=[];Object.entries(state.debts).forEach(([id,d])=>{const ot=d.dir==='otros';
     if(key&&personKey(d.person||'')!==key&&personKey(d.creditor||'')!==key)return;
@@ -4196,13 +4305,15 @@ const dpRow=p=>`<button type="button" class="row dp-row" data-dperson="${esc(p.k
 function renderDebts(){const all=Object.entries(state.debts),open=all.filter(([,d])=>debtLeft(d)>0.5);
   const list=open.filter(([,d])=>d.dir!=='otros'),others=open.filter(([,d])=>d.dir==='otros');
   const owe=list.filter(([,d])=>d.dir==='debo').reduce((s,[,d])=>s+debtLeft(d),0),owed=list.filter(([,d])=>d.dir!=='debo').reduce((s,[,d])=>s+debtLeft(d),0),net=owed-owe;
-  if(!all.length){$('#f-debts').innerHTML='<p class="empty">Anotá lo que le prestaste a alguien o lo que debés, y registrá los pagos a medida que llegan.</p>';return}
+  const sl=sharedList();
+  if(!all.length&&!sl.length){$('#f-debts').innerHTML='<p class="empty">Anotá lo que le prestaste a alguien o lo que debés, y registrá los pagos a medida que llegan. Con «+ Gasto compartido» anotás quién pagó y cómo se divide.</p>';return}
   const ev=debtEvents(),ppl=debtPeople();
   $('#f-debts').innerHTML=`<div class="debt-total"><span class="lbl">${Math.abs(net)<0.5?'Estás a mano':net>0?'Total a tu favor':'Total en contra'}</span><b class="${net<-0.5?'neg':net>0.5?'pos':''}">${money(Math.abs(net))}</b>`+
       `<div class="debt-sub"><span>Te deben <b>${money(owed)}</b></span><span>Debés <b>${money(owe)}</b></span></div></div>`+
     `<span class="lbl dl-lbl">Últimos movimientos</span><div class="dev-list">${ev.slice(0,3).map(devRow).join('')}</div>`+
     (ev.length>3?`<button class="btn dev-more" type="button" data-devall="1">Ver todos los movimientos (${ev.length})</button>`:'')+
     (ppl.length?`<span class="lbl dl-lbl">Personas · tocá para ver su perfil</span><div class="dp-list" id="f-debt-people">${ppl.map(dpRow).join('')}</div>`:'')+
+    (sl.length?`<span class="lbl dl-lbl">Gastos compartidos</span><div class="dev-list">${sl.slice(0,3).map(shRow).join('')}</div>${sl.length>3?`<button class="btn dev-more" type="button" data-shall="1">Ver todos los gastos compartidos (${sl.length})</button>`:''}`:'')+
     (others.length?'<div class="debt-otros"><span class="lbl">Entre otros</span>'+(others.some(([,d])=>d.payer!=='them')?'<span class="s">Te toca devolver '+money(others.filter(([,d])=>d.payer!=='them').reduce((a,[,d])=>a+debtLeft(d),0))+' por otras personas. No cuenta en lo que debés vos.</span>':'')+others.map(([id,d])=>otrosRow(id,d)).join('')+'</div>':'')}
 function openDebtEvents(){const ev=debtEvents(),by={};ev.forEach(e=>{const k=(e.date||'').slice(0,7);(by[k]=by[k]||[]).push(e)});
   openSheet(`<div class="sheet-head"><h2>Movimientos de préstamos</h2>${closeBtn}</div>`+Object.keys(by).sort().reverse().map(k=>`<div class="vs-month"><div class="vs-mh"><span>${esc(k?monthLabel(k):'Sin fecha')}</span></div><div class="dev-list">${by[k].map(devRow).join('')}</div></div>`).join(''));
@@ -4582,17 +4693,20 @@ function openLoanMov(mid){const m=state.movs[mid];if(!m)return;const dbt=m.debtI
   const del=q('#lm-del');del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}remove('movs',mid);closeSheet();toast('Movimiento eliminado')})}
 function openDebtPay(id,all){
   const d=state.debts[id];if(!d)return;const left=debtLeft(d);
-  const ot=d.dir==='otros';
+  const ot=d.dir==='otros';const shc=!ot&&debtShared(d);
   openSheet('<div class="sheet-head"><h2>'+(ot?'Pago a '+esc(d.creditor||'')+' (deuda de '+esc(d.person)+')':(d.dir==='debo'?'Le pagaste a ':'Te pagó ')+esc(d.person))+'</h2>'+closeBtn+'</div>'+
     '<p class="welcome-lead">Queda '+money(left)+' de '+money(d.amount)+'.</p>'+
     '<div class="row2"><div class="field"><label for="dp-amt">Monto</label><input type="text" inputmode="decimal" data-money="1" id="dp-amt" value="'+(all?Math.round(left*100)/100:'')+'" placeholder="$ 0"></div><div class="field"><label for="dp-date">Fecha</label><input type="date" id="dp-date" value="'+todayStr()+'"></div></div>'+
-    '<div class="field"><label for="dp-acc">'+(ot?'¿Salió de alguna cuenta tuya?':d.dir==='debo'?'¿De qué cuenta salió?':'¿A qué cuenta entró?')+'</label><select id="dp-acc"><option value="">Ninguna, solo anotarlo</option>'+accounts().filter(([,a])=>a.type!=='credito').map(([i,a])=>'<option value="'+esc(i)+'"'+(!ot&&i===defAcc()?' selected':'')+'>'+esc(a.name)+'</option>').join('')+'</select>'+(ot?'<span class="s">Si lo pagaste con plata que no es tuya (por ejemplo, de los alquileres que cobrás), dejalo en "Ninguna".</span>':'')+'</div>'+
+    '<div class="field"><label for="dp-acc">'+(ot?'¿Salió de alguna cuenta tuya?':d.dir==='debo'?'¿De qué cuenta salió?':'¿A qué cuenta entró?')+'</label>'+(shc?'<span class="s">Es de un gasto compartido: '+(d.dir==='debo'?'se anota como <b>gasto</b> ('+esc(catName(shc.cat))+'), porque es tu parte.':'se anota como <b>ingreso</b> (reintegro), así tu gasto queda en tu parte.')+'</span>':'')+'<select id="dp-acc"><option value="">Ninguna, solo anotarlo</option>'+accounts().filter(([,a])=>a.type!=='credito').map(([i,a])=>'<option value="'+esc(i)+'"'+(!ot&&i===defAcc()?' selected':'')+'>'+esc(a.name)+'</option>').join('')+'</select>'+(ot?'<span class="s">Si lo pagaste con plata que no es tuya (por ejemplo, de los alquileres que cobrás), dejalo en "Ninguna".</span>':'')+'</div>'+
     '<div class="actions"><div class="right"><button class="btn btn-primary" type="button" id="dp-save">Registrar</button></div></div>');
   const sh=root.querySelector('.sheet');const q=x=>sh.querySelector(x);
   q('#dp-save').addEventListener('click',()=>{const a=parseMoney(q('#dp-amt').value);if(isNaN(a)||a<=0){toast('Ingresá un monto.');return}const amt=Math.min(a,left);const date=q('#dp-date').value||todayStr();
     put('debts',id,Object.assign({},d,{payments:(d.payments||[]).concat({amount:amt,date})}));
-    const acc=q('#dp-acc').value;if(acc)put('movs',uid(),{kind:'loan',dir:ot||d.dir==='debo'?'out':'in',amount:amt,account:acc,date,debtId:id,note:ot?'Pago a '+(d.creditor||'')+' por '+d.person:(d.dir==='debo'?'Pago a ':'Pago de ')+d.person,createdAt:Date.now()});
-    closeSheet();toast(amt>=left-0.5?'¡Saldado!':'Pago registrado')});
+    const acc=q('#dp-acc').value;
+    if(acc&&shc){const what=shc.note?' · '+shc.note:'';if(d.dir==='debo')put('movs',uid(),{kind:'gasto',amount:amt,account:acc,date,cat:shc.cat,group:null,method:defMethod(acc),cuotas:1,debtId:id,note:'Mi parte con '+d.person+what,createdAt:Date.now()});
+      else put('movs',uid(),{kind:'ingreso',amount:amt,account:acc,date,cat:shIncCat(),method:defMethod(acc),debtId:id,note:'Me devolvió '+d.person+what,createdAt:Date.now()})}
+    else if(acc)put('movs',uid(),{kind:'loan',dir:ot||d.dir==='debo'?'out':'in',amount:amt,account:acc,date,debtId:id,note:ot?'Pago a '+(d.creditor||'')+' por '+d.person:(d.dir==='debo'?'Pago a ':'Pago de ')+d.person,createdAt:Date.now()});
+    const bk=sheetBack;if(bk){sheetBack=null;bk()}else closeSheet();toast(amt>=left-0.5?'¡Saldado!':'Pago registrado')});
 }
 
 
