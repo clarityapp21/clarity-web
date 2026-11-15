@@ -1202,6 +1202,7 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .wt-cy{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--c5) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--c5) 35%,var(--line))}
 .wt-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);align-items:center}.wt-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;opacity:.5;margin-right:5px;vertical-align:-1px}.wt-clean{margin-left:auto}.wt-clean b.up{color:var(--q-do)}.wt-clean b.down{color:#3A9D45}
 .pp-chips{margin-top:6px}.pp-chips:empty{display:none}.pp-chips .pp-more{border-style:dashed}.sh-amt{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}.sh-amt small{font-family:var(--font-body);font-size:11.5px;color:var(--muted);font-weight:500}
+.dp-ctx{display:flex;flex-direction:column;gap:2px;font-size:14px;color:var(--muted)}.dp-ctx b{color:var(--ink)}
 .shr-p-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0}
 .sc-list{display:flex;flex-direction:column;gap:8px}
 .sc-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 34px;gap:6px;align-items:center}
@@ -3250,7 +3251,7 @@ function migrateResumenBatches(){const groups={};Object.entries(state.movs).forE
   Object.values(groups).forEach(g=>{const cm={};g.forEach(([,m])=>{if((+m.cuotas||1)>1&&!m.planz){const mo=monthOf(m.date);cm[mo]=(cm[mo]||0)+1}});const tgt=Object.keys(cm).sort((a,b)=>cm[b]-cm[a])[0];if(!tgt)return;
     g.forEach(([id,m])=>{if((+m.cuotas||1)===1&&monthOf(m.date)!==tgt&&m.buyDate&&monthOf(m.buyDate)===monthOf(m.date)){const [y,mm]=tgt.split('-').map(Number);const last=new Date(y,mm,0).getDate();put('movs',id,Object.assign({},m,{date:tgt+'-'+pad(Math.min(+m.date.slice(8,10)||1,last))}))}})})}
 function migrateFixedStart(){if(!loaded.has('fixed'))return;Object.entries(state.fixed).forEach(([id,f])=>{if(f.start)return;const pm=Object.values(state.movs).filter(m=>m.fixedId===id).map(m=>monthOf(m.date)).sort()[0];put('fixed',id,Object.assign({},f,{start:pm||fixedDefStart(f.day)}))})}
-function migrateCardPays(){if(!loaded.has('movs')||!loaded.has('accounts'))return;migrateResumenBatches();migrateFixedStart();Object.entries(state.movs).forEach(([id,m])=>{if(m.kind==='transfer'&&isCardPay(m)){const card=state.accounts[m.toAccount]||{};
+function migrateCardPays(){if(!loaded.has('movs')||!loaded.has('accounts'))return;migrateResumenBatches();migrateFixedStart();try{migrateSharedPays()}catch(e){}Object.entries(state.movs).forEach(([id,m])=>{if(m.kind==='transfer'&&isCardPay(m)){const card=state.accounts[m.toAccount]||{};
     const o={kind:'gasto',amount:+m.amount||0,account:m.account,payCard:m.toAccount,cat:tarjCat(),group:null,method:'transferencia',cuotas:1,date:m.date,note:/^Pago( de)? /i.test(m.note||'')?(m.note||'').replace(/^Pago( de)? /i,''):(m.note||card.name||''),createdAt:m.createdAt||Date.now()};
     if(m.toAmount!=null&&curOf(m.account)!==curOf(m.toAccount))o.toAmount=+m.toAmount;put('movs',id,o)}})}
 function renderFinance(){if(!renderFinance.mig&&loaded.has('movs')&&loaded.has('accounts')){renderFinance.mig=1;setTimeout(migrateCardPays,0)}
@@ -3881,7 +3882,7 @@ $('#view-finanzas').addEventListener('click',e=>{const b=e.target.closest('butto
   else if(d.pie){pieMode=d.pie;renderFinance()}
   else if(b.id==='f-goal-add')openGoal();
   else if(b.id==='f-debt-add')openDebt();else if(b.id==='f-shr-new')openShared(null);else if(d.shv)openSharedView(d.shv);else if(d.shall)openSharedAll();else if(b.id==='f-mine-edit')openMineAdjust();
-  else if(d.debt)openDebt(d.debt);else if(d.dperson)openDebtPerson(d.dperson);else if(d.dev)openDebt(d.dev);else if(d.devall)openDebtEvents();
+  else if(d.debt)openDebt(d.debt);else if(d.dperson)openDebtPerson(d.dperson);else if(d.dev)openDebtPay(d.dev,true);else if(d.devall)openDebtEvents();
   else if(d.debtpay)openDebtPay(d.debtpay);
   else if(d.debtall)openDebtPay(d.debtall,true);else if(d.offset!=null)offsetDebts(d.offset);
   else if(d.goal)openGoal(d.goal);
@@ -4292,7 +4293,7 @@ function openShared(sid,back){const old=sid?splits()[sid]:null;
 function debtEvents(key){const ev=[];Object.entries(state.debts).forEach(([id,d])=>{const ot=d.dir==='otros';
     if(key&&personKey(d.person||'')!==key&&personKey(d.creditor||'')!==key)return;
     ev.push({id,date:d.date||'',o:0,amt:+d.amount||0,flow:ot?'':d.dir==='debo'?'in':'out',note:d.note||'',
-      t:ot?esc(d.person)+' le debe a '+esc(d.creditor||''):d.dir==='debo'?'Te prestó '+esc(d.person):'Le prestaste a '+esc(d.person)});
+      t:ot?esc(d.person)+' le debe a '+esc(d.creditor||''):debtShared(d)?(d.dir==='debo'?'Le debés tu parte a '+esc(d.person):esc(d.person)+' te debe su parte'):d.dir==='debo'?'Te prestó '+esc(d.person):'Le prestaste a '+esc(d.person)});
     (d.payments||[]).forEach((p,i)=>ev.push({id,date:p.date||d.date||'',o:i+1,amt:+p.amount||0,flow:ot||p.offset?'':d.dir==='debo'?'out':'in',note:'',
       t:p.offset?'Compensación con '+esc(d.person):ot?'Pago a '+esc(d.creditor||'')+' por '+esc(d.person):d.dir==='debo'?'Le pagaste a '+esc(d.person):esc(d.person)+' te pagó'}))});
   return ev.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.o-a.o)}
@@ -4317,7 +4318,7 @@ function renderDebts(){const all=Object.entries(state.debts),open=all.filter(([,
     (others.length?'<div class="debt-otros"><span class="lbl">Entre otros</span>'+(others.some(([,d])=>d.payer!=='them')?'<span class="s">Te toca devolver '+money(others.filter(([,d])=>d.payer!=='them').reduce((a,[,d])=>a+debtLeft(d),0))+' por otras personas. No cuenta en lo que debés vos.</span>':'')+others.map(([id,d])=>otrosRow(id,d)).join('')+'</div>':'')}
 function openDebtEvents(){const ev=debtEvents(),by={};ev.forEach(e=>{const k=(e.date||'').slice(0,7);(by[k]=by[k]||[]).push(e)});
   openSheet(`<div class="sheet-head"><h2>Movimientos de préstamos</h2>${closeBtn}</div>`+Object.keys(by).sort().reverse().map(k=>`<div class="vs-month"><div class="vs-mh"><span>${esc(k?monthLabel(k):'Sin fecha')}</span></div><div class="dev-list">${by[k].map(devRow).join('')}</div></div>`).join(''));
-  const sh=root.querySelector('.sheet');sheetBack=null;sh.addEventListener('click',e=>{const b=e.target.closest('[data-dev]');if(b){openDebt(b.dataset.dev);sheetBack=()=>openDebtEvents()}})}
+  const sh=root.querySelector('.sheet');sheetBack=null;sh.addEventListener('click',e=>{const b=e.target.closest('[data-dev]');if(b){openDebtPay(b.dataset.dev,true);sheetBack=()=>openDebtEvents()}})}
 function openDebtPerson(key){const items=Object.entries(state.debts).filter(([,d])=>d.dir!=='otros'&&personKey(d.person||'')===key);
   const ot=Object.entries(state.debts).filter(([,d])=>d.dir==='otros'&&(personKey(d.person||'')===key||personKey(d.creditor||'')===key));
   if(!items.length&&!ot.length){closeSheet();return}
@@ -4343,7 +4344,7 @@ function openDebtPerson(key){const items=Object.entries(state.debts).filter(([,d
     if(d.offset!=null){offsetDebts(d.offset);setTimeout(re,60);return}
     if(d.debtpay){openDebtPay(d.debtpay);sheetBack=re;return}
     if(d.debtall){openDebtPay(d.debtall,true);sheetBack=re;return}
-    if(d.debt||d.dev){openDebt(d.debt||d.dev);sheetBack=re}})}
+    if(d.dev){openDebtPay(d.dev,true);sheetBack=re;return}if(d.debt){openDebt(d.debt);sheetBack=re}})}
 
 /* ---------- perfil de un jugador (partidos y deportes) ---------- */
 function openPlayerProfile(name,back,sp){const k=personKey(name);if(sp&&(ppl().xs||{})[k]===true)sp=null;const z=()=>({G:0,E:0,P:0,n:0});const tot={w:z(),v:z()},bySp={},games=[];let shown=name;
@@ -4692,22 +4693,39 @@ function openLoanMov(mid){const m=state.movs[mid];if(!m)return;const dbt=m.debtI
   if(q('#lm-debt'))q('#lm-debt').addEventListener('click',()=>openDebt(m.debtId));
   const del=q('#lm-del');del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}remove('movs',mid);closeSheet();toast('Movimiento eliminado')})}
 function openDebtPay(id,all){
-  const d=state.debts[id];if(!d)return;const left=debtLeft(d);
-  const ot=d.dir==='otros';const shc=!ot&&debtShared(d);
-  openSheet('<div class="sheet-head"><h2>'+(ot?'Pago a '+esc(d.creditor||'')+' (deuda de '+esc(d.person)+')':(d.dir==='debo'?'Le pagaste a ':'Te pagó ')+esc(d.person))+'</h2>'+closeBtn+'</div>'+
-    '<p class="welcome-lead">Queda '+money(left)+' de '+money(d.amount)+'.</p>'+
-    '<div class="row2"><div class="field"><label for="dp-amt">Monto</label><input type="text" inputmode="decimal" data-money="1" id="dp-amt" value="'+(all?Math.round(left*100)/100:'')+'" placeholder="$ 0"></div><div class="field"><label for="dp-date">Fecha</label><input type="date" id="dp-date" value="'+todayStr()+'"></div></div>'+
-    '<div class="field"><label for="dp-acc">'+(ot?'¿Salió de alguna cuenta tuya?':d.dir==='debo'?'¿De qué cuenta salió?':'¿A qué cuenta entró?')+'</label>'+(shc?'<span class="s">Es de un gasto compartido: '+(d.dir==='debo'?'se anota como <b>gasto</b> ('+esc(catName(shc.cat))+'), porque es tu parte.':'se anota como <b>ingreso</b> (reintegro), así tu gasto queda en tu parte.')+'</span>':'')+'<select id="dp-acc"><option value="">Ninguna, solo anotarlo</option>'+accounts().filter(([,a])=>a.type!=='credito').map(([i,a])=>'<option value="'+esc(i)+'"'+(!ot&&i===defAcc()?' selected':'')+'>'+esc(a.name)+'</option>').join('')+'</select>'+(ot?'<span class="s">Si lo pagaste con plata que no es tuya (por ejemplo, de los alquileres que cobrás), dejalo en "Ninguna".</span>':'')+'</div>'+
-    '<div class="actions"><div class="right"><button class="btn btn-primary" type="button" id="dp-save">Registrar</button></div></div>');
-  const sh=root.querySelector('.sheet');const q=x=>sh.querySelector(x);
-  q('#dp-save').addEventListener('click',()=>{const a=parseMoney(q('#dp-amt').value);if(isNaN(a)||a<=0){toast('Ingresá un monto.');return}const amt=Math.min(a,left);const date=q('#dp-date').value||todayStr();
+  const d=state.debts[id];if(!d)return;const left=debtLeft(d);let back=arguments[2]||null;sheetBack=null;
+  const ot=d.dir==='otros';const shc=!ot&&debtShared(d);const done=left<0.5;
+  const title=done&&!ot?(d.dir==='debo'?'Ya le pagaste a '+esc(d.person):esc(d.person)+' ya te pagó'):ot?esc(d.person)+' le debe a '+esc(d.creditor||''):shc?(d.dir==='debo'?'Le debés tu parte a '+esc(d.person):esc(d.person)+' te debe su parte'):(d.dir==='debo'?'Le debés a ':'Te debe ')+esc(d.person);
+  const ctx=`<div class="dp-ctx"><span>${esc(longDate(d.date||todayStr()))}${d.note?' · '+esc(d.note):''}</span><span>${done?'<b class="c-g">Saldado ✓</b> · '+money(+d.amount||0):'Queda <b>'+money(left)+'</b>'+(debtPaid(d)>0.5?' de '+money(+d.amount||0):'')}</span></div>`;
+  const pays=(d.payments||[]).length?`<span class="lbl dl-lbl">Pagos</span><div>${(d.payments||[]).map(p=>`<div class="shv-row"><span><span class="t">${p.offset?'Compensación':money(+p.amount||0)}</span><span class="s">${esc(longDate(p.date||d.date||todayStr()))}</span></span>${p.offset?'<span class="s">'+money(+p.amount||0)+'</span>':''}</div>`).join('')}</div>`:'';
+  const accs=accounts().filter(([,a])=>a.type!=='credito');let acc=ot?'':(defAcc()||'');
+  const accHtml=()=>accs.map(([i,a])=>`<button type="button" data-acc="${esc(i)}" aria-pressed="${i===acc}">${esc(a.name)}</button>`).join('')+`<button type="button" data-acc="" aria-pressed="${!acc}">Ninguna, solo anotarlo</button>`;
+  openSheet('<div class="sheet-head"><button class="iconbtn" type="button" id="dp-back" aria-label="Volver" hidden>‹</button><h2>'+title+'</h2>'+closeBtn+'</div>'+ctx+
+    (done?'':
+    '<div class="row2"><div class="field"><label for="dp-amt">¿Cuánto pagó'+(d.dir==='debo'||ot?'s':'')+'?</label><input type="text" inputmode="decimal" data-money="1" id="dp-amt" value="'+(all?Math.round(left*100)/100:'')+'" placeholder="$ 0"></div><div class="field"><label for="dp-date">Fecha</label><input type="date" id="dp-date" value="'+todayStr()+'"></div></div>'+
+    '<div class="field"><span class="lbl">'+(ot?'¿Salió de alguna cuenta tuya?':d.dir==='debo'?'¿Con qué pagaste?':'¿Dónde entró la plata?')+'</span><div class="grp-tg" id="dp-accs">'+accHtml()+'</div>'+
+      (shc?'<span class="s">Es de un gasto compartido: '+(d.dir==='debo'?'se anota como <b>gasto</b> ('+esc(catName(shc.cat))+'), porque es tu parte.':'se anota como <b>ingreso</b> (reintegro), así tu gasto queda en tu parte.')+'</span>':ot?'<span class="s">Si lo pagaste con plata que no es tuya (por ejemplo, de los alquileres que cobrás), elegí "Ninguna".</span>':'')+'</div>')+
+    pays+
+    '<div class="actions"><button class="btn" type="button" id="dp-edit">Editar préstamo</button><div class="right">'+(done?'':'<button class="btn btn-primary" type="button" id="dp-save">Registrar pago</button>')+'</div></div>');
+  const sh=root.querySelector('.sheet');const q=x=>sh.querySelector(x);sheetBack=back||null;
+  const re=()=>openDebtPay(id,all,back);
+  const bb=q('#dp-back');const showBack=()=>{if(back){bb.hidden=false;sheetBack=back}};showBack();Promise.resolve().then(()=>{if(!back&&sheetBack){back=sheetBack;showBack()}});
+  bb.addEventListener('click',()=>{sheetBack=null;back()});
+  q('#dp-edit').addEventListener('click',()=>{openDebt(id);sheetBack=re});
+  const ab=q('#dp-accs');if(ab)ab.addEventListener('click',e=>{const b=e.target.closest('[data-acc]');if(!b)return;acc=b.dataset.acc;ab.querySelectorAll('[data-acc]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  const sv=q('#dp-save');if(sv)sv.addEventListener('click',()=>{const a=parseMoney(q('#dp-amt').value);if(isNaN(a)||a<=0){toast('Ingresá un monto.');return}const amt=Math.min(a,left);const date=q('#dp-date').value||todayStr();
     put('debts',id,Object.assign({},d,{payments:(d.payments||[]).concat({amount:amt,date})}));
-    const acc=q('#dp-acc').value;
     if(acc&&shc){const what=shc.note?' · '+shc.note:'';if(d.dir==='debo')put('movs',uid(),{kind:'gasto',amount:amt,account:acc,date,cat:shc.cat,group:null,method:defMethod(acc),cuotas:1,debtId:id,note:'Mi parte con '+d.person+what,createdAt:Date.now()});
       else put('movs',uid(),{kind:'ingreso',amount:amt,account:acc,date,cat:shIncCat(),method:defMethod(acc),debtId:id,note:'Me devolvió '+d.person+what,createdAt:Date.now()})}
     else if(acc)put('movs',uid(),{kind:'loan',dir:ot||d.dir==='debo'?'out':'in',amount:amt,account:acc,date,debtId:id,note:ot?'Pago a '+(d.creditor||'')+' por '+d.person:(d.dir==='debo'?'Pago a ':'Pago de ')+d.person,createdAt:Date.now()});
+    if(acc)try{localStorage.setItem('clarity-ultima-cuenta',acc);lastAcc=acc}catch(e){}
     const bk=sheetBack;if(bk){sheetBack=null;bk()}else closeSheet();toast(amt>=left-0.5?'¡Saldado!':'Pago registrado')});
 }
+/* hacia atrás: pagos de gastos compartidos que quedaron como préstamo pasan a ingreso o gasto */
+function migrateSharedPays(){if(!loaded.has('debts'))return;Object.entries(state.movs).forEach(([mid,m])=>{if(m.kind!=='loan'||!m.debtId)return;const d=state.debts[m.debtId];if(!d||d.dir==='otros')return;const shc=debtShared(d);if(!shc)return;
+    const what=shc.note?' · '+shc.note:'';
+    if(d.dir==='me'&&m.dir==='in')put('movs',mid,{kind:'ingreso',amount:+m.amount||0,account:m.account,date:m.date,cat:shIncCat(),method:defMethod(m.account),debtId:m.debtId,note:'Me devolvió '+d.person+what,createdAt:m.createdAt||Date.now()});
+    else if(d.dir==='debo'&&m.dir==='out')put('movs',mid,{kind:'gasto',amount:+m.amount||0,account:m.account,date:m.date,cat:shc.cat,group:null,method:defMethod(m.account),cuotas:1,debtId:m.debtId,note:'Mi parte con '+d.person+what,createdAt:m.createdAt||Date.now()})})}
 
 
 /* exportar a Excel */
