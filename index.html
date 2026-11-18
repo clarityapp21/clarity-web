@@ -911,6 +911,16 @@ em.late,.pn-tile-b .late{color:var(--q-do);background:color-mix(in srgb,var(--q-
 .rt-card .row,.pr-btn{gap:10px}
 .pr-btn{width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;padding:0 0 9px;text-align:left;justify-content:flex-start}
 .pr-btn:last-child{border-bottom:0;padding-bottom:0}
+.wk-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+.wk-cmp{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--hi) 7%,transparent)}
+.wk-cmp .em{font-size:40px;line-height:1;letter-spacing:-6px;flex:none}.wk-cmp b{display:block;font-size:16px}.wk-cmp .s{font-size:13px;color:var(--muted)}
+.wk-sum{display:flex;flex-direction:column;gap:2px;font-size:14px}.wk-sum>span:first-child{font-weight:700}
+.wk-ms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.wk-m{border:1px solid var(--line);border-radius:12px;padding:7px 10px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.wk-m span{font-size:12px;color:var(--muted)}.wk-m b{font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.wk-m.pr{border-color:color-mix(in srgb,#E0A800 60%,var(--line));background:color-mix(in srgb,#FFD23F 12%,transparent)}.wk-m small{font-size:11.5px;color:var(--muted)}.wk-m i{font-style:normal;color:#E0A800}
+.wk-sets summary{font-size:13px;color:var(--muted);cursor:pointer;padding:4px 0}
+.wk-rt{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .pr-row{border-bottom:1px solid var(--line);padding:6px 0}
 .prog-2col{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:start}
 .mus-lbl{font-size:13px;font-weight:600;color:var(--muted)}
@@ -5115,18 +5125,51 @@ function saveLive(){const end=Date.now(),dur=Math.max(1,Math.round((end-live.sta
   const avgR=rpes.length?rpes.reduce((a,b)=>a+b,0)/rpes.length:0;const met=avgR?Math.min(6.5,Math.max(3.5,3.5+(avgR-5)*.6)):5;
   const w={date:ymd(new Date(live.start)),start:live.start,end,dur,name:(live.name||'').trim()||'Entrenamiento',routineId:live.routineId||null,exercises,bw:bwNow||null,volume:Math.round(vol),sets:n,kcal:kcalFor(met,dur),prs,createdAt:end};
   const wid=live.id;put('workouts',wid,w);clearLive();showWorkoutSummary(wid)}
-function showWorkoutSummary(wid){const w=state.workouts[wid];if(!w)return;
-  openSheet(`<div class="sheet-head"><h2>¡Buen entrenamiento!</h2>${closeBtn}</div><div class="kpis"><div class="kpi"><span>Duración</span><b>${fmtDur(w.dur)}</b></div><div class="kpi"><span>Volumen</span><b>${fmtN(w.volume,0)} kg</b></div><div class="kpi"><span>Series</span><b>${w.sets}</b></div></div>`+
-    `<p class="status" style="margin:0">Unas ${w.kcal} kcal quemadas (estimado).</p>`+
-    (w.prs.length?`<div class="field"><span class="lbl">Récords nuevos</span>${w.prs.map(p=>`<div class="row pr-row"><span>🏅 ${esc(p.name)}</span><span class="amt">${esc(p.label)}</span></div>`).join('')}</div>`:'')+
-    `<div class="actions">${w.routineId?'':'<button class="btn" type="button" id="ws-routine">Guardar como rutina</button>'}<div class="right"><button class="btn btn-primary" type="button" data-close>Listo</button></div></div>`);
-  const r=root.querySelector('#ws-routine');if(r)r.addEventListener('click',()=>openRoutine(null,{name:w.name,exercises:w.exercises.map(e=>({exId:e.exId,sets:e.sets.filter(s=>s.type!=='w').length||e.sets.length,rest:e.rest||defRest(e.exId)}))}))}
-function openWorkout(id){const w=state.workouts[id];if(!w)return;
-  openSheet(`<div class="sheet-head"><h2>${esc(w.name)}</h2>${closeBtn}</div><p class="welcome-lead">${esc(longDate(w.date))} · ${fmtDur(w.dur)} · ${w.sets} series · ${fmtN(w.volume,0)} kg · ${w.kcal} kcal</p>`+
-    (w.prs&&w.prs.length?`<div class="field"><span class="lbl">Récords</span>${w.prs.map(p=>`<div class="row pr-row"><span>🏅 ${esc(p.name)}</span><span class="amt">${esc(p.label)}</span></div>`).join('')}</div>`:'')+
-    w.exercises.map(e=>{const ex=exById(e.exId);let nn=0;return `<div class="wk-ex"><div class="row">${chip(exIcon(ex.group),MUSCLE_COLOR[ex.group]||8,'sm')}<span class="mov-txt"><span class="t">${esc(e.name||ex.name)}</span>${e.note?`<span class="s">${esc(e.note)}</span>`:''}</span></div>${e.sets.map(s=>`<div class="row wk-set"><span class="set-type t-${s.type}">${s.type==='n'?++nn:{w:'C',f:'F',d:'D'}[s.type]}</span><span>${setLabel(ex,s)}${s.rpe?' · RPE '+fmtN(s.rpe):''}</span></div>`).join('')}</div>`}).join('')+
-    `<div class="actions"><button class="btn btn-danger" type="button" id="wo-del">Eliminar</button><div class="right"><button class="btn" type="button" id="wo-edit">Editar</button><button class="btn" type="button" id="wo-again">Repetir</button></div></div>`);
-  const sh=root.querySelector('.sheet');sh.querySelector('#wo-edit').addEventListener('click',()=>editWorkout(id));sh.querySelector('#wo-again').addEventListener('click',()=>{closeSheet();startLive(null,w)});
+/* ---------- estadísticas de un entrenamiento: récords por ejercicio y comparación de kilos ---------- */
+const wkT=w=>w.start||(w.date?parseYmd(w.date).getTime():0);
+function wkExStats(e,bw){const ex=exById(e.exId);const ss=(e.sets||[]).filter(s=>s.type!=='w');let maxKg=0,maxReps=0,best=0,bestSet=null,vol=0,reps=0;
+  ss.forEach(s=>{const kg=+s.kg||0,r=+s.reps||0;if(kg>maxKg)maxKg=kg;if(r>maxReps)maxReps=r;const sc=setScore(ex,s);if(sc>best){best=sc;bestSet=s}vol+=setVol(ex,kg,r,bw);reps+=r});
+  return{ex,maxKg,maxReps,best,bestSet,vol:Math.round(vol),reps,n:ss.length}}
+/* lo mejor que habías hecho en un ejercicio antes de cierto momento */
+function wkHist(exId,before){const h={n:0,maxKg:0,maxReps:0,best:0,vol:0,tot:0};
+  Object.values(state.workouts).forEach(w=>{if(wkT(w)>=before)return;let sv=0,sr=0,had=false;(w.exercises||[]).forEach(e=>{if(e.exId!==exId)return;const st=wkExStats(e,w.bw||myBw());if(!st.n)return;had=true;
+    h.maxKg=Math.max(h.maxKg,st.maxKg);h.maxReps=Math.max(h.maxReps,st.maxReps);h.best=Math.max(h.best,st.best);sv+=st.vol;sr+=st.reps});if(had){h.n++;h.vol=Math.max(h.vol,sv);h.tot=Math.max(h.tot,sr)}});return h}
+/* métricas de cada ejercicio con su estrellita si es récord (la primera vez, todo es récord) */
+function wkReport(w){const bw=w.bw||myBw(),t=wkT(w);let recs=0,reps=0;
+  const exs=(w.exercises||[]).map(e=>{const st=wkExStats(e,bw);if(!st.n)return null;reps+=st.reps;const h=wkHist(e.exId,t),first=!h.n,ex=st.ex,m=[];
+    const add=(k,v,cur,prev,lower,sub)=>{const pr=first||(lower?cur<prev:cur>prev+1e-9);if(pr)recs++;m.push({k,v,pr,sub})};
+    if(ex.type==='t'){add('Tiempo máx',fmtN(st.maxReps)+' '+(ex.unit||'min'),st.maxReps,h.maxReps);add('Total',fmtN(st.reps)+' '+(ex.unit||'min'),st.reps,h.tot)}
+    else{if(ex.type!=='bwa'&&st.maxKg>0)add(ex.type==='bw'?'Lastre máx':'Peso máx',fmtN(st.maxKg)+' kg',st.maxKg,h.maxKg);
+      add('Reps máx',st.maxReps+' reps',st.maxReps,h.maxReps);
+      if(st.maxKg>0&&ex.type!=='bwa'&&st.bestSet)add('Mejor serie',setLabel(ex,st.bestSet),st.best,h.best,false,'1RM estimado ~'+fmtN(Math.round(e1rm(+st.bestSet.kg,+st.bestSet.reps)))+' kg');
+      if(st.vol>0)add('Volumen',fmtN(st.vol,0)+' kg',st.vol,h.vol)}
+    return{e,ex,first,m}}).filter(Boolean);
+  const prev=Object.entries(state.workouts).filter(([,x])=>x!==w&&wkT(x)<t&&(w.routineId?x.routineId===w.routineId:(x.name||'')===(w.name||'')&&w.name&&w.name!=='Entrenamiento')).sort((a,b)=>wkT(b[1])-wkT(a[1]))[0];
+  return{exs,recs,reps,prev:prev?prev[1]:null}}
+const WK_OBJ=[[40,'🐕','un perro grande','perros grandes'],[120,'🏍️','una moto','motos'],[300,'🎹','un piano','pianos'],[650,'🐄','una vaca','vacas'],[1300,'🚗','un auto','autos'],[2500,'🛻','una camioneta','camionetas'],
+  [3500,'🦏','un rinoceronte','rinocerontes'],[6000,'🐘','un elefante','elefantes'],[8000,'🦖','un tiranosaurio','tiranosaurios'],[12000,'🚌','un colectivo','colectivos'],[20000,'🚛','un camión','camiones'],
+  [35000,'🏠','una casa','casas'],[60000,'🐋','una ballena','ballenas'],[80000,'✈️','un avión','aviones'],[150000,'🚂','una locomotora','locomotoras'],[400000,'🏢','un edificio','edificios']];
+function wkCompare(vol){if(!(vol>=30))return null;let o=WK_OBJ[0];WK_OBJ.forEach(x=>{if(x[0]<=vol*1.15)o=x});let n=vol/o[0];n=n<1.25?1:Math.round(n*2)/2;
+  const txt=n===1?o[2]:(fmtN(n)+' '+o[3]);return{em:o[1],n,txt,ref:o[0]}}
+function wkStatsHtml(w){const r=wkReport(w),cmp=wkCompare(+w.volume||0);
+  const dv=r.prev&&+r.prev.volume?Math.round(((+w.volume||0)-(+r.prev.volume))/(+r.prev.volume)*100):null;
+  return `<div class="kpis wk-kpis"><div class="kpi"><span>Duración</span><b>${fmtDur(w.dur)}</b></div><div class="kpi"><span>Levantaste</span><b>${fmtN(w.volume||0,0)} kg</b></div><div class="kpi"><span>Series</span><b>${w.sets||0}</b></div><div class="kpi"><span>Repeticiones</span><b>${fmtN(r.reps,0)}</b></div></div>`+
+    (cmp?`<div class="wk-cmp"><div class="em" aria-hidden="true">${Array.from({length:Math.min(3,Math.ceil(cmp.n))},()=>cmp.em).join('')}</div><div><b>Es como levantar ${esc(cmp.txt)}</b><span class="s">${esc(cmp.txt.replace(/^(un|una) /,'') )} ≈ ${fmtN(cmp.ref,0)} kg${cmp.n>1?' cada uno':''}</span></div></div>`:'')+
+    `<div class="wk-sum"><span>${r.recs?'⭐ '+r.recs+(r.recs===1?' récord':' récords')+' en esta sesión':'Sin récords esta vez'}</span>${dv!=null?`<span class="${dv>=0?'c-g':'c-p'}">${dv>=0?'+':''}${dv}% de kilos vs. la vez anterior</span>`:''}<span class="s">${w.dur?fmtN((+w.volume||0)/w.dur,0)+' kg por minuto · ':''}${w.kcal||0} kcal</span></div>`+
+    r.exs.map(x=>`<div class="wk-ex"><div class="row">${chip(exIcon(x.ex.group),MUSCLE_COLOR[x.ex.group]||8,'sm')}<span class="mov-txt"><span class="t">${esc(x.e.name||x.ex.name)}</span><span class="s">${x.first?'Primera vez · todo cuenta como récord':(x.e.sets||[]).filter(s=>s.type!=='w').length+' series'}</span></span></div>`+
+      `<div class="wk-ms">${x.m.map(m=>`<div class="wk-m${m.pr?' pr':''}"><span>${esc(m.k)}${m.pr?' <i aria-label="récord">★</i>':''}</span><b>${esc(m.v)}</b>${m.sub?`<small>${esc(m.sub)}</small>`:''}</div>`).join('')}</div>`+
+      `<details class="wk-sets"><summary>Ver series</summary>${(()=>{let nn=0;return x.e.sets.map(s=>`<div class="row wk-set"><span class="set-type t-${s.type}">${s.type==='n'?++nn:{w:'C',f:'F',d:'D'}[s.type]}</span><span>${setLabel(x.ex,s)}${s.rpe?' · RPE '+fmtN(s.rpe):''}</span></div>`).join('')})()}</details></div>`).join('')}
+function wkToRoutine(w){const reps=e=>{const c={};e.sets.filter(s=>s.type!=='w'&&+s.reps).forEach(s=>c[s.reps]=(c[s.reps]||0)+1);const k=Object.keys(c).sort((a,b)=>c[b]-c[a])[0];return k?String(k):''};
+  openRoutine(null,{name:w.name&&w.name!=='Entrenamiento'?w.name:'',exercises:w.exercises.map(e=>({exId:e.exId,sets:e.sets.filter(s=>s.type!=='w').length||e.sets.length,rest:e.rest||defRest(e.exId),reps:reps(e)}))});
+  setTimeout(()=>{const n=root.querySelector('#rt-name');if(n&&!n.value)n.focus()},80)}
+function showWorkoutSummary(wid){openWorkout(wid,true)}
+function openWorkout(id,fresh){const w=state.workouts[id];if(!w)return;const rt=w.routineId&&state.routines[w.routineId];
+  openSheet(`<div class="sheet-head"><h2>${fresh?'¡Buen entrenamiento!':esc(w.name)}</h2>${closeBtn}</div><p class="welcome-lead">${fresh?esc(w.name)+' · ':''}${esc(longDate(w.date))}${w.start?' · '+new Date(w.start).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):''}</p>`+
+    wkStatsHtml(w)+
+    `<div class="wk-rt">${rt?`<span class="s">Rutina: <b>${esc(rt.name)}</b></span>`:''}<button class="btn" type="button" id="wo-rt">${rt?'Guardar como otra rutina':'Guardar como rutina'}</button></div>`+
+    `<div class="actions"><button class="btn btn-danger" type="button" id="wo-del">Eliminar</button><div class="right"><button class="btn" type="button" id="wo-edit">Editar</button>${fresh?'<button class="btn btn-primary" type="button" data-close>Listo</button>':'<button class="btn" type="button" id="wo-again">Repetir</button>'}</div></div>`);
+  const sh=root.querySelector('.sheet');sh.querySelector('#wo-edit').addEventListener('click',()=>editWorkout(id));const ag=sh.querySelector('#wo-again');if(ag)ag.addEventListener('click',()=>{closeSheet();startLive(null,w)});
+  sh.querySelector('#wo-rt').addEventListener('click',()=>wkToRoutine(w));
   const del=sh.querySelector('#wo-del');del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}remove('workouts',id);closeSheet();toast('Entrenamiento eliminado')})}
 
 /* ---------- editar entrenamientos guardados ---------- */
