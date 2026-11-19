@@ -4915,13 +4915,13 @@ const myBw=()=>bodyKg()||+(((typeof nutri==='function'&&nutri())||{}).kg)||+((pr
 function setLoad(ex,kg,bw){kg=+kg||0;if(ex.type==='bw')return (bw||0)*(+ex.bwPct||100)/100+kg;if(ex.type==='bwa')return Math.max(0,(bw||0)*(+ex.bwPct||100)/100-kg);if(ex.type==='t')return 0;return kg}
 function setVol(ex,kg,reps,bw){return setLoad(ex,kg,bw)*(+reps||0)*(ex.uni?2:1)}
 let exEditCb=null;
-function openExEdit(id,cb,preset){exEditCb=cb||null;const isNew=!id,base=id?exFull(id):Object.assign({name:'',group:'pecho',type:'w',unit:'',equip:'barra',uni:false,m2:[],notes:''},preset||{});if(id&&!exById(id))return;
+function openExEdit(id,cb,preset){exEditCb=cb||null;const isNew=!id,base=id?exFull(id):Object.assign({name:'',group:'',type:'w',unit:'',equip:'barra',uni:false,m2:[],notes:''},preset||{});if(id&&!exById(id))return;
   const d=Object.assign({},base,{m2:(base.m2||[]).slice()});const custom=isNew||!!base.custom;let img=id?((state.exmeta[id]||{}).img||''):'';let newImg=null;
   const draw=()=>{const bw=myBw(),u=newImg?newImg.url:img?imgSrc(img):'';
     openSheet(`<div class="sheet-head">${cb?'<button class="iconbtn" type="button" id="xe-back" aria-label="Volver">‹</button>':''}<h2>${isNew?'Crear ejercicio':'Editar ejercicio'}</h2>${closeBtn}</div>`+
       `<div class="xe-photo${u?' has':''}">${u?`<img src="${esc(u)}" alt="">`:`<span class="xe-ph">${ico('camera')}<span>Foto de referencia</span><small>Una imagen de cómo se hace, de la máquina o del agarre.</small></span>`}${canImg()?`<span class="xe-pbtn cam-pair"><button class="btn mini-btn" type="button" data-cam="xe-file">📷 Cámara</button><label class="btn mini-btn" for="xe-file">Galería</label></span><input type="file" id="xe-file" accept="image/*" hidden>`:''}${u?'<button class="btn mini-btn xe-pdel" type="button" id="xe-pdel">Quitar</button>':''}</div>`+
       (custom?`<div class="field"><label for="xe-n">Nombre</label><input type="text" id="xe-n" maxlength="50" value="${esc(d.name)}" placeholder="Ej.: Remo en máquina Hammer"></div>`:`<div class="field"><span class="lbl">Nombre</span><b>${esc(d.name)}</b></div>`)+
-      `<div class="field"><label for="xe-g">Músculo principal</label><select id="xe-g">${Object.entries(MUSCLES).map(([k,v])=>`<option value="${k}"${k===d.group?' selected':''}>${v}</option>`).join('')}</select></div>`+
+      `<div class="field"><label for="xe-g">Músculo principal</label><select id="xe-g">${d.group?'':'<option value="" selected disabled>Elegí el músculo…</option>'}${Object.entries(MUSCLES).map(([k,v])=>`<option value="${k}"${k===d.group?' selected':''}>${v}</option>`).join('')}</select></div>`+
       `<div class="field"><span class="lbl">También trabaja (opcional)</span><div class="cat-chips" id="xe-m2">${Object.entries(MUSCLES).filter(([k])=>k!==d.group&&k!=='cardio').map(([k,v])=>`<button type="button" data-m="${k}" aria-pressed="${d.m2.includes(k)}">${v}</button>`).join('')}</div></div>`+
       `<div class="field"><span class="lbl">Equipo</span><div class="cat-chips" id="xe-eq">${Object.entries(EQUIP).map(([k,v])=>`<button type="button" data-q="${k}" aria-pressed="${k===d.equip}">${v}</button>`).join('')}</div></div>`+
       `<div class="field"><span class="lbl">Cómo se cuenta</span><div class="xe-types" id="xe-t">${Object.entries(EX_TYPES).map(([k,[n,sub]])=>`<button type="button" data-t="${k}" aria-pressed="${k===d.type}"><b>${n}</b><small>${sub}</small></button>`).join('')}</div></div>`+
@@ -4940,7 +4940,6 @@ function openExEdit(id,cb,preset){exEditCb=cb||null;const isNew=!id,base=id?exFu
       if(d.equip==='corporal'&&d.type==='w'){keep();d.type='bw';d.bwPct=d.bwPct||100;draw()}});
     q('#xe-t').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;keep();d.type=b.dataset.t;if(d.type==='bw'||d.type==='bwa')d.bwPct=d.bwPct||BW_PCT[id]||100;if(d.type==='t'){d.unit=d.unit||'min';d.uni=false}if(d.type==='bw'&&d.equip!=='corporal'&&['barra','mancuernas','maquina','polea'].includes(d.equip))d.equip='corporal';draw()});
     if(q('#xe-pct'))q('#xe-pct').addEventListener('input',()=>{d.bwPct=+q('#xe-pct').value;q('#xe-pct-v').textContent=d.bwPct+'%';const bw2=myBw();if(bw2)q('#xe-bw-s').textContent=`Con tu peso (${fmtN(bw2,1)} kg) cada repetición cuenta ${fmtN(bw2*d.bwPct/100,1)} kg${d.type==='bw'?' más el lastre':' menos la ayuda'}.`});
-    if(isNew&&q('#xe-n')){const xg=q('#xe-g');xg.addEventListener('change',()=>{d._gT=1});q('#xe-n').addEventListener('input',()=>{if(d._gT)return;const g=mixGroup(nameMix(q('#xe-n').value));if(g&&g!==xg.value){xg.value=g;d.group=g;d.m2=d.m2.filter(x=>x!==g)}})}
     if(q('#xe-u'))q('#xe-u').addEventListener('click',e=>{const b=e.target.closest('[data-u]');if(!b)return;d.unit=b.dataset.u;q('#xe-u').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
     if(q('#xe-uni'))q('#xe-uni').addEventListener('click',()=>{d.uni=!d.uni;q('#xe-uni').setAttribute('aria-checked',d.uni)});
     const fi=q('#xe-file');if(fi)fi.addEventListener('change',async()=>{const f=fi.files&&fi.files[0];if(!f)return;keep();try{const blob=await shrinkImage(f,1000);newImg={blob,url:URL.createObjectURL(blob)};draw()}catch(e){toast('No pude leer esa imagen.')}});
@@ -4948,7 +4947,7 @@ function openExEdit(id,cb,preset){exEditCb=cb||null;const isNew=!id,base=id?exFu
     if(q('#xe-reset'))q('#xe-reset').addEventListener('click',()=>{const m=Object.assign({},state.exmeta[id]);delete m.ov;put('exmeta',id,m);toast('Volvió a lo original');finish(id)});
     const del=q('#xe-del');if(del)del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}
       const m=state.exmeta[id];if(m&&m.img)imgDel(m.img);remove('exlib',id);if(m)remove('exmeta',id);toast('Ejercicio eliminado');exEditCb=null;closeSheet()});
-    q('#xe-ok').addEventListener('click',async()=>{keep();const name=String(d.name||'').trim();if(custom&&!name){toast('Poné un nombre.');q('#xe-n').focus();return}
+    q('#xe-ok').addEventListener('click',async()=>{keep();const name=String(d.name||'').trim();if(custom&&!name){toast('Poné un nombre.');q('#xe-n').focus();return}if(!d.group){toast('Elegí el músculo principal.');q('#xe-g').focus();return}
       const btn=q('#xe-ok');btn.disabled=true;
       const fields={group:d.group,type:d.type,unit:d.type==='t'?(d.unit||'min'):'',equip:d.equip,bwPct:(d.type==='bw'||d.type==='bwa')?(+d.bwPct||100):null,uni:d.type!=='t'&&!!d.uni,m2:d.m2.filter(x=>x!==d.group),notes:String(d.notes||'').trim()};
       const xid=id||('x'+uid());
@@ -5340,7 +5339,7 @@ function openExercisePicker(cb,preset){pickSel=(preset||[]).slice();pickGroup=''
   openSheet(`<div class="sheet-head"><h2>Agregar ejercicios</h2>${closeBtn}</div><input type="search" id="pk-q" class="pk-search" placeholder="Buscar ejercicio" aria-label="Buscar ejercicio">`+
     `<div class="cat-chips pk-groups" id="pk-groups"><button type="button" data-pg="" aria-pressed="true">Todos</button>${Object.entries(MUSCLES).map(([k,v])=>`<button type="button" data-pg="${k}" aria-pressed="false">${v}</button>`).join('')}</div>`+
     `<div class="pk-list" id="pk-list"></div><button class="btn cat-new" type="button" id="pk-new" style="align-self:flex-start">+ Crear ejercicio</button>`+
-    `<div class="newcat" id="pk-form" hidden><div class="row2"><div class="field"><label for="pk-name">Nombre</label><input type="text" id="pk-name" maxlength="50" placeholder="Ej.: Press en máquina Smith"></div><div class="field"><label for="pk-group">Grupo muscular</label><select id="pk-group">${Object.entries(MUSCLES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div></div>`+
+    `<div class="newcat" id="pk-form" hidden><div class="row2"><div class="field"><label for="pk-name">Nombre</label><input type="text" id="pk-name" maxlength="50" placeholder="Ej.: Press en máquina Smith"></div><div class="field"><label for="pk-group">Grupo muscular</label><select id="pk-group"><option value="" selected disabled>Elegí el músculo…</option>${Object.entries(MUSCLES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div></div>`+
     `<div class="field"><label for="pk-type">Se registra con</label><select id="pk-type"><option value="w">Peso y repeticiones</option><option value="bw">Peso corporal y repeticiones</option><option value="t">Tiempo</option></select></div><div class="actions"><button class="btn" type="button" id="pk-cancel">Cancelar</button><div class="right"><button class="btn btn-primary" type="button" id="pk-create">Crear</button></div></div></div>`+
     `<div class="actions"><div class="right"><button class="btn btn-primary" type="button" id="pk-add" disabled>Agregar</button></div></div>`);
   const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);
@@ -5351,10 +5350,9 @@ function openExercisePicker(cb,preset){pickSel=(preset||[]).slice();pickGroup=''
   q('#pk-q').addEventListener('input',fill);
   q('#pk-groups').addEventListener('click',e=>{const b=e.target.closest('[data-pg]');if(!b)return;pickGroup=b.dataset.pg;q('#pk-groups').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));fill()});
   q('#pk-list').addEventListener('click',e=>{const b=e.target.closest('[data-ex]');if(!b)return;const id=b.dataset.ex;pickSel=pickSel.includes(id)?pickSel.filter(x=>x!==id):pickSel.concat(id);fill()});
-  q('#pk-new').addEventListener('click',()=>{const keep=pickSel.slice(),cb0=pickCb,g0=pickGroup;openExEdit(null,x=>openExercisePicker(cb0,x?keep.concat(x):keep),{name:q('#pk-q').value.trim(),group:g0&&g0!=='cardio'?g0:'pecho'})});
-  if(q('#pk-name'))q('#pk-name').addEventListener('input',()=>{const g=mixGroup(nameMix(q('#pk-name').value));if(g&&q('#pk-group'))q('#pk-group').value=g});
+  q('#pk-new').addEventListener('click',()=>{const keep=pickSel.slice(),cb0=pickCb,g0=pickGroup;openExEdit(null,x=>openExercisePicker(cb0,x?keep.concat(x):keep),{name:q('#pk-q').value.trim(),group:''})});
   q('#pk-cancel').addEventListener('click',()=>{q('#pk-form').hidden=true});
-  q('#pk-create').addEventListener('click',()=>{const name=q('#pk-name').value.trim();if(!name){toast('Poné un nombre.');return}const type=q('#pk-type').value;const id='x'+uid();
+  q('#pk-create').addEventListener('click',()=>{const name=q('#pk-name').value.trim();if(!name){toast('Poné un nombre.');return}if(!q('#pk-group').value){toast('Elegí el músculo principal.');q('#pk-group').focus();return}const type=q('#pk-type').value;const id='x'+uid();
     put('exlib',id,{name,group:q('#pk-group').value,type,unit:type==='t'?'min':''});pickSel.push(id);q('#pk-form').hidden=true;q('#pk-q').value='';fill();toast('Ejercicio creado')});
   q('#pk-add').addEventListener('click',()=>{const ids=pickSel.slice(),cb=pickCb;closeSheet();cb&&cb(ids)});
   fill();setTimeout(()=>q('#pk-q').focus(),50)}
