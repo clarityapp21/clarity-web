@@ -921,6 +921,21 @@ em.late,.pn-tile-b .late{color:var(--q-do);background:color-mix(in srgb,var(--q-
 .wk-m.pr{border-color:color-mix(in srgb,#E0A800 60%,var(--line));background:color-mix(in srgb,#FFD23F 12%,transparent)}.wk-m small{font-size:11.5px;color:var(--muted)}.wk-m i{font-style:normal;color:#E0A800}
 .wk-sets summary{font-size:13px;color:var(--muted);cursor:pointer;padding:4px 0}
 .wk-rt{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.lv-clkbtn{background:none;border:0;padding:0;color:inherit;text-align:left;cursor:pointer}
+.lv-adj{background:none;border:0;padding:2px 0;color:var(--muted);font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
+.wk-sheet{max-width:560px}
+.wk-sl{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;gap:0;border-radius:20px}.wk-sl::-webkit-scrollbar{display:none}
+.wk-s{flex:0 0 100%;scroll-snap-align:start;box-sizing:border-box;min-height:420px;padding:22px 20px;border-radius:20px;background:linear-gradient(160deg,color-mix(in srgb,var(--hi) 16%,var(--surface)),var(--surface));border:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.wk-s-k{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.wk-s-big{font-family:var(--font-display);font-size:32px;font-weight:600;line-height:1.1}.wk-s-mid{font-size:19px;text-align:center}.wk-s-sub{font-size:13.5px;color:var(--muted)}
+.wk-s-em{font-size:96px;line-height:1.15;text-align:center;margin:18px 0 6px;letter-spacing:-14px}
+.wk-bars{display:flex;flex-direction:column;gap:10px;margin-top:6px}.wk-bar{display:grid;grid-template-columns:78px 1fr;gap:4px 10px;align-items:center}.wk-bar>span{font-weight:600;font-size:14px}
+.wk-bar>div{height:14px;border-radius:7px;background:color-mix(in srgb,var(--ink) 8%,transparent);overflow:hidden}.wk-bar i{display:block;height:100%;border-radius:7px}.wk-bar b{grid-column:2;font-size:12px;color:var(--muted);font-weight:500}
+.wk-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px;text-align:center}.wk-cal span{font-size:13px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.wk-cal .h{font-size:11px;color:var(--muted);aspect-ratio:auto;font-weight:700}.wk-cal .d{background:color-mix(in srgb,var(--ink) 5%,transparent)}.wk-cal .on{background:var(--hi);color:#fff;font-weight:700}.wk-cal .today{box-shadow:0 0 0 2px var(--ink)}
+.wk-prl{display:flex;flex-direction:column;gap:6px;margin-top:4px}.wk-pr{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,#FFD23F 14%,transparent);border:1px solid color-mix(in srgb,#E0A800 50%,var(--line))}
+.wk-pr span{display:flex;flex-direction:column;min-width:0}.wk-pr small{font-size:12px;color:var(--muted)}.wk-pr>b{font-size:14px;text-align:right}
+.wk-dots{display:flex;justify-content:center;gap:6px}.wk-dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}.wk-dots i.on{background:var(--ink);width:18px;border-radius:4px}
 .pr-row{border-bottom:1px solid var(--line);padding:6px 0}
 .prog-2col{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:start}
 .mus-lbl{font-size:13px;font-weight:600;color:var(--muted)}
@@ -5053,7 +5068,7 @@ function renderLive(){const r=$('#live-root');if(!live||!liveOpen){r.hidden=true
   const sc=r.querySelector('.live-body')?r.querySelector('.live-body').scrollTop:0;const st=liveStats();r.hidden=false;
   const tot=live.exercises.reduce((n,e)=>n+e.sets.length,0),pc=tot?Math.round(st.n/tot*100):0;
   r.innerHTML=`<div class="live gym" role="dialog" aria-label="Entrenamiento en curso"><div class="live-head"><button class="iconbtn" type="button" data-lv="min" aria-label="Minimizar">${CHEV}</button>`+
-    `<div class="live-title"><input type="text" id="lv-name" value="${esc(live.name)}" aria-label="Nombre del entrenamiento"><b class="lv-clock" id="lv-time">${elapsed()}</b></div>`+
+    `<div class="live-title"><input type="text" id="lv-name" value="${esc(live.name)}" aria-label="Nombre del entrenamiento"><button type="button" class="lv-clock lv-clkbtn" id="lv-time" data-lv="time" aria-label="Ajustar el tiempo">${elapsed()}</button><button type="button" class="lv-adj" data-lv="time">✎ Ajustar tiempo</button></div>`+
     `<button class="btn btn-primary" type="button" data-lv="finish">Terminar</button>`+
     `<div class="lv-kpis"><span><b id="lv-k-sets">${st.n}/${tot}</b>series</span><span><b id="lv-k-vol">${fmtN(st.v,0)}</b>kg de volumen</span><span><b>${live.exercises.filter(e=>e.sets.length&&e.sets.every(s=>s.done)).length}/${live.exercises.length}</b>ejercicios</span><span id="lv-stats" hidden></span></div>`+
     `<div class="lv-prog" aria-hidden="true"><i id="lv-prog" style="width:${pc}%"></i></div></div><div class="live-body">`+
@@ -5074,6 +5089,7 @@ $('#live-root').addEventListener('input',e=>{const t=e.target;if(!live)return;if
 $('#live-root').addEventListener('click',e=>{const b=e.target.closest('[data-lv]');if(!b||!live)return;const act=b.dataset.lv;const row=b.closest('[data-si]');
   const ei=row?+row.dataset.ei:(b.dataset.ei!=null?+b.dataset.ei:-1),si=row?+row.dataset.si:-1;
   if(act==='min')minimizeLive();
+  else if(act==='time')openTimeAdjust(live.start,'El entrenamiento sigue corriendo desde ahí.',t=>{live.start=t;liveSave();renderLive()});
   else if(act==='finish')finishLive();
   else if(act==='addex')openExercisePicker(ids=>{ids.forEach(id=>live.exercises.push({exId:id,rest:defRest(id),note:'',sets:[newSet(),newSet(),newSet()]}));liveSave();renderLive()});
   else if(act==='discard'){if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='Tocá de nuevo para descartar';return}clearLive();toast('Entrenamiento descartado')}
@@ -5162,14 +5178,51 @@ function wkStatsHtml(w){const r=wkReport(w),cmp=wkCompare(+w.volume||0);
 function wkToRoutine(w){const reps=e=>{const c={};e.sets.filter(s=>s.type!=='w'&&+s.reps).forEach(s=>c[s.reps]=(c[s.reps]||0)+1);const k=Object.keys(c).sort((a,b)=>c[b]-c[a])[0];return k?String(k):''};
   openRoutine(null,{name:w.name&&w.name!=='Entrenamiento'?w.name:'',exercises:w.exercises.map(e=>({exId:e.exId,sets:e.sets.filter(s=>s.type!=='w').length||e.sets.length,rest:e.rest||defRest(e.exId),reps:reps(e)}))});
   setTimeout(()=>{const n=root.querySelector('#rt-name');if(n&&!n.value)n.focus()},80)}
-function showWorkoutSummary(wid){openWorkout(wid,true)}
+/* ---------- logros al terminar: slides (músculos, calendario, comparación, récords) ---------- */
+function wkSlides(wid,back){const w=state.workouts[wid];if(!w)return;const r=wkReport(w),cmp=wkCompare(+w.volume||0);
+  const mg={};(w.exercises||[]).forEach(e=>{const g=e.group||exById(e.exId).group||'core';const n=(e.sets||[]).filter(s=>s.type!=='w').length;if(n)mg[g]=(mg[g]||0)+n});
+  const mgl=Object.entries(mg).sort((a,b)=>b[1]-a[1]),mx=Math.max(1,...mgl.map(x=>x[1])),tot=mgl.reduce((s,x)=>s+x[1],0);
+  const s1=`<div class="wk-s"><span class="wk-s-k">Músculos trabajados</span><b class="wk-s-big">${mgl.length} ${mgl.length===1?'grupo':'grupos'}</b><div class="wk-bars">${mgl.map(([g,n])=>`<div class="wk-bar"><span>${esc(MUSCLES[g]||g)}</span><div><i style="width:${Math.round(n/mx*100)}%;background:var(--c${MUSCLE_COLOR[g]||8})"></i></div><b>${n} ${n===1?'serie':'series'} · ${Math.round(n/tot*100)}%</b></div>`).join('')}</div></div>`;
+  const d0=parseYmd(w.date),y=d0.getFullYear(),m=d0.getMonth(),days=new Date(y,m+1,0).getDate(),off=(new Date(y,m,1).getDay()+6)%7;
+  const tr=new Set(Object.values(state.workouts).map(x=>x.date).filter(x=>x&&x.slice(0,7)===w.date.slice(0,7)));
+  const wk=(()=>{let n=0;const t=wkT(w);const d=new Date(t);for(let i=0;i<60;i++){const a=new Date(d);a.setDate(d.getDate()-((d.getDay()+6)%7)-7*i);const b=new Date(a);b.setDate(a.getDate()+7);const ok=Object.values(state.workouts).some(x=>{const z=parseYmd(x.date);return z>=a&&z<b});if(ok)n++;else break}return n})();
+  const s2=`<div class="wk-s"><span class="wk-s-k">${esc(parseYmd(w.date).toLocaleDateString('es-AR',{month:'long',year:'numeric'}))}</span><b class="wk-s-big">${tr.size} ${tr.size===1?'día entrenado':'días entrenados'}</b>`+
+    `<div class="wk-cal">${['L','M','M','J','V','S','D'].map(x=>`<span class="h">${x}</span>`).join('')}${Array.from({length:off},()=>'<span></span>').join('')}${Array.from({length:days},(_,i)=>{const ds=y+'-'+pad(m+1)+'-'+pad(i+1);return `<span class="d${tr.has(ds)?' on':''}${ds===w.date?' today':''}">${i+1}</span>`}).join('')}</div>`+
+    `<span class="wk-s-sub">${wk>1?wk+' semanas seguidas entrenando':'¡Seguí así esta semana!'}</span></div>`;
+  const s3=cmp?`<div class="wk-s"><span class="wk-s-k">Levantaste en total</span><b class="wk-s-big">${fmtN(w.volume||0,0)} kg</b><div class="wk-s-em" aria-hidden="true">${Array.from({length:Math.min(3,Math.ceil(cmp.n))},()=>cmp.em).join('')}</div><b class="wk-s-mid">Es como levantar ${esc(cmp.txt)}</b><span class="wk-s-sub">${esc(cmp.txt.replace(/^(un|una) /,''))} ≈ ${fmtN(cmp.ref,0)} kg${cmp.n>1?' cada uno':''}</span></div>`:'';
+  const prs=[];r.exs.forEach(x=>x.m.filter(z=>z.pr).forEach(z=>prs.push({n:x.e.name||x.ex.name,k:z.k,v:z.v,first:x.first})));
+  const s4=r.recs?`<div class="wk-s"><span class="wk-s-k">Récords</span><b class="wk-s-big">⭐ ${r.recs} ${r.recs===1?'récord nuevo':'récords nuevos'}</b><div class="wk-prl">${prs.slice(0,8).map(p=>`<div class="wk-pr"><span><b>${esc(p.n)}</b><small>${esc(p.k)}${p.first?' · primera vez':''}</small></span><b>${esc(p.v)}</b></div>`).join('')}${prs.length>8?`<span class="wk-s-sub">y ${prs.length-8} más en el resumen</span>`:''}</div></div>`:'';
+  const sl=[s1,s2,s3,s4].filter(Boolean);
+  openSheet(`<div class="sheet-head"><h2>¡Buen entrenamiento!</h2>${closeBtn}</div><div class="wk-sl" id="wk-sl">${sl.join('')}</div><div class="wk-dots">${sl.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')}</div>`+
+    `<div class="actions"><button class="btn" type="button" id="wk-sum">Ver resumen completo</button><div class="right"><button class="btn btn-primary" type="button" id="wk-next">Siguiente</button></div></div>`);
+  const sh=root.querySelector('.sheet');sh.classList.add('wk-sheet');sheetBack=back||null;const box=sh.querySelector('#wk-sl'),dots=[...sh.querySelectorAll('.wk-dots i')],nx=sh.querySelector('#wk-next');
+  const cur=()=>Math.round(box.scrollLeft/Math.max(1,box.clientWidth));
+  const upd=()=>{const c=cur();dots.forEach((d,i)=>d.classList.toggle('on',i===c));nx.textContent=c>=sl.length-1?'Listo':'Siguiente'};
+  box.addEventListener('scroll',()=>{clearTimeout(box._t);box._t=setTimeout(upd,60)});
+  nx.addEventListener('click',()=>{const c=cur();if(c>=sl.length-1){closeSheet();return}box.scrollTo({left:(c+1)*box.clientWidth,behavior:'smooth'})});
+  sh.querySelector('#wk-sum').addEventListener('click',()=>openWorkout(wid,true))}
+/* ajustar el tiempo de una sesión en vivo (si te olvidaste de darle play) */
+function openTimeAdjust(start,label,cb){const st=new Date(start);const mins=Math.max(0,Math.round((Date.now()-start)/60000));
+  openSheet(`<div class="sheet-head"><h2>Ajustar el tiempo</h2>${closeBtn}</div><p class="welcome-lead">Si empezaste antes de darle play, corregilo acá. ${esc(label)}</p>`+
+    `<div class="row2"><div class="field"><label for="ta-h">Empezaste a las</label><input type="time" id="ta-h" value="${pad(st.getHours())}:${pad(st.getMinutes())}"></div><div class="field"><label for="ta-m">o llevás (min)</label><input type="text" inputmode="numeric" id="ta-m" value="${mins}"></div></div>`+
+    `<div class="field"><span class="lbl">Sumar al tiempo que ya lleva</span><div class="grp-tg">${[5,10,15,20,30].map(n=>`<button type="button" data-ta="${n}">+${n} min</button>`).join('')}</div></div>`+
+    `<div class="actions"><div class="right"><button class="btn" type="button" data-close>Cancelar</button><button class="btn btn-primary" type="button" id="ta-ok">Guardar</button></div></div>`);
+  const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);
+  const fromH=()=>{const [h,mi]=(q('#ta-h').value||'').split(':').map(Number);if(isNaN(h))return null;const d=new Date();d.setHours(h,mi||0,0,0);if(d.getTime()>Date.now()+60000)d.setDate(d.getDate()-1);return d.getTime()};
+  q('#ta-h').addEventListener('input',()=>{const t=fromH();if(t)q('#ta-m').value=Math.max(0,Math.round((Date.now()-t)/60000))});
+  q('#ta-m').addEventListener('input',()=>{const m=numv(q('#ta-m').value);if(!isNaN(m)){const d=new Date(Date.now()-m*60000);q('#ta-h').value=pad(d.getHours())+':'+pad(d.getMinutes())}});
+  sh.querySelectorAll('[data-ta]').forEach(b=>b.addEventListener('click',()=>{const m=(numv(q('#ta-m').value)||0)+(+b.dataset.ta);q('#ta-m').value=m;q('#ta-m').dispatchEvent(new Event('input'))}));
+  q('#ta-ok').addEventListener('click',()=>{const m=numv(q('#ta-m').value);if(isNaN(m)||m<0){toast('Poné los minutos.');return}cb(Date.now()-Math.round(m*60000));closeSheet();toast('Tiempo corregido')})}
+/* games a 6: se definen por 2 de diferencia hasta 7 (6-5 sigue, 7-6 termina) */
+function plGameOver(g,target){const a=+g.me||0,b=+g.op||0,mx=Math.max(a,b);if(+target===6)return mx>=7||(mx>=6&&Math.abs(a-b)>=2);return mx>=target}
+function showWorkoutSummary(wid){wkSlides(wid)}
 function openWorkout(id,fresh){const w=state.workouts[id];if(!w)return;const rt=w.routineId&&state.routines[w.routineId];
   openSheet(`<div class="sheet-head"><h2>${fresh?'¡Buen entrenamiento!':esc(w.name)}</h2>${closeBtn}</div><p class="welcome-lead">${fresh?esc(w.name)+' · ':''}${esc(longDate(w.date))}${w.start?' · '+new Date(w.start).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):''}</p>`+
     wkStatsHtml(w)+
-    `<div class="wk-rt">${rt?`<span class="s">Rutina: <b>${esc(rt.name)}</b></span>`:''}<button class="btn" type="button" id="wo-rt">${rt?'Guardar como otra rutina':'Guardar como rutina'}</button></div>`+
+    `<div class="wk-rt">${rt?`<span class="s">Rutina: <b>${esc(rt.name)}</b></span>`:''}<span class="hc-btns"><button class="btn" type="button" id="wo-sl">Ver logros</button><button class="btn" type="button" id="wo-rt">${rt?'Guardar como otra rutina':'Guardar como rutina'}</button></span></div>`+
     `<div class="actions"><button class="btn btn-danger" type="button" id="wo-del">Eliminar</button><div class="right"><button class="btn" type="button" id="wo-edit">Editar</button>${fresh?'<button class="btn btn-primary" type="button" data-close>Listo</button>':'<button class="btn" type="button" id="wo-again">Repetir</button>'}</div></div>`);
   const sh=root.querySelector('.sheet');sh.querySelector('#wo-edit').addEventListener('click',()=>editWorkout(id));const ag=sh.querySelector('#wo-again');if(ag)ag.addEventListener('click',()=>{closeSheet();startLive(null,w)});
-  sh.querySelector('#wo-rt').addEventListener('click',()=>wkToRoutine(w));
+  sh.querySelector('#wo-rt').addEventListener('click',()=>wkToRoutine(w));sh.querySelector('#wo-sl').addEventListener('click',()=>wkSlides(id,()=>openWorkout(id,fresh)));
   const del=sh.querySelector('#wo-del');del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}remove('workouts',id);closeSheet();toast('Entrenamiento eliminado')})}
 
 /* ---------- editar entrenamientos guardados ---------- */
@@ -5388,12 +5441,12 @@ function parseGpx(txt){const doc=new DOMParser().parseFromString(txt,'applicatio
   const step=Math.max(1,Math.ceil(pts.length/250));const route=pts.filter((_,i)=>i%step===0||i===pts.length-1).map(p=>[Math.round(p.lat*1e5)/1e5,Math.round(p.lon*1e5)/1e5]);
   const nm=doc.getElementsByTagName('name')[0];return{dist:Math.round(d*100)/100,elev:Math.round(gain),dur,date:ts.length?ymd(new Date(ts[0])):null,route,name:nm?nm.textContent.trim().slice(0,50):''}}
 let actAll=false;
-function renderActSheet(){if(actDraft&&actDraft.sport==='fuerza'&&!actId){openWorkLog();return}const a=actDraft,S=SPORTS[a.sport]||SPORTS.otro;const mine=[...new Set(mySports().concat(a.sport))];const others=Object.keys(SPORTS).filter(k=>!mine.includes(k)&&(actId?true:!SPORTS[k].match||true));const list=actAll?mine.concat(others):mine;const fem=profile()&&profile().sex==='f';
+function renderActSheet(){if(actDraft&&actDraft.sport==='fuerza'&&!actId){openWorkLog();return}if(actDraft&&actDraft.sport==='padel'&&!actId&&actDraft.fmt!=='games'){const d=actDraft;d.fmt='games';d.games=d.games||[];d.target=d.target||4;if(d.rot==null)d.rot=false;if(d.r5==null)d.r5=3}const a=actDraft,S=SPORTS[a.sport]||SPORTS.otro;const mine=[...new Set(mySports().concat(a.sport))];const others=Object.keys(SPORTS).filter(k=>!mine.includes(k)&&(actId?true:!SPORTS[k].match||true));const list=actAll?mine.concat(others):mine;const fem=profile()&&profile().sex==='f';
   const seg=(k,opts)=>`<div class="seg" role="group" data-seg="${k}">${opts.map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${String(a[k])===String(v)}">${l}</button>`).join('')}</div>`;
   const places=[...new Set(Object.values(state.acts).filter(x=>x.sport===a.sport).map(x=>x.place).filter(Boolean))];
   let h=`<div class="sheet-head"><h2>${a.fromLive?'Terminar sesión':actId?'Editar':(S.match?'Cargar partido':'Registrar deporte')}</h2>${closeBtn}</div><div class="cat-chips" id="ac-sports">${list.map(k=>`<button type="button" data-sport="${k}" aria-pressed="${k===a.sport}" style="--cc:var(--c${SPORTS[k].color})">${ico(SPORTS[k].icon)}${SPORTS[k].name}</button>`).join('')}<button type="button" class="cat-new" id="ac-more">${actAll?'Menos':'+ Más deportes'}</button></div>`;
   if(a.sport==='futbol')h+=`<div class="row2"><div class="field"><span class="lbl">Modalidad</span>${seg('mode',[['5','F5'],['7','F7'],['8','F8'],['11','F11']])}</div><div class="field"><span class="lbl">Jugadores</span>${seg('gender',[['uni',fem?'Femenino':'Masculino'],['mixto','Mixto']])}</div></div>`;
-  else if(a.sport==='padel')h+=`<div class="row2"><div class="field"><span class="lbl">Modalidad</span>${seg('mode',[['comun','Común'],['mixto','Mixto']])}</div><div class="field"><span class="lbl">Formato</span><div class="seg" role="group" data-seg="fmt"><button type="button" data-v="" aria-pressed="${!isGames(a)}">Partido</button><button type="button" data-v="games" aria-pressed="${isGames(a)}">Por games</button></div></div></div>`;
+  else if(a.sport==='padel')h+=`<div class="row2"><div class="field"><span class="lbl">Modalidad</span>${seg('mode',[['comun','Común'],['mixto','Mixto']])}</div>${!isGames(a)&&actId?`<div class="field"><span class="lbl">Formato</span><div class="seg" role="group" data-seg="fmt"><button type="button" data-v="" aria-pressed="true">Partido (viejo)</button><button type="button" data-v="games" aria-pressed="false">Pasar a sesión</button></div></div>`:''}</div>`;
   else if(a.sport==='ciclismo')h+=`<div class="field"><span class="lbl">Tipo</span>${seg('mode',[['calle','Calle / ruta'],['montana','Montaña']])}</div>`;
   if(S.match){const my=a.myTeam,rv=a.rivalTeam;if(isGames(a))h+=sessHtml(a);else{
     h+=`<div class="teams"><button type="button" class="team-card" data-team="my"><span class="lbl">Mi equipo</span><b>${esc(teamName(my,'my'))}</b><span class="s">${esc(['Vos'].concat(my.players).join(', '))}</span><span class="team-edit">Editar equipo</span></button><span class="vs">vs</span>`+
@@ -5557,7 +5610,7 @@ function renderPLive(){const r=$('#plive-root');if(!r)return;if(!plive||!pliveOp
   const sc=r.querySelector('.live-body')?r.querySelector('.live-body').scrollTop:0;const p=plive,t=plTimes(p),rest=plResting(),s=gamesSum(p),ci=plCur();r.hidden=false;
   const doneG=p.games.map((g,i)=>[g,i]).filter(([g])=>g.done);
   r.innerHTML=`<div class="live pl-live${rest?' resting':''}" role="dialog" aria-label="Sesión de pádel en curso"><div class="live-head"><button class="iconbtn" type="button" data-pl="min" aria-label="Minimizar">${CHEV}</button>`+
-    `<div class="live-title"><span class="pl-tt">Pádel · sesión${p.mode==='mixto'?' mixta':''}</span><b class="lv-clock" id="pl-time">${clk(t.tot)}</b></div>`+
+    `<div class="live-title"><span class="pl-tt">Pádel · sesión${p.mode==='mixto'?' mixta':''}</span><button type="button" class="lv-clock lv-clkbtn" id="pl-time" data-pl="time" aria-label="Ajustar el tiempo">${clk(t.tot)}</button><button type="button" class="lv-adj" data-pl="time">✎ Ajustar tiempo</button></div>`+
     `<button class="btn btn-primary" type="button" data-pl="finish">Finalizar</button>`+
     `<div class="lv-kpis"><span><b id="pl-play">${clk(t.play)}</b>jugando</span><span><b id="pl-rest">${clk(t.rest)}</b>descanso</span><span><b><i class="c-g">${s.w}</i>-<i class="c-p">${s.l}</i></b>games</span></div></div><div class="live-body">`+
     (rest?`<div class="pl-restbox"><div><span class="lbl">En descanso</span><b id="pl-restnow">${clk(Date.now()-p.rests[p.rests.length-1].s)}</b></div><button class="btn btn-primary" type="button" data-pl="rest">▶ Volver a jugar</button></div>`
@@ -5579,12 +5632,13 @@ $('#plive-root').addEventListener('click',e=>{if(!plive)return;const p=plive;
   if(s){const g=p.games[+s.dataset.gi];plSlotPick(p,g,s.dataset.gs,null,()=>{plSave();closeSheet();renderPLive()});return}
   if(pt){const g=p.games[+pt.dataset.gi],k=pt.dataset.gp,d=+pt.dataset.d;if(plResting()&&d>0){plRestToggle(false);toast('Volviste a jugar')}
     g[k]=Math.max(0,(+g[k]||0)+d);
-    if(d>0&&g[k]>=p.target&&!g.done){g.done=true;g.t1=Date.now();try{navigator.vibrate&&navigator.vibrate([60,40,60])}catch(x){}toast(gRes(g)==='G'?'¡Game ganado '+g.me+'-'+g.op+'!':'Game perdido '+g.me+'-'+g.op)}
+    if(d>0&&plGameOver(g,p.target)&&!g.done){g.done=true;g.t1=Date.now();try{navigator.vibrate&&navigator.vibrate([60,40,60])}catch(x){}toast(gRes(g)==='G'?'¡Game ganado '+g.me+'-'+g.op+'!':'Game perdido '+g.me+'-'+g.op)}
     plSave();renderPLive();return}
   if(h){const g=p.games[+h.dataset.gh];g.hist=g.hist===false;plSave();renderPLive();return}
   if(ge){openGameEditor(p,+ge.dataset.gedit,()=>{plSave();closeSheet();renderPLive()});return}
   if(!b)return;const act=b.dataset.pl;
   if(act==='min'){pliveOpen=false;renderPLive()}
+  else if(act==='time')openTimeAdjust(p.start,'Lo que agregues cuenta como tiempo jugando.',t=>{p.start=Math.min(t,(p.rests[0]||{}).s||Infinity);plSave();renderPLive()});
   else if(act==='rest'){plRestToggle();plSave();renderPLive()}
   else if(act==='tg'){p.target=Math.min(30,Math.max(1,p.target+(+b.dataset.d)));plSave();renderPLive()}
   else if(act==='rot'){const v=b.dataset.v==='1';if(v===p.rot)return;if(v)p.games.forEach(g=>{if(!g.p)g.p=p.fixP||''});else{const ci=plCur();if(!p.fixP)p.fixP=(ci>=0&&p.games[ci].p)||((p.games.find(g=>g.p)||{}).p)||''}p.rot=v;plSave();renderPLive()}
