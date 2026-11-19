@@ -2366,7 +2366,7 @@ function taskItem(t,id){
 function sortTasks(a,b){const sa=(+a[1].imp||1)+effUrg(a[1]),sb=(+b[1].imp||1)+effUrg(b[1]);if(sb!==sa)return sb-sa;
   const da=(a[1].due||'9999')+(a[1].time||'99:99'),dbb=(b[1].due||'9999')+(b[1].time||'99:99');if(da!==dbb)return da<dbb?-1:1;return (a[1].createdAt||0)-(b[1].createdAt||0)}
 
-function render(){
+function render(){try{migrateWkKcal()}catch(e){}
   applyTheme();
   {const t=longDate(todayStr());$('#today-label').textContent=t.charAt(0).toUpperCase()+t.slice(1)}
   const entries=Object.entries(state.tasks);
@@ -5132,14 +5132,27 @@ function finishLive(){const done=live.exercises.reduce((n,e)=>n+e.sets.filter(s=
   openSheet(`<div class="sheet-head"><h2>Terminar entrenamiento</h2>${closeBtn}</div><p class="welcome-lead">${done} series hechas en ${elapsed()}${pend?'. '+pend+(pend===1?' serie sin marcar no se guarda.':' series sin marcar no se guardan.'):'.'}</p>`+
     `<div class="actions"><div class="right"><button class="btn" type="button" data-close>Seguir entrenando</button><button class="btn btn-primary" type="button" id="lv-save">Guardar</button></div></div>`);
   root.querySelector('#lv-save').addEventListener('click',saveLive)}
+/* ---------- calorías del gimnasio: tiempo real de trabajo + descansos ----------
+   Cada serie dura lo que tardan sus repeticiones (~3,5 s por rep + 10 s de preparación) a un MET según el músculo
+   (piernas/espalda más alto, brazos/core más bajo, ajustado por el RPE). El resto de la sesión son descansos a MET 2,3.
+   Así una hora y media de piernas da ~300 kcal (para 80 kg) y no compite con un partido de fútbol. */
+const WK_MET={piernas:6,gluteos:5.8,espalda:5.5,pecho:5,hombros:4.5,gemelos:4,biceps:3.8,triceps:3.8,core:3.8,cardio:7.5};
+const WK_REST_MET=2.3;
+function wkKcalInfo(w){const kg=+w.bw||bodyKg()||75,dur=+w.dur||0;let workS=0,kc=0;
+  (w.exercises||[]).forEach(e=>{const ex=exById(e.exId);const g=e.group||ex.group||'core';const base=WK_MET[g]||4.5;
+    (e.sets||[]).forEach(s=>{const r=+s.reps||0;let sec=ex.type==='t'?r*((e.unit||ex.unit)==='min'?60:1):Math.max(20,r*3.5+10);if(s.type==='w')sec*=0.7;
+      const rpe=+s.rpe||0;const met=Math.max(3,base+(rpe?(rpe-7)*0.35:0)-(s.type==='w'?1:0));workS+=sec;kc+=(met-1)*kg*sec/3600})});
+  const workMin=Math.min(dur,workS/60),restMin=Math.max(0,dur-workMin);kc+=(WK_REST_MET-1)*kg*restMin/60;return{kcal:Math.round(kc),workMin:Math.round(workMin),restMin:Math.round(restMin)}}
+const wkKcal=w=>wkKcalInfo(w).kcal;
+/* hacia atrás: recalcula las calorías de los entrenamientos ya guardados con el cálculo nuevo */
+function migrateWkKcal(){if(!loaded.has('workouts'))return;Object.entries(state.workouts).forEach(([id,w])=>{if(w.kcalV===2)return;put('workouts',id,Object.assign({},w,{kcal:wkKcal(w),kcalV:2}))})}
 function saveLive(){const end=Date.now(),dur=Math.max(1,Math.round((end-live.start)/60000));let vol=0,n=0;const rpes=[];const prs=[];const bwNow=myBw();
   const exercises=live.exercises.map(e=>{const ex=exById(e.exId);const sets=e.sets.filter(s=>s.done).map(s=>({type:s.type,kg:numv(s.kg),reps:numv(s.reps),rpe:numv(s.rpe)}));
     sets.forEach(s=>{n++;if(s.rpe)rpes.push(s.rpe);if(s.type!=='w')vol+=setVol(ex,s.kg,s.reps,bwNow)});
     const h=exStats(e.exId,live.start);let best=null;sets.forEach(s=>{if(s.type==='w')return;const sc=setScore(ex,s);if(!best||sc>best.sc)best={sc,s}});
     if(best&&h.n&&best.sc>h.best)prs.push({exId:e.exId,name:ex.name,label:setLabel(ex,best.s)});
     return{exId:e.exId,name:ex.name,group:ex.group,type:ex.type,unit:ex.unit||'',bwPct:ex.bwPct||null,uni:!!ex.uni,note:e.note||'',rest:e.rest,sets}}).filter(e=>e.sets.length);
-  const avgR=rpes.length?rpes.reduce((a,b)=>a+b,0)/rpes.length:0;const met=avgR?Math.min(6.5,Math.max(3.5,3.5+(avgR-5)*.6)):5;
-  const w={date:ymd(new Date(live.start)),start:live.start,end,dur,name:(live.name||'').trim()||'Entrenamiento',routineId:live.routineId||null,exercises,bw:bwNow||null,volume:Math.round(vol),sets:n,kcal:kcalFor(met,dur),prs,createdAt:end};
+    const w={date:ymd(new Date(live.start)),start:live.start,end,dur,name:(live.name||'').trim()||'Entrenamiento',routineId:live.routineId||null,exercises,bw:bwNow||null,volume:Math.round(vol),sets:n,kcal:0,kcalV:2,prs,createdAt:end};w.kcal=wkKcal(w);
   const wid=live.id;put('workouts',wid,w);clearLive();showWorkoutSummary(wid)}
 /* ---------- estadísticas de un entrenamiento: récords por ejercicio y comparación de kilos ---------- */
 const wkT=w=>w.start||(w.date?parseYmd(w.date).getTime():0);
@@ -5171,7 +5184,7 @@ function wkStatsHtml(w){const r=wkReport(w),cmp=wkCompare(+w.volume||0);
   const dv=r.prev&&+r.prev.volume?Math.round(((+w.volume||0)-(+r.prev.volume))/(+r.prev.volume)*100):null;
   return `<div class="kpis wk-kpis"><div class="kpi"><span>Duración</span><b>${fmtDur(w.dur)}</b></div><div class="kpi"><span>Levantaste</span><b>${fmtN(w.volume||0,0)} kg</b></div><div class="kpi"><span>Series</span><b>${w.sets||0}</b></div><div class="kpi"><span>Repeticiones</span><b>${fmtN(r.reps,0)}</b></div></div>`+
     (cmp?`<div class="wk-cmp"><div class="em" aria-hidden="true">${Array.from({length:Math.min(3,Math.ceil(cmp.n))},()=>cmp.em).join('')}</div><div><b>Es como levantar ${esc(cmp.txt)}</b><span class="s">${esc(cmp.txt.replace(/^(un|una) /,'') )} ≈ ${fmtN(cmp.ref,0)} kg${cmp.n>1?' cada uno':''}</span></div></div>`:'')+
-    `<div class="wk-sum"><span>${r.recs?'⭐ '+r.recs+(r.recs===1?' récord':' récords')+' en esta sesión':'Sin récords esta vez'}</span>${dv!=null?`<span class="${dv>=0?'c-g':'c-p'}">${dv>=0?'+':''}${dv}% de kilos vs. la vez anterior</span>`:''}<span class="s">${w.dur?fmtN((+w.volume||0)/w.dur,0)+' kg por minuto · ':''}${w.kcal||0} kcal</span></div>`+
+    `<div class="wk-sum"><span>${r.recs?'⭐ '+r.recs+(r.recs===1?' récord':' récords')+' en esta sesión':'Sin récords esta vez'}</span>${dv!=null?`<span class="${dv>=0?'c-g':'c-p'}">${dv>=0?'+':''}${dv}% de kilos vs. la vez anterior</span>`:''}<span class="s">${w.dur?fmtN((+w.volume||0)/w.dur,0)+' kg por minuto · ':''}${w.kcal||0} kcal${(()=>{const k=wkKcalInfo(w);return w.dur?' · ~'+k.workMin+' min de trabajo efectivo y '+k.restMin+' de descanso':''})()}</span></div>`+
     r.exs.map(x=>`<div class="wk-ex"><div class="row">${chip(exIcon(x.ex.group),MUSCLE_COLOR[x.ex.group]||8,'sm')}<span class="mov-txt"><span class="t">${esc(x.e.name||x.ex.name)}</span><span class="s">${x.first?'Primera vez · todo cuenta como récord':(x.e.sets||[]).filter(s=>s.type!=='w').length+' series'}</span></span></div>`+
       `<div class="wk-ms">${x.m.map(m=>`<div class="wk-m${m.pr?' pr':''}"><span>${esc(m.k)}${m.pr?' <i aria-label="récord">★</i>':''}</span><b>${esc(m.v)}</b>${m.sub?`<small>${esc(m.sub)}</small>`:''}</div>`).join('')}</div>`+
       `<details class="wk-sets"><summary>Ver series</summary>${(()=>{let nn=0;return x.e.sets.map(s=>`<div class="row wk-set"><span class="set-type t-${s.type}">${s.type==='n'?++nn:{w:'C',f:'F',d:'D'}[s.type]}</span><span>${setLabel(x.ex,s)}${s.rpe?' · RPE '+fmtN(s.rpe):''}</span></div>`).join('')})()}</details></div>`).join('')}
@@ -5248,7 +5261,7 @@ function editWorkout(id){const w0=state.workouts[id];if(!w0)return;const w=JSON.
       else if(b.dataset.wadd!=null){read();const e2=w.exercises[+b.dataset.wadd];const l=e2.sets[e2.sets.length-1]||{};e2.sets.push({type:'n',kg:l.kg||0,reps:l.reps||0,rpe:0});draw()}
       else if(b.id==='we-addex'){read();openExercisePicker(ids=>{ids.forEach(x=>{const ex=exById(x);w.exercises.push({exId:x,name:ex.name,group:ex.group,type:ex.type,unit:ex.unit||'',bwPct:ex.bwPct||null,uni:!!ex.uni,note:'',rest:defRest(x),sets:[{type:'n',kg:0,reps:0,rpe:0}]})});draw()})}
       else if(b.id==='we-ok'){read();const bw=w.bw||myBw();let vol=0,n=0;w.exercises=w.exercises.filter(e=>e.sets.length);w.exercises.forEach(e=>{const ex=exById(e.exId);e.sets.forEach(s=>{n++;if(s.type!=='w')vol+=setVol(ex,s.kg,s.reps,bw)})});
-        w.volume=Math.round(vol);w.sets=n;const met=w.dur&&w0.dur?(w0.kcal||0)/Math.max(1,w0.dur):null;if(met)w.kcal=Math.round(met*w.dur);put('workouts',id,w);toast('Entrenamiento actualizado');openWorkout(id)}})};
+        w.volume=Math.round(vol);w.sets=n;w.kcal=wkKcal(w);w.kcalV=2;put('workouts',id,w);toast('Entrenamiento actualizado');openWorkout(id)}})};
   draw()}
 /* ---------- ayunos: corregir inicio y fin ---------- */
 function openFastEdit(id){const f=state.fasts[id];if(!f)return;const t2i=ms=>{const d=new Date(ms);return ymd(d)+'T'+pad(d.getHours())+':'+pad(d.getMinutes())};
