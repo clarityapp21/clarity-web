@@ -929,7 +929,7 @@ em.late,.pn-tile-b .late{color:var(--q-do);background:color-mix(in srgb,var(--q-
 .wk-s-k{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .wk-s-big{font-family:var(--font-display);font-size:32px;font-weight:600;line-height:1.1}.wk-s-mid{font-size:19px;text-align:center}.wk-s-sub{font-size:13.5px;color:var(--muted)}
 .wk-s-em{font-size:96px;line-height:1.15;text-align:center;margin:18px 0 6px;letter-spacing:-14px}
-.wk-bars{display:flex;flex-direction:column;gap:10px;margin-top:6px}.wk-bar{display:grid;grid-template-columns:78px 1fr;gap:4px 10px;align-items:center}.wk-bar>span{font-weight:600;font-size:14px}
+.wk-bars{display:flex;flex-direction:column;gap:10px;margin-top:6px}.wk-bar{display:grid;grid-template-columns:104px 1fr;gap:4px 10px;align-items:center}.wk-bar>span{font-weight:600;font-size:14px}
 .wk-bar>div{height:14px;border-radius:7px;background:color-mix(in srgb,var(--ink) 8%,transparent);overflow:hidden}.wk-bar i{display:block;height:100%;border-radius:7px}.wk-bar b{grid-column:2;font-size:12px;color:var(--muted);font-weight:500}
 .wk-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px;text-align:center}.wk-cal span{font-size:13px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%}
 .wk-cal .h{font-size:11px;color:var(--muted);aspect-ratio:auto;font-weight:700}.wk-cal .d{background:color-mix(in srgb,var(--ink) 5%,transparent)}.wk-cal .on{background:var(--hi);color:#fff;font-weight:700}.wk-cal .today{box-shadow:0 0 0 2px var(--ink)}
@@ -5136,23 +5136,48 @@ function finishLive(){const done=live.exercises.reduce((n,e)=>n+e.sets.filter(s=
    Cada serie dura lo que tardan sus repeticiones (~3,5 s por rep + 10 s de preparación) a un MET según el músculo
    (piernas/espalda más alto, brazos/core más bajo, ajustado por el RPE). El resto de la sesión son descansos a MET 2,3.
    Así una hora y media de piernas da ~300 kcal (para 80 kg) y no compite con un partido de fútbol. */
-const WK_MET={piernas:6,gluteos:5.8,espalda:5.5,pecho:5,hombros:4.5,gemelos:4,biceps:3.8,triceps:3.8,core:3.8,cardio:7.5};
+/* ---------- incidencia de cada músculo por ejercicio (en %) ---------- */
+const MUS_FINE={pecho:'Pecho',espalda:'Espalda',lumbares:'Lumbares',hombros:'Hombros',biceps:'Bíceps',triceps:'Tríceps',antebrazos:'Antebrazos',cuadriceps:'Cuádriceps',isquios:'Isquiotibiales',gluteos:'Glúteos',aductores:'Aductores',gemelos:'Gemelos',core:'Core',cardio:'Cardio'};
+const MUS_FINE_COLOR={pecho:6,espalda:4,lumbares:13,hombros:2,biceps:1,triceps:5,antebrazos:14,cuadriceps:3,isquios:16,gluteos:10,aductores:15,gemelos:9,core:11,cardio:7};
+const EX_MIX={
+ press_banca:{pecho:60,triceps:25,hombros:15},press_banca_manc:{pecho:65,triceps:20,hombros:15},press_inclinado:{pecho:55,hombros:25,triceps:20},press_incl_manc:{pecho:55,hombros:25,triceps:20},
+ press_declinado:{pecho:65,triceps:25,hombros:10},aperturas:{pecho:85,hombros:15},cruce_poleas:{pecho:85,hombros:15},pec_deck:{pecho:90,hombros:10},press_maq_pecho:{pecho:60,triceps:25,hombros:15},
+ fondos:{pecho:45,triceps:40,hombros:15},fondos_asist:{pecho:45,triceps:40,hombros:15},flex_inclinadas:{pecho:55,triceps:25,hombros:10,core:10},flexiones:{pecho:55,triceps:25,hombros:10,core:10},
+ dominadas:{espalda:65,biceps:25,antebrazos:10},chin_up:{espalda:55,biceps:35,antebrazos:10},dominada_asist:{espalda:65,biceps:25,antebrazos:10},remo_invertido:{espalda:60,biceps:25,hombros:10,core:5},
+ jalon:{espalda:70,biceps:25,antebrazos:5},remo_barra:{espalda:60,biceps:15,lumbares:15,hombros:10},remo_manc:{espalda:65,biceps:20,hombros:15},remo_polea:{espalda:65,biceps:20,hombros:15},
+ remo_t:{espalda:60,biceps:15,lumbares:15,hombros:10},peso_muerto:{isquios:25,gluteos:25,lumbares:20,espalda:15,cuadriceps:10,antebrazos:5},pullover:{espalda:70,pecho:20,triceps:10},hiperext:{lumbares:50,gluteos:30,isquios:20},
+ press_militar:{hombros:65,triceps:25,core:10},press_hombro_manc:{hombros:70,triceps:25,core:5},press_arnold:{hombros:75,triceps:20,core:5},vuelos_lat:{hombros:90,espalda:10},vuelos_front:{hombros:85,pecho:15},
+ pajaros:{hombros:70,espalda:30},face_pull:{hombros:55,espalda:35,biceps:10},encogimientos:{espalda:85,antebrazos:15},
+ curl_barra:{biceps:80,antebrazos:20},curl_manc:{biceps:80,antebrazos:20},curl_martillo:{biceps:60,antebrazos:40},curl_scott:{biceps:85,antebrazos:15},curl_polea:{biceps:80,antebrazos:20},curl_concentrado:{biceps:90,antebrazos:10},
+ press_frances:{triceps:100},ext_polea:{triceps:100},ext_tras_nuca:{triceps:95,hombros:5},patada_triceps:{triceps:100},press_cerrado:{triceps:55,pecho:35,hombros:10},fondos_banco:{triceps:75,pecho:15,hombros:10},
+ sentadilla:{cuadriceps:45,gluteos:30,aductores:10,isquios:5,lumbares:5,core:5},sent_frontal:{cuadriceps:55,gluteos:20,core:15,aductores:5,lumbares:5},sent_goblet:{cuadriceps:50,gluteos:25,core:15,aductores:10},
+ prensa:{cuadriceps:55,gluteos:30,isquios:10,aductores:5},hack:{cuadriceps:60,gluteos:25,aductores:10,isquios:5},estocadas:{cuadriceps:40,gluteos:35,isquios:10,aductores:10,core:5},
+ bulgara:{cuadriceps:40,gluteos:40,isquios:10,aductores:5,core:5},ext_cuad:{cuadriceps:100},curl_femoral:{isquios:85,gemelos:15},pm_rumano:{isquios:45,gluteos:35,lumbares:15,antebrazos:5},aductores:{aductores:100},
+ hip_thrust:{gluteos:70,isquios:20,cuadriceps:10},patada_gluteo:{gluteos:85,isquios:15},abductores:{gluteos:100},gemelos_pie:{gemelos:100},gemelos_sent:{gemelos:100},
+ plancha:{core:85,hombros:15},crunch:{core:100},elev_piernas:{core:85,antebrazos:15},rueda:{core:80,hombros:10,espalda:10},russian:{core:100},crunch_polea:{core:100},
+ cinta:{cardio:100},bici_fija:{cardio:85,cuadriceps:15},remo_ergo:{cardio:70,espalda:15,cuadriceps:15},eliptico:{cardio:100},soga:{cardio:85,gemelos:15},
+ sentadilla_corp:{cuadriceps:50,gluteos:30,aductores:10,core:10},estocada_corp:{cuadriceps:40,gluteos:35,isquios:10,aductores:10,core:5},pistol:{cuadriceps:50,gluteos:35,core:10,aductores:5},
+ flex_diamante:{triceps:55,pecho:35,hombros:10},burpees:{cardio:60,cuadriceps:20,pecho:10,core:10}};
+const GROUP_MIX={piernas:{cuadriceps:50,gluteos:30,isquios:20}};
+/* devuelve {músculo: fracción 0-1} para un ejercicio (los propios usan su grupo) */
+function exMix(exId,group){const m=EX_MIX[exId]||GROUP_MIX[group]||{[group||'core']:100};const t=Object.values(m).reduce((a,b)=>a+b,0)||1;const o={};Object.entries(m).forEach(([k,v])=>o[k]=v/t);return o}
+const WK_MET={piernas:6,cuadriceps:6,isquios:5.5,aductores:4.5,gluteos:5.8,espalda:5.5,lumbares:5,pecho:5,hombros:4.5,gemelos:4,biceps:3.8,triceps:3.8,antebrazos:3.5,core:3.8,cardio:7.5};
 const WK_REST_MET=2.3;
 function wkKcalInfo(w){const kg=+w.bw||bodyKg()||75,dur=+w.dur||0;let workS=0,kc=0;
-  (w.exercises||[]).forEach(e=>{const ex=exById(e.exId);const g=e.group||ex.group||'core';const base=WK_MET[g]||4.5;
+  (w.exercises||[]).forEach(e=>{const ex=exById(e.exId);const g=e.group||ex.group||'core';const mx=exMix(e.exId,g);const base=Object.entries(mx).reduce((a,[k,f])=>a+f*(WK_MET[k]||4.5),0);
     (e.sets||[]).forEach(s=>{const r=+s.reps||0;let sec=ex.type==='t'?r*((e.unit||ex.unit)==='min'?60:1):Math.max(20,r*3.5+10);if(s.type==='w')sec*=0.7;
       const rpe=+s.rpe||0;const met=Math.max(3,base+(rpe?(rpe-7)*0.35:0)-(s.type==='w'?1:0));workS+=sec;kc+=(met-1)*kg*sec/3600})});
   const workMin=Math.min(dur,workS/60),restMin=Math.max(0,dur-workMin);kc+=(WK_REST_MET-1)*kg*restMin/60;return{kcal:Math.round(kc),workMin:Math.round(workMin),restMin:Math.round(restMin)}}
 const wkKcal=w=>wkKcalInfo(w).kcal;
 /* hacia atrás: recalcula las calorías de los entrenamientos ya guardados con el cálculo nuevo */
-function migrateWkKcal(){if(!loaded.has('workouts'))return;Object.entries(state.workouts).forEach(([id,w])=>{if(w.kcalV===2)return;put('workouts',id,Object.assign({},w,{kcal:wkKcal(w),kcalV:2}))})}
+function migrateWkKcal(){if(!loaded.has('workouts'))return;Object.entries(state.workouts).forEach(([id,w])=>{if(w.kcalV===3)return;put('workouts',id,Object.assign({},w,{kcal:wkKcal(w),kcalV:3}))})}
 function saveLive(){const end=Date.now(),dur=Math.max(1,Math.round((end-live.start)/60000));let vol=0,n=0;const rpes=[];const prs=[];const bwNow=myBw();
   const exercises=live.exercises.map(e=>{const ex=exById(e.exId);const sets=e.sets.filter(s=>s.done).map(s=>({type:s.type,kg:numv(s.kg),reps:numv(s.reps),rpe:numv(s.rpe)}));
     sets.forEach(s=>{n++;if(s.rpe)rpes.push(s.rpe);if(s.type!=='w')vol+=setVol(ex,s.kg,s.reps,bwNow)});
     const h=exStats(e.exId,live.start);let best=null;sets.forEach(s=>{if(s.type==='w')return;const sc=setScore(ex,s);if(!best||sc>best.sc)best={sc,s}});
     if(best&&h.n&&best.sc>h.best)prs.push({exId:e.exId,name:ex.name,label:setLabel(ex,best.s)});
     return{exId:e.exId,name:ex.name,group:ex.group,type:ex.type,unit:ex.unit||'',bwPct:ex.bwPct||null,uni:!!ex.uni,note:e.note||'',rest:e.rest,sets}}).filter(e=>e.sets.length);
-    const w={date:ymd(new Date(live.start)),start:live.start,end,dur,name:(live.name||'').trim()||'Entrenamiento',routineId:live.routineId||null,exercises,bw:bwNow||null,volume:Math.round(vol),sets:n,kcal:0,kcalV:2,prs,createdAt:end};w.kcal=wkKcal(w);
+    const w={date:ymd(new Date(live.start)),start:live.start,end,dur,name:(live.name||'').trim()||'Entrenamiento',routineId:live.routineId||null,exercises,bw:bwNow||null,volume:Math.round(vol),sets:n,kcal:0,kcalV:3,prs,createdAt:end};w.kcal=wkKcal(w);
   const wid=live.id;put('workouts',wid,w);clearLive();showWorkoutSummary(wid)}
 /* ---------- estadísticas de un entrenamiento: récords por ejercicio y comparación de kilos ---------- */
 const wkT=w=>w.start||(w.date?parseYmd(w.date).getTime():0);
@@ -5193,9 +5218,9 @@ function wkToRoutine(w){const reps=e=>{const c={};e.sets.filter(s=>s.type!=='w'&
   setTimeout(()=>{const n=root.querySelector('#rt-name');if(n&&!n.value)n.focus()},80)}
 /* ---------- logros al terminar: slides (músculos, calendario, comparación, récords) ---------- */
 function wkSlides(wid,back){const w=state.workouts[wid];if(!w)return;const r=wkReport(w),cmp=wkCompare(+w.volume||0);
-  const mg={};(w.exercises||[]).forEach(e=>{const g=e.group||exById(e.exId).group||'core';const n=(e.sets||[]).filter(s=>s.type!=='w').length;if(n)mg[g]=(mg[g]||0)+n});
-  const mgl=Object.entries(mg).sort((a,b)=>b[1]-a[1]),mx=Math.max(1,...mgl.map(x=>x[1])),tot=mgl.reduce((s,x)=>s+x[1],0);
-  const s1=`<div class="wk-s"><span class="wk-s-k">Músculos trabajados</span><b class="wk-s-big">${mgl.length} ${mgl.length===1?'grupo':'grupos'}</b><div class="wk-bars">${mgl.map(([g,n])=>`<div class="wk-bar"><span>${esc(MUSCLES[g]||g)}</span><div><i style="width:${Math.round(n/mx*100)}%;background:var(--c${MUSCLE_COLOR[g]||8})"></i></div><b>${n} ${n===1?'serie':'series'} · ${Math.round(n/tot*100)}%</b></div>`).join('')}</div></div>`;
+  const mg={};(w.exercises||[]).forEach(e=>{const g=e.group||exById(e.exId).group||'core';const n=(e.sets||[]).filter(s=>s.type!=='w').length;if(!n)return;Object.entries(exMix(e.exId,g)).forEach(([k,f])=>mg[k]=(mg[k]||0)+n*f)});
+  const mgl=Object.entries(mg).filter(x=>x[1]>=0.25).sort((a,b)=>b[1]-a[1]),mx=Math.max(1,...mgl.map(x=>x[1])),tot=mgl.reduce((s,x)=>s+x[1],0);
+  const s1=`<div class="wk-s"><span class="wk-s-k">Músculos trabajados</span><b class="wk-s-big">${mgl.length} ${mgl.length===1?'músculo':'músculos'}</b><div class="wk-bars">${mgl.map(([g,n])=>`<div class="wk-bar"><span>${esc(MUS_FINE[g]||MUSCLES[g]||g)}</span><div><i style="width:${Math.round(n/mx*100)}%;background:var(--c${MUS_FINE_COLOR[g]||MUSCLE_COLOR[g]||8})"></i></div><b>${Math.round(n/tot*100)}% del trabajo · ≈ ${fmtN(Math.round(n*10)/10)} series</b></div>`).join('')}</div><span class="wk-s-sub">Cada ejercicio reparte su trabajo entre los músculos que usa (ej.: sentadilla hack ≈ 60% cuádriceps, 25% glúteos).</span></div>`;
   const d0=parseYmd(w.date),y=d0.getFullYear(),m=d0.getMonth(),days=new Date(y,m+1,0).getDate(),off=(new Date(y,m,1).getDay()+6)%7;
   const tr=new Set(Object.values(state.workouts).map(x=>x.date).filter(x=>x&&x.slice(0,7)===w.date.slice(0,7)));
   const wk=(()=>{let n=0;const t=wkT(w);const d=new Date(t);for(let i=0;i<60;i++){const a=new Date(d);a.setDate(d.getDate()-((d.getDay()+6)%7)-7*i);const b=new Date(a);b.setDate(a.getDate()+7);const ok=Object.values(state.workouts).some(x=>{const z=parseYmd(x.date);return z>=a&&z<b});if(ok)n++;else break}return n})();
@@ -5261,7 +5286,7 @@ function editWorkout(id){const w0=state.workouts[id];if(!w0)return;const w=JSON.
       else if(b.dataset.wadd!=null){read();const e2=w.exercises[+b.dataset.wadd];const l=e2.sets[e2.sets.length-1]||{};e2.sets.push({type:'n',kg:l.kg||0,reps:l.reps||0,rpe:0});draw()}
       else if(b.id==='we-addex'){read();openExercisePicker(ids=>{ids.forEach(x=>{const ex=exById(x);w.exercises.push({exId:x,name:ex.name,group:ex.group,type:ex.type,unit:ex.unit||'',bwPct:ex.bwPct||null,uni:!!ex.uni,note:'',rest:defRest(x),sets:[{type:'n',kg:0,reps:0,rpe:0}]})});draw()})}
       else if(b.id==='we-ok'){read();const bw=w.bw||myBw();let vol=0,n=0;w.exercises=w.exercises.filter(e=>e.sets.length);w.exercises.forEach(e=>{const ex=exById(e.exId);e.sets.forEach(s=>{n++;if(s.type!=='w')vol+=setVol(ex,s.kg,s.reps,bw)})});
-        w.volume=Math.round(vol);w.sets=n;w.kcal=wkKcal(w);w.kcalV=2;put('workouts',id,w);toast('Entrenamiento actualizado');openWorkout(id)}})};
+        w.volume=Math.round(vol);w.sets=n;w.kcal=wkKcal(w);w.kcalV=3;put('workouts',id,w);toast('Entrenamiento actualizado');openWorkout(id)}})};
   draw()}
 /* ---------- ayunos: corregir inicio y fin ---------- */
 function openFastEdit(id){const f=state.fasts[id];if(!f)return;const t2i=ms=>{const d=new Date(ms);return ymd(d)+'T'+pad(d.getHours())+':'+pad(d.getMinutes())};
