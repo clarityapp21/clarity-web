@@ -4940,6 +4940,7 @@ function openExEdit(id,cb,preset){exEditCb=cb||null;const isNew=!id,base=id?exFu
       if(d.equip==='corporal'&&d.type==='w'){keep();d.type='bw';d.bwPct=d.bwPct||100;draw()}});
     q('#xe-t').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;keep();d.type=b.dataset.t;if(d.type==='bw'||d.type==='bwa')d.bwPct=d.bwPct||BW_PCT[id]||100;if(d.type==='t'){d.unit=d.unit||'min';d.uni=false}if(d.type==='bw'&&d.equip!=='corporal'&&['barra','mancuernas','maquina','polea'].includes(d.equip))d.equip='corporal';draw()});
     if(q('#xe-pct'))q('#xe-pct').addEventListener('input',()=>{d.bwPct=+q('#xe-pct').value;q('#xe-pct-v').textContent=d.bwPct+'%';const bw2=myBw();if(bw2)q('#xe-bw-s').textContent=`Con tu peso (${fmtN(bw2,1)} kg) cada repetición cuenta ${fmtN(bw2*d.bwPct/100,1)} kg${d.type==='bw'?' más el lastre':' menos la ayuda'}.`});
+    if(isNew&&q('#xe-n')){const xg=q('#xe-g');xg.addEventListener('change',()=>{d._gT=1});q('#xe-n').addEventListener('input',()=>{if(d._gT)return;const g=mixGroup(nameMix(q('#xe-n').value));if(g&&g!==xg.value){xg.value=g;d.group=g;d.m2=d.m2.filter(x=>x!==g)}})}
     if(q('#xe-u'))q('#xe-u').addEventListener('click',e=>{const b=e.target.closest('[data-u]');if(!b)return;d.unit=b.dataset.u;q('#xe-u').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
     if(q('#xe-uni'))q('#xe-uni').addEventListener('click',()=>{d.uni=!d.uni;q('#xe-uni').setAttribute('aria-checked',d.uni)});
     const fi=q('#xe-file');if(fi)fi.addEventListener('change',async()=>{const f=fi.files&&fi.files[0];if(!f)return;keep();try{const blob=await shrinkImage(f,1000);newImg={blob,url:URL.createObjectURL(blob)};draw()}catch(e){toast('No pude leer esa imagen.')}});
@@ -5159,8 +5160,37 @@ const EX_MIX={
  sentadilla_corp:{cuadriceps:50,gluteos:30,aductores:10,core:10},estocada_corp:{cuadriceps:40,gluteos:35,isquios:10,aductores:10,core:5},pistol:{cuadriceps:50,gluteos:35,core:10,aductores:5},
  flex_diamante:{triceps:55,pecho:35,hombros:10},burpees:{cardio:60,cuadriceps:20,pecho:10,core:10}};
 const GROUP_MIX={piernas:{cuadriceps:50,gluteos:30,isquios:20}};
-/* devuelve {músculo: fracción 0-1} para un ejercicio (los propios usan su grupo) */
-function exMix(exId,group){const m=EX_MIX[exId]||GROUP_MIX[group]||{[group||'core']:100};const t=Object.values(m).reduce((a,b)=>a+b,0)||1;const o={};Object.entries(m).forEach(([k,v])=>o[k]=v/t);return o}
+/* ejercicios propios: adivina los músculos por el nombre (si no, usa el grupo y los "también trabaja") */
+const NAME_MIX=[
+ [/jalon|dominada|pull ?down|remo|pull ?over/,{espalda:65,biceps:20,hombros:15}],
+ [/martillo/,{biceps:60,antebrazos:40}],
+ [/femoral|isquio|nordic/,{isquios:85,gemelos:15}],
+ [/predicador|scott|curl|bicep/,{biceps:80,antebrazos:20}],
+ [/tricep|frances|tras nuca|copa|press cerrado|fondos en banco|patada de tri/,{triceps:95,hombros:5}],
+ [/extension.*(polea|soga|nuca)/,{triceps:95,hombros:5}],
+ [/posterior|pajaro|face ?pull|reverse|invertid/,{hombros:65,espalda:35}],
+ [/frontal/,{hombros:85,pecho:15}],
+ [/lateral|vuelo|deltoid/,{hombros:90,espalda:10}],
+ [/militar|arnold|press de hombro|press hombro|overhead/,{hombros:65,triceps:25,core:10}],
+ [/rumano|stiff/,{isquios:45,gluteos:35,lumbares:15,antebrazos:5}],
+ [/peso muerto/,{isquios:25,gluteos:25,lumbares:20,espalda:15,cuadriceps:10,antebrazos:5}],
+ [/hip ?thrust|puente|glute|abduc/,{gluteos:80,isquios:20}],
+ [/aduct/,{aductores:100}],
+ [/extension.*(cuad|pierna)|cuadricep|sillon/,{cuadriceps:100}],
+ [/sentadilla|squat|hack|prensa|estocada|zancada|bulgara/,{cuadriceps:55,gluteos:30,aductores:10,isquios:5}],
+ [/gemelo|pantorrilla|soleo/,{gemelos:100}],
+ [/apertura|pec ?deck|cruce|mariposa/,{pecho:85,hombros:15}],
+ [/press|pecho|fondos|flexion/,{pecho:60,triceps:25,hombros:15}],
+ [/encogim|trapecio/,{espalda:85,antebrazos:15}],
+ [/antebrazo|muneca/,{antebrazos:100}],
+ [/abdom|crunch|plancha|oblicu|rueda|russian|core/,{core:100}],
+ [/hiperext|lumbar/,{lumbares:50,gluteos:30,isquios:20}]];
+const FINE2G={cuadriceps:'piernas',isquios:'piernas',aductores:'piernas',lumbares:'espalda',antebrazos:'biceps'};
+function nameMix(name){const n=normS(String(name||''));if(!n)return null;for(const [re,m] of NAME_MIX)if(re.test(n))return m;return null}
+function mixGroup(m){if(!m)return null;const [k]=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];return FINE2G[k]||k}
+/* devuelve {músculo: fracción 0-1} para un ejercicio */
+function exMix(exId,group){const ex=exById(exId)||{};let m=EX_MIX[exId]||nameMix(ex.name);
+  if(!m){const g=ex.group||group||'core',m2=(ex.m2||[]).filter(x=>x!==g&&MUSCLES[x]);if(m2.length){m={[g]:70};m2.forEach(x=>m[x]=30/m2.length)}else m=GROUP_MIX[g]||{[g]:100}}const t=Object.values(m).reduce((a,b)=>a+b,0)||1;const o={};Object.entries(m).forEach(([k,v])=>o[k]=v/t);return o}
 const WK_MET={piernas:6,cuadriceps:6,isquios:5.5,aductores:4.5,gluteos:5.8,espalda:5.5,lumbares:5,pecho:5,hombros:4.5,gemelos:4,biceps:3.8,triceps:3.8,antebrazos:3.5,core:3.8,cardio:7.5};
 const WK_REST_MET=2.3;
 function wkKcalInfo(w){const kg=+w.bw||bodyKg()||75,dur=+w.dur||0;let workS=0,kc=0;
@@ -5170,14 +5200,16 @@ function wkKcalInfo(w){const kg=+w.bw||bodyKg()||75,dur=+w.dur||0;let workS=0,kc
   const workMin=Math.min(dur,workS/60),restMin=Math.max(0,dur-workMin);kc+=(WK_REST_MET-1)*kg*restMin/60;return{kcal:Math.round(kc),workMin:Math.round(workMin),restMin:Math.round(restMin)}}
 const wkKcal=w=>wkKcalInfo(w).kcal;
 /* hacia atrás: recalcula las calorías de los entrenamientos ya guardados con el cálculo nuevo */
-function migrateWkKcal(){if(!loaded.has('workouts'))return;Object.entries(state.workouts).forEach(([id,w])=>{if(w.kcalV===3)return;put('workouts',id,Object.assign({},w,{kcal:wkKcal(w),kcalV:3}))})}
+function migrateExGroups(){if(!loaded.has('exlib'))return;const fix={};Object.entries(state.exlib||{}).forEach(([id,x])=>{if(x.gfix)return;const g=mixGroup(nameMix(x.name));const nx=Object.assign({},x,{gfix:1});if(g&&g!==x.group&&x.group==='pecho'){nx.group=g;nx.m2=(x.m2||[]).filter(k=>k!==g);fix[id]=g}put('exlib',id,nx)});
+  if(Object.keys(fix).length&&loaded.has('workouts'))Object.entries(state.workouts).forEach(([wid,w])=>{if((w.exercises||[]).some(e=>fix[e.exId]))put('workouts',wid,Object.assign({},w,{exercises:w.exercises.map(e=>fix[e.exId]?Object.assign({},e,{group:fix[e.exId]}):e),kcalV:0}))})}
+function migrateWkKcal(){try{migrateExGroups()}catch(e){}if(!loaded.has('workouts'))return;Object.entries(state.workouts).forEach(([id,w])=>{if(w.kcalV===4)return;put('workouts',id,Object.assign({},w,{kcal:wkKcal(w),kcalV:4}))})}
 function saveLive(){const end=Date.now(),dur=Math.max(1,Math.round((end-live.start)/60000));let vol=0,n=0;const rpes=[];const prs=[];const bwNow=myBw();
   const exercises=live.exercises.map(e=>{const ex=exById(e.exId);const sets=e.sets.filter(s=>s.done).map(s=>({type:s.type,kg:numv(s.kg),reps:numv(s.reps),rpe:numv(s.rpe)}));
     sets.forEach(s=>{n++;if(s.rpe)rpes.push(s.rpe);if(s.type!=='w')vol+=setVol(ex,s.kg,s.reps,bwNow)});
     const h=exStats(e.exId,live.start);let best=null;sets.forEach(s=>{if(s.type==='w')return;const sc=setScore(ex,s);if(!best||sc>best.sc)best={sc,s}});
     if(best&&h.n&&best.sc>h.best)prs.push({exId:e.exId,name:ex.name,label:setLabel(ex,best.s)});
     return{exId:e.exId,name:ex.name,group:ex.group,type:ex.type,unit:ex.unit||'',bwPct:ex.bwPct||null,uni:!!ex.uni,note:e.note||'',rest:e.rest,sets}}).filter(e=>e.sets.length);
-    const w={date:ymd(new Date(live.start)),start:live.start,end,dur,name:(live.name||'').trim()||'Entrenamiento',routineId:live.routineId||null,exercises,bw:bwNow||null,volume:Math.round(vol),sets:n,kcal:0,kcalV:3,prs,createdAt:end};w.kcal=wkKcal(w);
+    const w={date:ymd(new Date(live.start)),start:live.start,end,dur,name:(live.name||'').trim()||'Entrenamiento',routineId:live.routineId||null,exercises,bw:bwNow||null,volume:Math.round(vol),sets:n,kcal:0,kcalV:4,prs,createdAt:end};w.kcal=wkKcal(w);
   const wid=live.id;put('workouts',wid,w);clearLive();showWorkoutSummary(wid)}
 /* ---------- estadísticas de un entrenamiento: récords por ejercicio y comparación de kilos ---------- */
 const wkT=w=>w.start||(w.date?parseYmd(w.date).getTime():0);
@@ -5286,7 +5318,7 @@ function editWorkout(id){const w0=state.workouts[id];if(!w0)return;const w=JSON.
       else if(b.dataset.wadd!=null){read();const e2=w.exercises[+b.dataset.wadd];const l=e2.sets[e2.sets.length-1]||{};e2.sets.push({type:'n',kg:l.kg||0,reps:l.reps||0,rpe:0});draw()}
       else if(b.id==='we-addex'){read();openExercisePicker(ids=>{ids.forEach(x=>{const ex=exById(x);w.exercises.push({exId:x,name:ex.name,group:ex.group,type:ex.type,unit:ex.unit||'',bwPct:ex.bwPct||null,uni:!!ex.uni,note:'',rest:defRest(x),sets:[{type:'n',kg:0,reps:0,rpe:0}]})});draw()})}
       else if(b.id==='we-ok'){read();const bw=w.bw||myBw();let vol=0,n=0;w.exercises=w.exercises.filter(e=>e.sets.length);w.exercises.forEach(e=>{const ex=exById(e.exId);e.sets.forEach(s=>{n++;if(s.type!=='w')vol+=setVol(ex,s.kg,s.reps,bw)})});
-        w.volume=Math.round(vol);w.sets=n;w.kcal=wkKcal(w);w.kcalV=3;put('workouts',id,w);toast('Entrenamiento actualizado');openWorkout(id)}})};
+        w.volume=Math.round(vol);w.sets=n;w.kcal=wkKcal(w);w.kcalV=4;put('workouts',id,w);toast('Entrenamiento actualizado');openWorkout(id)}})};
   draw()}
 /* ---------- ayunos: corregir inicio y fin ---------- */
 function openFastEdit(id){const f=state.fasts[id];if(!f)return;const t2i=ms=>{const d=new Date(ms);return ymd(d)+'T'+pad(d.getHours())+':'+pad(d.getMinutes())};
@@ -5320,6 +5352,7 @@ function openExercisePicker(cb,preset){pickSel=(preset||[]).slice();pickGroup=''
   q('#pk-groups').addEventListener('click',e=>{const b=e.target.closest('[data-pg]');if(!b)return;pickGroup=b.dataset.pg;q('#pk-groups').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));fill()});
   q('#pk-list').addEventListener('click',e=>{const b=e.target.closest('[data-ex]');if(!b)return;const id=b.dataset.ex;pickSel=pickSel.includes(id)?pickSel.filter(x=>x!==id):pickSel.concat(id);fill()});
   q('#pk-new').addEventListener('click',()=>{const keep=pickSel.slice(),cb0=pickCb,g0=pickGroup;openExEdit(null,x=>openExercisePicker(cb0,x?keep.concat(x):keep),{name:q('#pk-q').value.trim(),group:g0&&g0!=='cardio'?g0:'pecho'})});
+  if(q('#pk-name'))q('#pk-name').addEventListener('input',()=>{const g=mixGroup(nameMix(q('#pk-name').value));if(g&&q('#pk-group'))q('#pk-group').value=g});
   q('#pk-cancel').addEventListener('click',()=>{q('#pk-form').hidden=true});
   q('#pk-create').addEventListener('click',()=>{const name=q('#pk-name').value.trim();if(!name){toast('Poné un nombre.');return}const type=q('#pk-type').value;const id='x'+uid();
     put('exlib',id,{name,group:q('#pk-group').value,type,unit:type==='t'?'min':''});pickSel.push(id);q('#pk-form').hidden=true;q('#pk-q').value='';fill();toast('Ejercicio creado')});
