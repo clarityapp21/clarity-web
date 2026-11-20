@@ -4913,7 +4913,15 @@ function exFull(id){const e=exBase(id);const ov=(state.exmeta[id]||{}).ov||{};co
 const myBw=()=>bodyKg()||+(((typeof nutri==='function'&&nutri())||{}).kg)||+((profile()||{}).kg)||0;
 /* carga de una serie (kg que se movieron en cada repetición) */
 function setLoad(ex,kg,bw){kg=+kg||0;if(ex.type==='bw')return (bw||0)*(+ex.bwPct||100)/100+kg;if(ex.type==='bwa')return Math.max(0,(bw||0)*(+ex.bwPct||100)/100-kg);if(ex.type==='t')return 0;return kg}
-function setVol(ex,kg,reps,bw){return setLoad(ex,kg,bw)*(+reps||0)*(ex.uni?2:1)}
+/* uni: false = peso total · true = por lado, los dos a la vez (volumen ×2) · 'one' = un lado por vez (volumen de ese lado) */
+const uniX=ex=>ex&&(ex.uni===true||ex.uni==='both')?2:1;
+const UNI_OPTS=[['','Peso total','Barra, máquina o una sola mancuerna: anotás todo lo que movés.'],['both','Por lado, los dos a la vez','Mancuernas o poleas de los dos lados: anotás el peso de un lado y el volumen suma los dos.'],['one','Un lado por vez','Remo a una mano, curl concentrado: anotás el peso que movés con ese brazo o pierna.']];
+const uniKey=u=>u===true||u==='both'?'both':u==='one'?'one':'';
+function setVol(ex,kg,reps,bw){return setLoad(ex,kg,bw)*(+reps||0)*uniX(ex)}
+/* recalcula los kilos totales de los entrenamientos donde aparece un ejercicio (si cambió cómo se carga el peso) */
+function wkRevol(exId){const ex=exById(exId);Object.entries(state.workouts).forEach(([wid,w])=>{if(!(w.exercises||[]).some(e=>e.exId===exId))return;const bw=w.bw||myBw();let vol=0;
+  const exs=w.exercises.map(e=>e.exId===exId?Object.assign({},e,{uni:ex.uni||false}):e);exs.forEach(e=>{const x=Object.assign({},exById(e.exId),{uni:e.uni});(e.sets||[]).forEach(st=>{if(st.type!=='w')vol+=setVol(x,st.kg,st.reps,bw)})});
+  put('workouts',wid,Object.assign({},w,{exercises:exs,volume:Math.round(vol)}))})}
 let exEditCb=null;
 function openExEdit(id,cb,preset){exEditCb=cb||null;const isNew=!id,base=id?exFull(id):Object.assign({name:'',group:'',type:'w',unit:'',equip:'barra',uni:false,m2:[],notes:''},preset||{});if(id&&!exById(id))return;
   const d=Object.assign({},base,{m2:(base.m2||[]).slice()});const custom=isNew||!!base.custom;let img=id?((state.exmeta[id]||{}).img||''):'';let newImg=null;
@@ -4929,7 +4937,7 @@ function openExEdit(id,cb,preset){exEditCb=cb||null;const isNew=!id,base=id?exFu
         `<span class="s" id="xe-bw-s">${bw?`Con tu peso (${fmtN(bw,1)} kg) cada repetición cuenta ${fmtN(bw*(d.bwPct||100)/100,1)} kg${d.type==='bw'?' más el lastre':' menos la ayuda'}.`:'Cargá tu peso en Físico → Cuerpo para calcular los kilos.'}</span>`+
         `<span class="s">Referencias: dominadas y fondos ≈ 95–100%, flexiones ≈ 65%, sentadilla sin peso ≈ 70%, abdominales ≈ 30%.</span></div>`:'')+
       (d.type==='t'?`<div class="field"><span class="lbl">Unidad</span><div class="seg" id="xe-u"><button type="button" data-u="min" aria-pressed="${d.unit!=='seg'}">Minutos</button><button type="button" data-u="seg" aria-pressed="${d.unit==='seg'}">Segundos</button></div></div>`:'')+
-      (d.type!=='t'?`<div class="switch-row"><span>Se hace de a un lado<small>Mancuerna a una mano, estocadas, etc. Cargás el peso de un lado y el volumen cuenta los dos.</small></span><button class="switch" type="button" role="switch" id="xe-uni" aria-checked="${!!d.uni}"></button></div>`:'')+
+      (d.type!=='t'?`<div class="field"><span class="lbl">¿Cómo anotás el peso?</span><div class="xe-types" id="xe-uni">${UNI_OPTS.map(([k,n,sub])=>`<button type="button" data-uni="${k}" aria-pressed="${uniKey(d.uni)===k}"><b>${n}</b><small>${sub}</small></button>`).join('')}</div></div>`:'')+
       `<div class="field"><label for="xe-notes">Técnica y notas (opcional)</label><textarea id="xe-notes" rows="3" maxlength="600" placeholder="Ej.: agarre neutro, asiento en 4, bajar en 3 segundos">${esc(d.notes||'')}</textarea></div>`+
       `<div class="actions">${custom&&!isNew?'<button class="btn btn-danger" type="button" id="xe-del">Eliminar</button>':(!custom&&(state.exmeta[id]||{}).ov?'<button class="btn" type="button" id="xe-reset">Volver a lo original</button>':'')}<div class="right"><button class="btn btn-primary" type="button" id="xe-ok">${isNew?'Crear':'Guardar'}</button></div></div>`);
     const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);const keep=()=>{if(q('#xe-n'))d.name=q('#xe-n').value;d.notes=q('#xe-notes').value;d.group=q('#xe-g').value};
@@ -4941,7 +4949,7 @@ function openExEdit(id,cb,preset){exEditCb=cb||null;const isNew=!id,base=id?exFu
     q('#xe-t').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;keep();d.type=b.dataset.t;if(d.type==='bw'||d.type==='bwa')d.bwPct=d.bwPct||BW_PCT[id]||100;if(d.type==='t'){d.unit=d.unit||'min';d.uni=false}if(d.type==='bw'&&d.equip!=='corporal'&&['barra','mancuernas','maquina','polea'].includes(d.equip))d.equip='corporal';draw()});
     if(q('#xe-pct'))q('#xe-pct').addEventListener('input',()=>{d.bwPct=+q('#xe-pct').value;q('#xe-pct-v').textContent=d.bwPct+'%';const bw2=myBw();if(bw2)q('#xe-bw-s').textContent=`Con tu peso (${fmtN(bw2,1)} kg) cada repetición cuenta ${fmtN(bw2*d.bwPct/100,1)} kg${d.type==='bw'?' más el lastre':' menos la ayuda'}.`});
     if(q('#xe-u'))q('#xe-u').addEventListener('click',e=>{const b=e.target.closest('[data-u]');if(!b)return;d.unit=b.dataset.u;q('#xe-u').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
-    if(q('#xe-uni'))q('#xe-uni').addEventListener('click',()=>{d.uni=!d.uni;q('#xe-uni').setAttribute('aria-checked',d.uni)});
+    if(q('#xe-uni'))q('#xe-uni').addEventListener('click',e=>{const b=e.target.closest('[data-uni]');if(!b)return;d.uni=b.dataset.uni==='both'?true:b.dataset.uni==='one'?'one':false;q('#xe-uni').querySelectorAll('[data-uni]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
     const fi=q('#xe-file');if(fi)fi.addEventListener('change',async()=>{const f=fi.files&&fi.files[0];if(!f)return;keep();try{const blob=await shrinkImage(f,1000);newImg={blob,url:URL.createObjectURL(blob)};draw()}catch(e){toast('No pude leer esa imagen.')}});
     if(q('#xe-pdel'))q('#xe-pdel').addEventListener('click',()=>{keep();if(newImg){newImg=null}else{img='';newImg={del:true,url:''}}draw()});
     if(q('#xe-reset'))q('#xe-reset').addEventListener('click',()=>{const m=Object.assign({},state.exmeta[id]);delete m.ov;put('exmeta',id,m);toast('Volvió a lo original');finish(id)});
@@ -4949,12 +4957,12 @@ function openExEdit(id,cb,preset){exEditCb=cb||null;const isNew=!id,base=id?exFu
       const m=state.exmeta[id];if(m&&m.img)imgDel(m.img);remove('exlib',id);if(m)remove('exmeta',id);toast('Ejercicio eliminado');exEditCb=null;closeSheet()});
     q('#xe-ok').addEventListener('click',async()=>{keep();const name=String(d.name||'').trim();if(custom&&!name){toast('Poné un nombre.');q('#xe-n').focus();return}if(!d.group){toast('Elegí el músculo principal.');q('#xe-g').focus();return}
       const btn=q('#xe-ok');btn.disabled=true;
-      const fields={group:d.group,type:d.type,unit:d.type==='t'?(d.unit||'min'):'',equip:d.equip,bwPct:(d.type==='bw'||d.type==='bwa')?(+d.bwPct||100):null,uni:d.type!=='t'&&!!d.uni,m2:d.m2.filter(x=>x!==d.group),notes:String(d.notes||'').trim()};
+      const fields={group:d.group,type:d.type,unit:d.type==='t'?(d.unit||'min'):'',equip:d.equip,bwPct:(d.type==='bw'||d.type==='bwa')?(+d.bwPct||100):null,uni:d.type==='t'?false:(d.uni===true||d.uni==='one'?d.uni:false),m2:d.m2.filter(x=>x!==d.group),notes:String(d.notes||'').trim()};
       const xid=id||('x'+uid());
       if(custom)put('exlib',xid,Object.assign({},state.exlib[xid]||{},{name},fields));
       let meta=Object.assign({},state.exmeta[xid]||{});if(!custom)meta.ov=fields;
       try{if(newImg&&newImg.blob){const rid=await imgSave(newImg.blob);if(meta.img)imgDel(meta.img);meta.img=rid}else if(newImg&&newImg.del&&meta.img){imgDel(meta.img);delete meta.img}}catch(e){toast('No se pudo guardar la foto.')}
-      if(Object.keys(meta).length)put('exmeta',xid,meta);toast(isNew?'Ejercicio creado':'Ejercicio guardado');finish(xid)})};
+      if(Object.keys(meta).length)put('exmeta',xid,meta);if(!isNew&&uniKey(base.uni)!==uniKey(fields.uni))try{wkRevol(xid)}catch(e){}toast(isNew?'Ejercicio creado':'Ejercicio guardado');finish(xid)})};
   const finish=xid=>{const c=exEditCb;exEditCb=null;if(c)c(xid);else closeSheet()};
   draw()}
 const exIcon=g=>g==='cardio'?'run':g==='core'?'flame':'dumbbell';
@@ -5062,7 +5070,7 @@ function exCard(e,i){const ex=exById(e.exId),prev=prevSets(e.exId),isT=ex.type==
           :`<input type="text" inputmode="decimal" data-f="kg" value="${esc(s.kg)}" placeholder="${setSug(e,j,'kg',prev)||(ex.type==='bw'?'+0':ex.type==='bwa'?'−0':'0')}" aria-label="${ex.type==='bw'?'Lastre en kilos':ex.type==='bwa'?'Ayuda en kilos':'Kilos'}"><input type="text" inputmode="numeric" data-f="reps" value="${esc(s.reps)}" placeholder="${setSug(e,j,'reps',prev)||'0'}" aria-label="Repeticiones">`)+
       (rp?`<input type="text" inputmode="decimal" data-f="rpe" value="${esc(s.rpe)}" placeholder="1-10" aria-label="Esfuerzo de 1 a 10">`:'')+`<button type="button" class="lv-check" data-lv="done" aria-label="Marcar serie hecha">${CHECK}</button></div>`}).join('');
   return `<section class="lv-ex${cur?' cur':''}${fin?' fin':''}">${img?`<button type="button" class="lv-banner" data-lv="exinfo" data-ei="${i}" aria-label="Ver ${esc(ex.name)}"><img src="${esc(img)}" alt="" loading="lazy"></button>`:''}<div class="lv-ex-head"><span class="lv-num">${fin?'✓':i+1}</span>${img?'':`<button type="button" class="lv-exinfo" data-lv="exinfo" data-ei="${i}" aria-label="Ver progreso de ${esc(ex.name)}">${exThumb(e.exId)}</button>`}<div class="mov-txt"><button type="button" class="t lv-exname" data-lv="exinfo" data-ei="${i}">${esc(ex.name)}</button><span class="s">${MUSCLES[ex.group]||''}${e.target?' · objetivo '+esc(e.target)+' reps':''} · descanso ${e.rest?Math.floor(e.rest/60)+':'+pad(e.rest%60):'sin'}${e.note?' · '+esc(e.note):''}${ex.type==='bw'||ex.type==='bwa'?' · '+ex.bwPct+'% de tu peso':''}</span>${ex.notes?`<span class="lv-tech">${esc(ex.notes)}</span>`:''}<span class="lv-count">${nd}/${e.sets.length} series</span>${(()=>{if(fin)return'';const pg=progSug(e.exId);return pg?`<span class="lv-sug">💡 ${esc(pg.txt)} <button type="button" class="link-btn" data-lv="progapply" data-ei="${i}">Aplicar</button></span>`:''})()}${(ex.type==='bw'||ex.type==='bwa')&&!myBw()?`<span class="ex-warn">Cargá tu peso en Físico → Cuerpo para sumarlo al volumen.</span>`:''}${injRisk(e.exId).length?`<span class="ex-warn">⚠ Carga tu ${esc(injRisk(e.exId).map(injName).join(' y '))}: bajá el peso o reemplazalo desde ⋯</span>`:''}</div><button class="iconbtn" type="button" data-lv="menu" data-ei="${i}" aria-label="Opciones del ejercicio"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div>`+
-    `<div class="lv-grid lv-hdr${rp?'':' no-rpe'}"><span>#</span><span>Anterior</span>${isT?`<span>${ex.unit==='seg'?'Seg':'Min'}</span><span></span>`:`<span>${ex.type==='bw'?'+Kg':ex.type==='bwa'?'−Kg':'Kg'}</span><span>Reps${ex.uni?' c/l':''}</span>`}${rp?'<span title="Esfuerzo percibido de 1 a 10">Esf.</span>':''}<span>✓</span></div>${rows}`+
+    `<div class="lv-grid lv-hdr${rp?'':' no-rpe'}"><span>#</span><span>Anterior</span>${isT?`<span>${ex.unit==='seg'?'Seg':'Min'}</span><span></span>`:`<span>${ex.type==='bw'?'+Kg':ex.type==='bwa'?'−Kg':uniX(ex)===2?'Kg c/l':'Kg'}</span><span>Reps${ex.uni==='one'?' c/l':''}</span>`}${rp?'<span title="Esfuerzo percibido de 1 a 10">Esf.</span>':''}<span>✓</span></div>${rows}`+
     `<button class="link-btn" type="button" data-lv="addset" data-ei="${i}" style="align-self:flex-start">+ Agregar serie</button></section>`}
 function renderLive(){const r=$('#live-root');if(!live||!liveOpen){r.hidden=true;r.innerHTML='';updatePill();return}
   const sc=r.querySelector('.live-body')?r.querySelector('.live-body').scrollTop:0;const st=liveStats();r.hidden=false;
@@ -5207,7 +5215,7 @@ function saveLive(){const end=Date.now(),dur=Math.max(1,Math.round((end-live.sta
     sets.forEach(s=>{n++;if(s.rpe)rpes.push(s.rpe);if(s.type!=='w')vol+=setVol(ex,s.kg,s.reps,bwNow)});
     const h=exStats(e.exId,live.start);let best=null;sets.forEach(s=>{if(s.type==='w')return;const sc=setScore(ex,s);if(!best||sc>best.sc)best={sc,s}});
     if(best&&h.n&&best.sc>h.best)prs.push({exId:e.exId,name:ex.name,label:setLabel(ex,best.s)});
-    return{exId:e.exId,name:ex.name,group:ex.group,type:ex.type,unit:ex.unit||'',bwPct:ex.bwPct||null,uni:!!ex.uni,note:e.note||'',rest:e.rest,sets}}).filter(e=>e.sets.length);
+    return{exId:e.exId,name:ex.name,group:ex.group,type:ex.type,unit:ex.unit||'',bwPct:ex.bwPct||null,uni:ex.uni||false,note:e.note||'',rest:e.rest,sets}}).filter(e=>e.sets.length);
     const w={date:ymd(new Date(live.start)),start:live.start,end,dur,name:(live.name||'').trim()||'Entrenamiento',routineId:live.routineId||null,exercises,bw:bwNow||null,volume:Math.round(vol),sets:n,kcal:0,kcalV:4,prs,createdAt:end};w.kcal=wkKcal(w);
   const wid=live.id;put('workouts',wid,w);clearLive();showWorkoutSummary(wid)}
 /* ---------- estadísticas de un entrenamiento: récords por ejercicio y comparación de kilos ---------- */
@@ -5315,7 +5323,7 @@ function editWorkout(id){const w0=state.workouts[id];if(!w0)return;const w=JSON.
       if(b.dataset.wrmx!=null){read();w.exercises.splice(+b.dataset.wrmx,1);draw()}
       else if(b.dataset.wrms){read();const [a,c]=b.dataset.wrms.split('|').map(Number);w.exercises[a].sets.splice(c,1);draw()}
       else if(b.dataset.wadd!=null){read();const e2=w.exercises[+b.dataset.wadd];const l=e2.sets[e2.sets.length-1]||{};e2.sets.push({type:'n',kg:l.kg||0,reps:l.reps||0,rpe:0});draw()}
-      else if(b.id==='we-addex'){read();openExercisePicker(ids=>{ids.forEach(x=>{const ex=exById(x);w.exercises.push({exId:x,name:ex.name,group:ex.group,type:ex.type,unit:ex.unit||'',bwPct:ex.bwPct||null,uni:!!ex.uni,note:'',rest:defRest(x),sets:[{type:'n',kg:0,reps:0,rpe:0}]})});draw()})}
+      else if(b.id==='we-addex'){read();openExercisePicker(ids=>{ids.forEach(x=>{const ex=exById(x);w.exercises.push({exId:x,name:ex.name,group:ex.group,type:ex.type,unit:ex.unit||'',bwPct:ex.bwPct||null,uni:ex.uni||false,note:'',rest:defRest(x),sets:[{type:'n',kg:0,reps:0,rpe:0}]})});draw()})}
       else if(b.id==='we-ok'){read();const bw=w.bw||myBw();let vol=0,n=0;w.exercises=w.exercises.filter(e=>e.sets.length);w.exercises.forEach(e=>{const ex=exById(e.exId);e.sets.forEach(s=>{n++;if(s.type!=='w')vol+=setVol(ex,s.kg,s.reps,bw)})});
         w.volume=Math.round(vol);w.sets=n;w.kcal=wkKcal(w);w.kcalV=4;put('workouts',id,w);toast('Entrenamiento actualizado');openWorkout(id)}})};
   draw()}
@@ -6092,7 +6100,7 @@ function renderExPage(){const id=exPage.id,ex=exById(id),ser=exSeries(id),u=exIm
   openSheet(`<div class="sheet-head"><h2>${esc(ex.name)}</h2>${closeBtn}</div>`+
     `<div class="ex-hero${u?' has':''}">${u?`<img src="${esc(u)}" alt="${esc(ex.name)}" onerror="this.remove()">`:`<span class="ex-hero-ph">${chip(exIcon(ex.group),MUSCLE_COLOR[ex.group]||8,'lg')}</span>`}`+
       (canImg()?`<span class="ex-img-btn cam-pair"><button class="btn mini-btn" type="button" data-cam="ex-img">📷 Cámara</button><label class="btn mini-btn" for="ex-img">Galería</label></span><input type="file" id="ex-img" accept="image/*" hidden>`:'')+`</div>`+
-    `<div class="ex-meta"><span class="s">${MUSCLES[ex.group]||''}${(ex.m2||[]).length?' + '+ex.m2.map(m=>MUSCLES[m]).join(', '):''} · ${EQUIP[ex.equip]||''} · ${(EX_TYPES[ex.type]||EX_TYPES.w)[0]}${ex.type==='bw'||ex.type==='bwa'?' ('+ex.bwPct+'% de tu peso)':''}${ex.uni?' · de a un lado':''}${ex.custom?' · ejercicio propio':''}</span><button class="btn mini-btn" type="button" id="ex-edit">Editar</button></div>${ex.notes?`<p class="ex-notes">${esc(ex.notes)}</p>`:''}`+
+    `<div class="ex-meta"><span class="s">${MUSCLES[ex.group]||''}${(ex.m2||[]).length?' + '+ex.m2.map(m=>MUSCLES[m]).join(', '):''} · ${EQUIP[ex.equip]||''} · ${(EX_TYPES[ex.type]||EX_TYPES.w)[0]}${ex.type==='bw'||ex.type==='bwa'?' ('+ex.bwPct+'% de tu peso)':''}${uniX(ex)===2?' · peso por lado (cuenta los dos)':ex.uni==='one'?' · un lado por vez':''}${ex.custom?' · ejercicio propio':''}</span><button class="btn mini-btn" type="button" id="ex-edit">Editar</button></div>${ex.notes?`<p class="ex-notes">${esc(ex.notes)}</p>`:''}`+
     `<div class="seg" data-ext="1">${[['res','Progreso'],['rec','Récords'],['his','Historial']].map(([k,l])=>`<button type="button" data-v="${k}" aria-pressed="${k===exPage.tab}">${l}</button>`).join('')}</div>${body}`);
   const sh=root.querySelector('.sheet');
   {const eb=sh.querySelector('#ex-edit');if(eb)eb.addEventListener('click',()=>openExEdit(id,()=>renderExPage()))}
