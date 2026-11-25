@@ -5128,26 +5128,18 @@ function updateRest(){const bar=$('#rest-bar');if(!bar)return;if(!restEnd){bar.h
 setInterval(()=>{if(!live)return;const t=document.getElementById('lv-time');if(t)t.textContent=elapsed();const pt=document.getElementById('pill-time');if(pt)pt.textContent=elapsed();
   if(restEnd){if(Date.now()>=restEnd){restEnd=0;beep();toast('¡Descanso terminado! A la próxima serie.')}updateRest()}},250);
 /* ---------- récords en vivo: qué serie tiene cada récord del ejercicio (⭐ en la serie) ---------- */
-function livePRFlags(e){const ex=exById(e.exId),h=wkHist(e.exId,live.start),bw=myBw(),first=!h.n,isT=ex.type==='t';
-  const best={kg:{v:0,i:-1},reps:{v:0,i:-1},rm:{v:0,i:-1,s:null}};let cum=0,volI=-1;const out={};
-  e.sets.forEach((s,j)=>{if(!s.done||s.type==='w')return;const kg=numv(s.kg)||0,r=numv(s.reps)||0;
-    if(!isT&&ex.type!=='bwa'&&kg>best.kg.v){best.kg={v:kg,i:j}}
-    if(r>best.reps.v){best.reps={v:r,i:j}}
-    if(!isT&&ex.type!=='bwa'&&kg>0){const sc=setScore(ex,{kg,reps:r});if(sc>best.rm.v)best.rm={v:sc,i:j,s:{kg,reps:r}}}
-    if(!isT){const before=cum;cum+=setVol(ex,kg,r,bw);if(volI<0&&cum>0&&(first?false:(before<=h.vol&&cum>h.vol)))volI=j;if(first)volI=j}});
-  const add=(i,o)=>{if(i<0)return;(out[i]=out[i]||[]).push(o)};
-  if(best.kg.i>=0&&(first||best.kg.v>h.maxKg))add(best.kg.i,{k:'Mayor peso',v:fmtN(best.kg.v)+' kg',p:h.n&&h.maxKg?fmtN(h.maxKg)+' kg':''});
-  if(best.reps.i>=0&&(first||best.reps.v>h.maxReps))add(best.reps.i,{k:isT?'Más tiempo':'Más repeticiones',v:fmtN(best.reps.v)+(isT?' '+(ex.unit||'min'):' reps'),p:h.n&&h.maxReps?fmtN(h.maxReps)+(isT?' '+(ex.unit||'min'):' reps'):''});
-  if(best.rm.i>=0&&(first||best.rm.v>h.best+1e-9))add(best.rm.i,{k:'Mejor 1RM estimado',v:'~'+fmtN(Math.round(e1rm(best.rm.s.kg,best.rm.s.reps)))+' kg',p:''});
-  if(!isT&&volI>=0&&cum>0&&(first||cum>h.vol))add(volI,{k:'Volumen del ejercicio',v:fmtN(Math.round(cum),0)+' kg',p:h.vol?fmtN(Math.round(h.vol),0)+' kg':''});
+function livePRFlags(e){const ex=exById(e.exId),h=wkHist(e.exId,live.start),bw=myBw(),first=!h.n,isT=ex.type==='t',out={};
+  /* la primera vez no hay con qué comparar: no hay récords */
+  if(first)return{flags:out,first};
+  /* cada serie se compara con lo mejor que habías hecho en ESTE ejercicio, incluidas las series anteriores de hoy */
+  let bKg=h.maxKg,bReps=h.maxReps,bRm=h.best,bSV=h.maxSV;const un=isT?' '+(ex.unit||'min'):' reps';
+  e.sets.forEach((s,j)=>{if(!s.done||s.type==='w')return;const kg=numv(s.kg)||0,r=numv(s.reps)||0,l=[];
+    if(!isT&&ex.type!=='bwa'&&kg>bKg){l.push({k:'Mayor peso',v:fmtN(kg)+' kg',p:bKg?fmtN(bKg)+' kg':''});bKg=kg}
+    if(r>bReps){l.push({k:isT?'Más tiempo':'Más repeticiones',v:fmtN(r)+un,p:bReps?fmtN(bReps)+un:''});bReps=r}
+    if(!isT&&ex.type!=='bwa'&&kg>0){const sc=setScore(ex,{kg,reps:r});if(sc>bRm+1e-9){l.push({k:'Mejor 1RM estimado',v:'~'+fmtN(Math.round(e1rm(kg,r)))+' kg',p:bRm?'~'+fmtN(Math.round(bRm))+' kg':''});bRm=sc}}
+    if(!isT){const sv=setVol(ex,kg,r,bw);if(sv>bSV+1e-9){l.push({k:'Más volumen en una serie',v:fmtN(Math.round(sv),0)+' kg',p:bSV?fmtN(Math.round(bSV),0)+' kg':''});bSV=sv}}
+    if(l.length)out[j]=l});
   return{flags:out,first}}
-function prJingle(){try{ensureAudio();if(!audioCtx)return;[[784,0],[988,.11],[1175,.22],[1568,.34]].forEach(([f,t])=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain(),n=audioCtx.currentTime+t;o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.0001,n);g.gain.exponentialRampToValueAtTime(.22,n+.02);g.gain.exponentialRampToValueAtTime(.0001,n+(t>.3?.45:.16));o.connect(g);g.connect(audioCtx.destination);o.start(n);o.stop(n+.5)})}catch(e){}try{navigator.vibrate&&navigator.vibrate([60,40,60])}catch(e){}}
-let prQ=[],prBusy=false;
-function prBanner(exName,l,ei,si){l.forEach((x,k)=>prQ.push({exName,x,ei,si,n:l.length,k}));if(!prBusy)prNext()}
-function prNext(){const it=prQ.shift();if(!it){prBusy=false;return}prBusy=true;let b=document.getElementById('pr-banner');if(!b){b=document.createElement('button');b.type='button';b.id='pr-banner';b.className='pr-banner';document.body.appendChild(b)}
-  b.innerHTML=`<span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6l-5.3 2.9 1.1-5.9L3.4 9.5l6-.8z"/></svg></span><span><b>¡Récord nuevo! ${esc(it.x.k)}${it.n>1?' ('+(it.k+1)+'/'+it.n+')':''}</b><span>${esc(it.exName)}: ${esc(it.x.v)}${it.x.p?' · antes '+esc(it.x.p):''}</span></span>`;
-  const done=()=>{b.classList.remove('on');setTimeout(prNext,450)};
-  b.onclick=()=>{clearTimeout(b._t);prQ=[];b.classList.remove('on');prBusy=false;openLivePR(it.ei,it.si)};clearTimeout(b._t);requestAnimationFrame(()=>requestAnimationFrame(()=>b.classList.add('on')));b._t=setTimeout(done,2800);prJingle()}
 function openLivePR(ei,si){const e=live.exercises[ei];if(!e)return;const ex=exById(e.exId),f=livePRFlags(e),l=f.flags[si]||[];if(!l.length)return;const s=e.sets[si];
   openSheet(`<div class="sheet-head"><h2>${l.length>1?l.length+' récords':'Récord'} en esta serie</h2>${closeBtn}</div><p class="welcome-lead">${esc(ex.name)} · ${esc(setLabel(ex,{kg:numv(s.kg),reps:numv(s.reps)}))}${f.first?' · primera vez que lo hacés':''}</p>`+
     `<div class="wk-prl">${l.map(p=>`<div class="wk-pr"><span><b>${esc(p.k)}</b>${p.p?`<small>Antes: ${esc(p.p)}</small>`:f.first?'<small>Primera vez</small>':''}</span><b>${esc(p.v)}</b></div>`).join('')}</div>`+
@@ -5296,17 +5288,17 @@ function saveLive(){const end=Date.now(),dur=Math.max(1,Math.round((end-live.sta
   const wid=live.id;put('workouts',wid,w);clearLive();showWorkoutSummary(wid)}
 /* ---------- estadísticas de un entrenamiento: récords por ejercicio y comparación de kilos ---------- */
 const wkT=w=>w.start||(w.date?parseYmd(w.date).getTime():0);
-function wkExStats(e,bw){const ex=exById(e.exId);const ss=(e.sets||[]).filter(s=>s.type!=='w');let maxKg=0,maxReps=0,best=0,bestSet=null,vol=0,reps=0;
-  ss.forEach(s=>{const kg=+s.kg||0,r=+s.reps||0;if(kg>maxKg)maxKg=kg;if(r>maxReps)maxReps=r;const sc=setScore(ex,s);if(sc>best){best=sc;bestSet=s}vol+=setVol(ex,kg,r,bw);reps+=r});
-  return{ex,maxKg,maxReps,best,bestSet,vol:Math.round(vol),reps,n:ss.length}}
+function wkExStats(e,bw){const ex=exById(e.exId);const ss=(e.sets||[]).filter(s=>s.type!=='w');let maxKg=0,maxReps=0,best=0,bestSet=null,vol=0,reps=0,maxSV=0;
+  ss.forEach(s=>{const kg=+s.kg||0,r=+s.reps||0;if(kg>maxKg)maxKg=kg;if(r>maxReps)maxReps=r;const sc=setScore(ex,s);if(sc>best){best=sc;bestSet=s}const sv=setVol(ex,kg,r,bw);vol+=sv;if(sv>maxSV)maxSV=sv;reps+=r});
+  return{ex,maxKg,maxReps,best,bestSet,vol:Math.round(vol),reps,n:ss.length,maxSV}}
 /* lo mejor que habías hecho en un ejercicio antes de cierto momento */
-function wkHist(exId,before){const h={n:0,maxKg:0,maxReps:0,best:0,vol:0,tot:0};
+function wkHist(exId,before){const h={n:0,maxKg:0,maxReps:0,best:0,vol:0,tot:0,maxSV:0};
   Object.values(state.workouts).forEach(w=>{if(wkT(w)>=before)return;let sv=0,sr=0,had=false;(w.exercises||[]).forEach(e=>{if(e.exId!==exId)return;const st=wkExStats(e,w.bw||myBw());if(!st.n)return;had=true;
-    h.maxKg=Math.max(h.maxKg,st.maxKg);h.maxReps=Math.max(h.maxReps,st.maxReps);h.best=Math.max(h.best,st.best);sv+=st.vol;sr+=st.reps});if(had){h.n++;h.vol=Math.max(h.vol,sv);h.tot=Math.max(h.tot,sr)}});return h}
+    h.maxKg=Math.max(h.maxKg,st.maxKg);h.maxReps=Math.max(h.maxReps,st.maxReps);h.best=Math.max(h.best,st.best);h.maxSV=Math.max(h.maxSV,st.maxSV);sv+=st.vol;sr+=st.reps});if(had){h.n++;h.vol=Math.max(h.vol,sv);h.tot=Math.max(h.tot,sr)}});return h}
 /* métricas de cada ejercicio con su estrellita si es récord (la primera vez, todo es récord) */
 function wkReport(w){const bw=w.bw||myBw(),t=wkT(w);let recs=0,reps=0;
   const exs=(w.exercises||[]).map(e=>{const st=wkExStats(e,bw);if(!st.n)return null;reps+=st.reps;const h=wkHist(e.exId,t),first=!h.n,ex=st.ex,m=[];
-    const add=(k,v,cur,prev,lower,sub)=>{const pr=first||(lower?cur<prev:cur>prev+1e-9);if(pr)recs++;m.push({k,v,pr,sub})};
+    const add=(k,v,cur,prev,lower,sub)=>{const pr=!first&&(lower?cur<prev:cur>prev+1e-9);if(pr)recs++;m.push({k,v,pr,sub})};
     if(ex.type==='t'){add('Tiempo máx',fmtN(st.maxReps)+' '+(ex.unit||'min'),st.maxReps,h.maxReps);add('Total',fmtN(st.reps)+' '+(ex.unit||'min'),st.reps,h.tot)}
     else{if(ex.type!=='bwa'&&st.maxKg>0)add(ex.type==='bw'?'Lastre máx':'Peso máx',fmtN(st.maxKg)+' kg',st.maxKg,h.maxKg);
       add('Reps máx',st.maxReps+' reps',st.maxReps,h.maxReps);
@@ -5325,7 +5317,7 @@ function wkStatsHtml(w){const r=wkReport(w),cmp=wkCompare(+w.volume||0);
   return `<div class="kpis wk-kpis"><div class="kpi"><span>Duración</span><b>${fmtDur(w.dur)}</b></div><div class="kpi"><span>Levantaste</span><b>${fmtN(w.volume||0,0)} kg</b></div><div class="kpi"><span>Series</span><b>${w.sets||0}</b></div><div class="kpi"><span>Repeticiones</span><b>${fmtN(r.reps,0)}</b></div></div>`+
     (cmp?`<div class="wk-cmp"><div class="em" aria-hidden="true">${Array.from({length:Math.min(3,Math.ceil(cmp.n))},()=>cmp.em).join('')}</div><div><b>Es como levantar ${esc(cmp.txt)}</b><span class="s">${esc(cmp.txt.replace(/^(un|una) /,'') )} ≈ ${fmtN(cmp.ref,0)} kg${cmp.n>1?' cada uno':''}</span></div></div>`:'')+
     `<div class="wk-sum"><span>${r.recs?'⭐ '+r.recs+(r.recs===1?' récord':' récords')+' en esta sesión':'Sin récords esta vez'}</span>${dv!=null?`<span class="${dv>=0?'c-g':'c-p'}">${dv>=0?'+':''}${dv}% de kilos vs. la vez anterior</span>`:''}<span class="s">${w.dur?fmtN((+w.volume||0)/w.dur,0)+' kg por minuto · ':''}${w.kcal||0} kcal${(()=>{const k=wkKcalInfo(w);return w.dur?' · ~'+k.workMin+' min de trabajo efectivo y '+k.restMin+' de descanso':''})()}</span></div>`+
-    r.exs.map(x=>`<div class="wk-ex"><div class="row">${chip(exIcon(x.ex.group),MUSCLE_COLOR[x.ex.group]||8,'sm')}<span class="mov-txt"><span class="t">${esc(x.e.name||x.ex.name)}</span><span class="s">${x.first?'Primera vez · todo cuenta como récord':(x.e.sets||[]).filter(s=>s.type!=='w').length+' series'}</span></span></div>`+
+    r.exs.map(x=>`<div class="wk-ex"><div class="row">${chip(exIcon(x.ex.group),MUSCLE_COLOR[x.ex.group]||8,'sm')}<span class="mov-txt"><span class="t">${esc(x.e.name||x.ex.name)}</span><span class="s">${x.first?'Primera vez · todavía no hay con qué comparar':(x.e.sets||[]).filter(s=>s.type!=='w').length+' series'}</span></span></div>`+
       `<div class="wk-ms">${x.m.map(m=>`<div class="wk-m${m.pr?' pr':''}"><span>${esc(m.k)}${m.pr?' <i aria-label="récord">★</i>':''}</span><b>${esc(m.v)}</b>${m.sub?`<small>${esc(m.sub)}</small>`:''}</div>`).join('')}</div>`+
       `<details class="wk-sets"><summary>Ver series</summary>${(()=>{let nn=0;return x.e.sets.map(s=>`<div class="row wk-set"><span class="set-type t-${s.type}">${s.type==='n'?++nn:{w:'C',f:'F',d:'D'}[s.type]}</span><span>${setLabel(x.ex,s)}${s.rpe?' · RPE '+fmtN(s.rpe):''}</span></div>`).join('')})()}</details></div>`).join('')}
 function wkToRoutine(w){const reps=e=>{const c={};e.sets.filter(s=>s.type!=='w'&&+s.reps).forEach(s=>c[s.reps]=(c[s.reps]||0)+1);const k=Object.keys(c).sort((a,b)=>c[b]-c[a])[0];return k?String(k):''};
