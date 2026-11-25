@@ -5295,15 +5295,16 @@ function wkExStats(e,bw){const ex=exById(e.exId);const ss=(e.sets||[]).filter(s=
 function wkHist(exId,before){const h={n:0,maxKg:0,maxReps:0,best:0,vol:0,tot:0,maxSV:0};
   Object.values(state.workouts).forEach(w=>{if(wkT(w)>=before)return;let sv=0,sr=0,had=false;(w.exercises||[]).forEach(e=>{if(e.exId!==exId)return;const st=wkExStats(e,w.bw||myBw());if(!st.n)return;had=true;
     h.maxKg=Math.max(h.maxKg,st.maxKg);h.maxReps=Math.max(h.maxReps,st.maxReps);h.best=Math.max(h.best,st.best);h.maxSV=Math.max(h.maxSV,st.maxSV);sv+=st.vol;sr+=st.reps});if(had){h.n++;h.vol=Math.max(h.vol,sv);h.tot=Math.max(h.tot,sr)}});return h}
-/* métricas de cada ejercicio con su estrellita si es récord (la primera vez, todo es récord) */
+/* métricas de cada ejercicio con su estrellita si es récord (la primera vez no hay récords; lo acumulado nunca es récord) */
 function wkReport(w){const bw=w.bw||myBw(),t=wkT(w);let recs=0,reps=0;
   const exs=(w.exercises||[]).map(e=>{const st=wkExStats(e,bw);if(!st.n)return null;reps+=st.reps;const h=wkHist(e.exId,t),first=!h.n,ex=st.ex,m=[];
-    const add=(k,v,cur,prev,lower,sub)=>{const pr=!first&&(lower?cur<prev:cur>prev+1e-9);if(pr)recs++;m.push({k,v,pr,sub})};
-    if(ex.type==='t'){add('Tiempo máx',fmtN(st.maxReps)+' '+(ex.unit||'min'),st.maxReps,h.maxReps);add('Total',fmtN(st.reps)+' '+(ex.unit||'min'),st.reps,h.tot)}
+    const add=(k,v,cur,prev,lower,sub)=>{const pr=prev!=null&&!first&&(lower?cur<prev:cur>prev+1e-9);if(pr)recs++;m.push({k,v,pr,sub})};
+    if(ex.type==='t'){add('Tiempo máx',fmtN(st.maxReps)+' '+(ex.unit||'min'),st.maxReps,h.maxReps);add('Total',fmtN(st.reps)+' '+(ex.unit||'min'),st.reps,null)}
     else{if(ex.type!=='bwa'&&st.maxKg>0)add(ex.type==='bw'?'Lastre máx':'Peso máx',fmtN(st.maxKg)+' kg',st.maxKg,h.maxKg);
       add('Reps máx',st.maxReps+' reps',st.maxReps,h.maxReps);
       if(st.maxKg>0&&ex.type!=='bwa'&&st.bestSet)add('Mejor serie',setLabel(ex,st.bestSet),st.best,h.best,false,'1RM estimado ~'+fmtN(Math.round(e1rm(+st.bestSet.kg,+st.bestSet.reps)))+' kg');
-      if(st.vol>0)add('Volumen',fmtN(st.vol,0)+' kg',st.vol,h.vol)}
+      if(st.maxSV>0)add('Volumen en una serie',fmtN(Math.round(st.maxSV),0)+' kg',st.maxSV,h.maxSV);
+      if(st.vol>0)add('Volumen total',fmtN(st.vol,0)+' kg',st.vol,null)}
     return{e,ex,first,m}}).filter(Boolean);
   const prev=Object.entries(state.workouts).filter(([,x])=>x!==w&&wkT(x)<t&&(w.routineId?x.routineId===w.routineId:(x.name||'')===(w.name||'')&&w.name&&w.name!=='Entrenamiento')).sort((a,b)=>wkT(b[1])-wkT(a[1]))[0];
   return{exs,recs,reps,prev:prev?prev[1]:null}}
