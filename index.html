@@ -922,6 +922,15 @@ em.late,.pn-tile-b .late{color:var(--q-do);background:color-mix(in srgb,var(--q-
 .wk-sets summary{font-size:13px;color:var(--muted);cursor:pointer;padding:4px 0}
 .wk-rt{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .lv-clkbtn{background:none;border:0;padding:0;color:inherit;text-align:left;cursor:pointer}
+
+.lv-pr{width:22px;height:22px;border-radius:50%;border:0;padding:0;background:#FFE89A;display:grid;place-items:center;justify-self:center;align-self:center;cursor:pointer;box-shadow:0 0 0 1px rgba(201,150,0,.35)}
+.lv-pr svg{width:14px;height:14px;fill:#C99600}
+.pr-banner{position:fixed;left:50%;top:max(12px,env(safe-area-inset-top));transform:translate(-50%,-140%);z-index:300;width:min(420px,calc(100% - 24px));display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:#FFF6D6;color:#3a2c00;border:1px solid #F0CF5A;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .35s cubic-bezier(.2,.9,.3,1.2)}
+.pr-banner.on{transform:translate(-50%,0)}.pr-banner .ic{flex:none;width:36px;height:36px;border-radius:50%;background:#FFE89A;display:grid;place-items:center}.pr-banner .ic svg{width:22px;height:22px;fill:#C99600}
+.pr-banner{text-align:left;font:inherit;cursor:pointer}.live .lv-row.done .lv-pr,.live .lv-row .lv-pr{opacity:1!important;filter:none!important}.pr-banner b{display:block;font-size:15px}.pr-banner span{font-size:13px}
+.wk-rtbtn{align-self:center}
+.aq-list{display:flex;flex-direction:column;gap:10px}.aq-row{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:4px 10px;align-items:center}.aq-n{display:flex;flex-direction:column;min-width:0}.aq-n .s{font-size:12.5px;color:var(--muted)}
+.aq-d{grid-column:1/-1;font-size:12.5px;color:var(--muted)}.aq-d.neg{color:var(--danger,#b5432f);font-weight:600}.aq-d.pos{color:var(--good,#2e7d4f);font-weight:600}.aq-tot{font-size:14px}
 .lv-adj{background:none;border:0;padding:2px 0;color:var(--muted);font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
 .wk-sheet{max-width:560px}
 .wk-sl{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;gap:0;border-radius:20px}.wk-sl::-webkit-scrollbar{display:none}
@@ -1769,6 +1778,16 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
 .grp-tg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}.grp-tg .add{color:var(--muted);border-style:dashed}
 .tru-pr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line)}
 .tru-pr>span:first-child{font-weight:600}.tru-pr .s{font-size:12px;color:var(--muted)}.tru-pr b{font-variant-numeric:tabular-nums}
+
+/* la ⭐ de récord va afuera del recuadro de la serie, a la derecha; el espacio queda siempre reservado */
+.live .lv-ex .lv-row,.live .lv-ex .lv-hdr{margin-right:28px;position:relative}
+.live .lv-ex .lv-grid{grid-template-columns:26px minmax(0,.85fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.65fr) 30px;gap:4px}
+.live .lv-ex .lv-grid.no-rpe{grid-template-columns:26px minmax(0,.85fr) minmax(0,1fr) minmax(0,1fr) 30px;gap:4px}
+.live .lv-ex .lv-pr{position:absolute;right:-28px;left:auto;top:50%;transform:translateY(-50%);margin:0}
+.live .lv-ex .set-type{width:26px;height:26px;font-size:12px;border-radius:8px}
+.live .lv-ex .lv-check{width:30px;height:30px}.live .lv-ex .lv-check svg{width:16px;height:16px}
+.live .lv-ex .prev{font-size:11.5px}
+.live .lv-ex .lv-row input{padding:8px 2px;font-size:14.5px}
 </style>
 
 <div class="app">
@@ -1940,6 +1959,7 @@ input[type=time]{color:var(--ink);font:inherit;color-scheme:light}
         <div class="fin-grid"><section class="fin-block span-all"><div id="f-goals" class="stack"></div><div class="ruled" aria-hidden="true"></div></section></div>
         <div class="pane-head econ-head"><h2>Herramientas</h2></div>
         <div class="tools-grid">
+          <button class="tool-card" type="button" data-tool="arqueo"><span class="ichip" style="--cc:var(--c3)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v12H3z"/><path d="M3 11h18M7 15h3"/><path d="M16 4l2 3M8 4L6 7"/></svg></span><span class="tool-txt"><span class="t">Arqueo · ponerme al día</span><span class="s">Poné cuánto tenés de verdad y anota la diferencia</span></span></button>
           <button class="tool-card" type="button" data-tool="split"><span class="ichip" style="--cc:var(--c1)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5M14 15.5c2.6-.4 5.6.8 6.5 4.5"/></svg></span><span class="tool-txt"><span class="t">Dividir la cuenta</span><span class="s">Quién le transfiere a quién después de una comida</span></span></button>
           <button class="tool-card" type="button" data-tool="paycalc"><span class="ichip" style="--cc:var(--c2)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h8"/></svg></span><span class="tool-txt"><span class="t">Calculadora de pagos</span><span class="s">De dónde sale la plata, a quién le pagás y cuánto falta. Se manda como imagen</span></span></button>
           <button class="tool-card" type="button" data-tool="plan"><span class="ichip" style="--cc:var(--c5)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h7"/></svg></span><span class="tool-txt"><span class="t">Planificador de gastos</span><span class="s">Ingresos, vencimientos y gastos por semana: cuánto te queda a fin de mes. Se manda como imagen</span></span></button>
@@ -3088,6 +3108,24 @@ let fMonth=thisMonth();
 let lastAcc=null;try{lastAcc=localStorage.getItem('clarity-ultima-cuenta')}catch(e){}
 
 /* cálculos */
+/* ---------- arqueo: ponerse al día con la plata que tenés de verdad ---------- */
+function openArqueo(){const bal=balances(),accs=accounts().filter(([,a])=>a.type!=='credito');const val={};let cat='otros';
+  if(!cats().some(c=>c.id===cat))cat=(cats()[cats().length-1]||{}).id;
+  openSheet(`<div class="sheet-head"><h2>Arqueo · ponerme al día</h2>${closeBtn}</div><p class="welcome-lead">¿Te olvidaste de anotar gastos unos días? Poné cuánta plata tenés ahora en cada cuenta y la app anota la diferencia como un gasto (o un ingreso si tenés de más).</p>`+
+    `<div class="row2"><div class="field"><label for="aq-date">Fecha del ajuste</label><input type="date" id="aq-date" value="${todayStr()}"></div><div class="field"><label for="aq-cat">Categoría de lo que falta</label><select id="aq-cat">${cats().map(c=>`<option value="${esc(c.id)}"${c.id===cat?' selected':''}>${esc(c.name)}</option>`).join('')}</select></div></div>`+
+    `<div class="aq-list">${accs.map(([id,a])=>`<div class="aq-row"><div class="aq-n"><b>${esc(a.name)}</b><span class="s">Según la app: ${money(bal[id]||0)}</span></div><input type="text" inputmode="decimal" data-money="1" data-aq="${esc(id)}" placeholder="Tenés ahora" aria-label="Plata que tenés ahora en ${esc(a.name)}"><span class="aq-d" id="aq-d-${esc(id)}"></span></div>`).join('')||'<p class="empty">No tenés cuentas cargadas.</p>'}</div>`+
+    `<span class="s">Dejá vacías las cuentas que están bien. Las tarjetas de crédito no entran.</span><div class="aq-tot" id="aq-tot"></div>`+
+    `<div class="actions"><div class="right"><button class="btn" type="button" data-close>Cancelar</button><button class="btn btn-primary" type="button" id="aq-ok">Ajustar</button></div></div>`);
+  const sh=root.querySelector('.sheet'),q=x=>sh.querySelector(x);
+  const calc=()=>{let out=0,inn=0,n=0;sh.querySelectorAll('[data-aq]').forEach(inp=>{const id=inp.dataset.aq,v=parseMoney(inp.value),el=sh.querySelector('#aq-d-'+CSS.escape(id));
+      if(inp.value.trim()===''||isNaN(v)){delete val[id];el.textContent='';el.className='aq-d';return}const d=Math.round((v-(bal[id]||0))*100)/100;val[id]=d;
+      if(Math.abs(d)<0.5){el.textContent='Está bien ✓';el.className='aq-d';return}n++;if(d<0){out+=-d;el.textContent='Faltan '+money(-d)+' → gasto';el.className='aq-d neg'}else{inn+=d;el.textContent='Sobran '+money(d)+' → ingreso';el.className='aq-d pos'}});
+    q('#aq-tot').innerHTML=n?`${out?`Se anota un gasto de <b>${money(out)}</b>`:''}${out&&inn?' y ':''}${inn?`${out?'un':'Se anota un'} ingreso de <b>${money(inn)}</b>`:''} como «Arqueo».`:'';q('#aq-ok').textContent=n?'Ajustar '+n+(n===1?' cuenta':' cuentas'):'Ajustar';return n};
+  sh.addEventListener('input',e=>{if(e.target.dataset.aq!=null)calc()});
+  q('#aq-ok').addEventListener('click',()=>{const n=calc();if(!n){toast('Poné cuánto tenés en alguna cuenta que no coincida.');return}const date=q('#aq-date').value||todayStr(),c=q('#aq-cat').value;
+    Object.entries(val).forEach(([id,d])=>{if(Math.abs(d)<0.5)return;if(d<0)put('movs',uid(),{kind:'gasto',amount:-d,account:id,date,cat:c,group:null,method:defMethod(id),cuotas:1,adj:true,note:'Arqueo · gastos sin anotar',createdAt:Date.now()});
+      else put('movs',uid(),{kind:'ingreso',amount:d,account:id,date,cat:'otros_ing',method:defMethod(id),adj:true,note:'Arqueo · plata de más',createdAt:Date.now()})});
+    closeSheet();toast('Listo: tus cuentas quedaron al día')})}
 function balances(){const b={};accounts().forEach(([id,a])=>b[id]=+a.initial||0);
   Object.values(state.movs).forEach(m=>{const a=+m.amount||0;
     if(m.kind==='gasto'&&b[m.account]!=null){const n=Math.max(1,+m.cuotas||1),k=Math.min(n,Math.max(1,+m.startCuota||1));b[m.account]-=a*(n-k+1)/n;if(m.payCard&&b[m.payCard]!=null)b[m.payCard]+=(m.toAmount!=null?+m.toAmount:arsVal(m,a))}
@@ -3890,7 +3928,7 @@ $('#view-finanzas').addEventListener('click',e=>{const b=e.target.closest('butto
   else if(d.qa==='split'||d.tool==='split')openSplit();
   else if(d.tool==='infl')openInflation();
   else if(d.tool==='conv')openConverter();
-  else if(d.tool==='comp')openCompound();else if(d.tool==='paycalc')openPayCalc();else if(d.tool==='plan')openPlanner(pnM||thisMonth());
+  else if(d.tool==='comp')openCompound();else if(d.tool==='paycalc')openPayCalc();else if(d.tool==='arqueo')openArqueo();else if(d.tool==='plan')openPlanner(pnM||thisMonth());
   else if(d.tool==='xlsx')exportXlsx();
   else if(b.id==='f-cats')openCats();else if(b.id==='f-cats2')openCatList();
   else if(d.rateadj)openRateAdj();
@@ -5062,9 +5100,10 @@ function refreshSug(card,ei){const e=live&&live.exercises[ei];if(!e)return;const
   card.querySelectorAll('.lv-row').forEach(r=>{const j=+r.dataset.si;r.querySelectorAll('input[data-f="kg"],input[data-f="reps"]').forEach(inp=>{const v=setSug(e,j,inp.dataset.f,prev);inp.placeholder=v||(inp.dataset.f==='kg'&&ex.type==='bw'?'+0':inp.dataset.f==='kg'&&ex.type==='bwa'?'−0':'0')})})}
 function liveCurIdx(){if(!live)return -1;return live.exercises.findIndex(e=>e.sets.some(s=>!s.done))}
 function exCard(e,i){const ex=exById(e.exId),prev=prevSets(e.exId),isT=ex.type==='t';let nn=0;const rp=!!e.rpeOn;const nd=e.sets.filter(s=>s.done).length,fin=e.sets.length&&nd===e.sets.length,cur=i===liveCurIdx(),img=exImg(e.exId);
-  const rows=e.sets.map((s,j)=>{const lab=s.type==='n'?String(++nn):{w:'C',f:'F',d:'D'}[s.type];const p=prev[j];
+  const prf=(()=>{try{return livePRFlags(e).flags}catch(err){return{}}})();
+  const rows=e.sets.map((s,j)=>{const lab=s.type==='n'?String(++nn):{w:'C',f:'F',d:'D'}[s.type];const p=prev[j];const pr=prf[j];
     const pTxt=p?(isT?fmtN(+p.reps)+' '+ex.unit:(+p.kg?fmtN(+p.kg)+' × ':'')+(+p.reps||'–')):'–';
-    return `<div class="lv-grid lv-row${rp?'':' no-rpe'}${s.done?' done':''}" data-ei="${i}" data-si="${j}"><button type="button" class="set-type t-${s.type}" data-lv="type" aria-label="Tipo de serie">${lab}</button>`+
+    return `<div class="lv-grid lv-row${rp?'':' no-rpe'}${s.done?' done':''}" data-ei="${i}" data-si="${j}">${pr&&pr.length?`<button type="button" class="lv-pr" data-lv="prinfo" aria-label="Ver los récords de esta serie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6l-5.3 2.9 1.1-5.9L3.4 9.5l6-.8z"/></svg></button>`:''}<button type="button" class="set-type t-${s.type}" data-lv="type" aria-label="Tipo de serie">${lab}</button>`+
       `<button type="button" class="prev" data-lv="prev"${p?'':' disabled'} aria-label="Usar los valores anteriores">${pTxt}</button>`+
       (isT?`<input type="text" inputmode="decimal" data-f="reps" value="${esc(s.reps)}" placeholder="${setSug(e,j,'reps',prev)||'0'}" aria-label="${ex.unit==='seg'?'Segundos':'Minutos'}"><span></span>`
           :`<input type="text" inputmode="decimal" data-f="kg" value="${esc(s.kg)}" placeholder="${setSug(e,j,'kg',prev)||(ex.type==='bw'?'+0':ex.type==='bwa'?'−0':'0')}" aria-label="${ex.type==='bw'?'Lastre en kilos':ex.type==='bwa'?'Ayuda en kilos':'Kilos'}"><input type="text" inputmode="numeric" data-f="reps" value="${esc(s.reps)}" placeholder="${setSug(e,j,'reps',prev)||'0'}" aria-label="Repeticiones">`)+
@@ -5088,6 +5127,42 @@ function updateRest(){const bar=$('#rest-bar');if(!bar)return;if(!restEnd){bar.h
   $('#rest-time').textContent=Math.floor(left/60)+':'+pad(left%60);$('#rest-fill').style.width=(restTotal?Math.min(100,(1-left/restTotal)*100):100)+'%'}
 setInterval(()=>{if(!live)return;const t=document.getElementById('lv-time');if(t)t.textContent=elapsed();const pt=document.getElementById('pill-time');if(pt)pt.textContent=elapsed();
   if(restEnd){if(Date.now()>=restEnd){restEnd=0;beep();toast('¡Descanso terminado! A la próxima serie.')}updateRest()}},250);
+/* ---------- récords en vivo: qué serie tiene cada récord del ejercicio (⭐ en la serie) ---------- */
+function livePRFlags(e){const ex=exById(e.exId),h=wkHist(e.exId,live.start),bw=myBw(),first=!h.n,isT=ex.type==='t';
+  const best={kg:{v:0,i:-1},reps:{v:0,i:-1},rm:{v:0,i:-1,s:null}};let cum=0,volI=-1;const out={};
+  e.sets.forEach((s,j)=>{if(!s.done||s.type==='w')return;const kg=numv(s.kg)||0,r=numv(s.reps)||0;
+    if(!isT&&ex.type!=='bwa'&&kg>best.kg.v){best.kg={v:kg,i:j}}
+    if(r>best.reps.v){best.reps={v:r,i:j}}
+    if(!isT&&ex.type!=='bwa'&&kg>0){const sc=setScore(ex,{kg,reps:r});if(sc>best.rm.v)best.rm={v:sc,i:j,s:{kg,reps:r}}}
+    if(!isT){const before=cum;cum+=setVol(ex,kg,r,bw);if(volI<0&&cum>0&&(first?false:(before<=h.vol&&cum>h.vol)))volI=j;if(first)volI=j}});
+  const add=(i,o)=>{if(i<0)return;(out[i]=out[i]||[]).push(o)};
+  if(best.kg.i>=0&&(first||best.kg.v>h.maxKg))add(best.kg.i,{k:'Mayor peso',v:fmtN(best.kg.v)+' kg',p:h.n&&h.maxKg?fmtN(h.maxKg)+' kg':''});
+  if(best.reps.i>=0&&(first||best.reps.v>h.maxReps))add(best.reps.i,{k:isT?'Más tiempo':'Más repeticiones',v:fmtN(best.reps.v)+(isT?' '+(ex.unit||'min'):' reps'),p:h.n&&h.maxReps?fmtN(h.maxReps)+(isT?' '+(ex.unit||'min'):' reps'):''});
+  if(best.rm.i>=0&&(first||best.rm.v>h.best+1e-9))add(best.rm.i,{k:'Mejor 1RM estimado',v:'~'+fmtN(Math.round(e1rm(best.rm.s.kg,best.rm.s.reps)))+' kg',p:''});
+  if(!isT&&volI>=0&&cum>0&&(first||cum>h.vol))add(volI,{k:'Volumen del ejercicio',v:fmtN(Math.round(cum),0)+' kg',p:h.vol?fmtN(Math.round(h.vol),0)+' kg':''});
+  return{flags:out,first}}
+function prJingle(){try{ensureAudio();if(!audioCtx)return;[[784,0],[988,.11],[1175,.22],[1568,.34]].forEach(([f,t])=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain(),n=audioCtx.currentTime+t;o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.0001,n);g.gain.exponentialRampToValueAtTime(.22,n+.02);g.gain.exponentialRampToValueAtTime(.0001,n+(t>.3?.45:.16));o.connect(g);g.connect(audioCtx.destination);o.start(n);o.stop(n+.5)})}catch(e){}try{navigator.vibrate&&navigator.vibrate([60,40,60])}catch(e){}}
+let prQ=[],prBusy=false;
+function prBanner(exName,l,ei,si){l.forEach((x,k)=>prQ.push({exName,x,ei,si,n:l.length,k}));if(!prBusy)prNext()}
+function prNext(){const it=prQ.shift();if(!it){prBusy=false;return}prBusy=true;let b=document.getElementById('pr-banner');if(!b){b=document.createElement('button');b.type='button';b.id='pr-banner';b.className='pr-banner';document.body.appendChild(b)}
+  b.innerHTML=`<span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6l-5.3 2.9 1.1-5.9L3.4 9.5l6-.8z"/></svg></span><span><b>¡Récord nuevo! ${esc(it.x.k)}${it.n>1?' ('+(it.k+1)+'/'+it.n+')':''}</b><span>${esc(it.exName)}: ${esc(it.x.v)}${it.x.p?' · antes '+esc(it.x.p):''}</span></span>`;
+  const done=()=>{b.classList.remove('on');setTimeout(prNext,450)};
+  b.onclick=()=>{clearTimeout(b._t);prQ=[];b.classList.remove('on');prBusy=false;openLivePR(it.ei,it.si)};clearTimeout(b._t);requestAnimationFrame(()=>requestAnimationFrame(()=>b.classList.add('on')));b._t=setTimeout(done,2800);prJingle()}
+function openLivePR(ei,si){const e=live.exercises[ei];if(!e)return;const ex=exById(e.exId),f=livePRFlags(e),l=f.flags[si]||[];if(!l.length)return;const s=e.sets[si];
+  openSheet(`<div class="sheet-head"><h2>${l.length>1?l.length+' récords':'Récord'} en esta serie</h2>${closeBtn}</div><p class="welcome-lead">${esc(ex.name)} · ${esc(setLabel(ex,{kg:numv(s.kg),reps:numv(s.reps)}))}${f.first?' · primera vez que lo hacés':''}</p>`+
+    `<div class="wk-prl">${l.map(p=>`<div class="wk-pr"><span><b>${esc(p.k)}</b>${p.p?`<small>Antes: ${esc(p.p)}</small>`:f.first?'<small>Primera vez</small>':''}</span><b>${esc(p.v)}</b></div>`).join('')}</div>`+
+    `<div class="actions"><div class="right"><button class="btn btn-primary" type="button" data-close>Seguir</button></div></div>`)}
+/* guardar el entrenamiento como rutina: actualizar la rutina de la que vino o crear una nueva */
+function wkRoutineFrom(w){const reps=e=>{const c={};e.sets.filter(s=>s.type!=='w'&&+s.reps).forEach(s=>c[s.reps]=(c[s.reps]||0)+1);const k=Object.keys(c).sort((a,b)=>c[b]-c[a])[0];return k?String(k):''};
+  return w.exercises.map(e=>({exId:e.exId,sets:e.sets.filter(s=>s.type!=='w').length||e.sets.length,rest:e.rest||defRest(e.exId),reps:reps(e)}))}
+function openSaveRoutine(wid,back){const w=state.workouts[wid];if(!w)return;const rt=w.routineId&&state.routines[w.routineId];
+  if(!rt){wkToRoutine(w);return}
+  openSheet(`<div class="sheet-head">${back?'<button class="iconbtn" type="button" id="sr-back" aria-label="Volver">‹</button>':''}<h2>Guardar como rutina</h2>${closeBtn}</div><p class="welcome-lead">Empezaste desde la rutina <b>${esc(rt.name)}</b>.</p>`+
+    `<div class="xe-types"><button type="button" id="sr-upd"><b>Actualizar «${esc(rt.name)}»</b><small>Reemplaza sus ejercicios, series y repeticiones por los de hoy. Mantiene el nombre.</small></button><button type="button" id="sr-new"><b>Guardar como rutina nueva</b><small>La rutina «${esc(rt.name)}» queda como estaba y le ponés nombre a la nueva.</small></button></div>`);
+  const sh=root.querySelector('.sheet');sheetBack=back||null;const bb=sh.querySelector('#sr-back');if(bb)bb.addEventListener('click',()=>{sheetBack=null;back()});
+  const up=sh.querySelector('#sr-upd');up.addEventListener('click',()=>{if(!up.classList.contains('armed')){up.classList.add('armed');up.querySelector('small').textContent='Tocá de nuevo para reemplazar la rutina.';return}
+    put('routines',w.routineId,Object.assign({},rt,{exercises:wkRoutineFrom(w)}));toast('Rutina «'+rt.name+'» actualizada');sheetBack=null;back?back():closeSheet()});
+  sh.querySelector('#sr-new').addEventListener('click',()=>wkToRoutine(w))}
 function livePR(e,s,setObj){const ex=exById(e.exId);const h=exStats(e.exId,live.start);if(!h.n)return;const sc=setScore(ex,s);
   const prevLive=e.sets.filter(x=>x!==setObj&&x.done&&x.type!=='w').reduce((m,x)=>Math.max(m,setScore(ex,{kg:numv(x.kg),reps:numv(x.reps)})),0);
   if(sc>h.best&&sc>prevLive)toast('¡Nuevo récord en '+ex.name+'! '+setLabel(ex,s))}
@@ -5099,6 +5174,7 @@ $('#live-root').addEventListener('click',e=>{const b=e.target.closest('[data-lv]
   if(act==='min')minimizeLive();
   else if(act==='time')openTimeAdjust(live.start,'El entrenamiento sigue corriendo desde ahí.',t=>{live.start=t;liveSave();renderLive()});
   else if(act==='finish')finishLive();
+  else if(act==='prinfo')openLivePR(ei,si);
   else if(act==='addex')openExercisePicker(ids=>{ids.forEach(id=>live.exercises.push({exId:id,rest:defRest(id),note:'',sets:[newSet(),newSet(),newSet()]}));liveSave();renderLive()});
   else if(act==='discard'){if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='Tocá de nuevo para descartar';return}clearLive();toast('Entrenamiento descartado')}
   else if(act==='type'){const s=live.exercises[ei].sets[si];s.type={n:'w',w:'f',f:'d',d:'n'}[s.type]||'n';liveSave();renderLive()}
@@ -5106,7 +5182,7 @@ $('#live-root').addEventListener('click',e=>{const b=e.target.closest('[data-lv]
   else if(act==='done'){ensureAudio();const e2=live.exercises[ei],s=e2.sets[si],ex=exById(e2.exId);
     if(!s.done){row.querySelectorAll('input[data-f]').forEach(inp=>{if(!inp.value&&inp.placeholder&&/\d/.test(inp.placeholder)&&inp.dataset.f!=='rpe'){s[inp.dataset.f]=inp.placeholder.replace('+','')}});
       if(!numv(s.reps)){toast(ex.type==='t'?'Cargá el tiempo de la serie.':'Cargá las repeticiones.');return}
-      s.done=true;if(s.type!=='w')livePR(e2,{kg:numv(s.kg),reps:numv(s.reps)},s);if(e2.rest&&s.type!=='w'){restTotal=e2.rest;restEnd=Date.now()+e2.rest*1000}}
+      s.done=true;if(s.type!=='w'){try{const fl=livePRFlags(e2).flags[si];if(fl&&fl.length)prBanner(ex.name,fl,ei,si)}catch(err){}}if(e2.rest&&s.type!=='w'){restTotal=e2.rest;restEnd=Date.now()+e2.rest*1000}}
     else s.done=false;liveSave();renderLive()}
   else if(act==='progapply'){const e=live.exercises[ei],pg=progSug(e.exId);if(!pg)return;e.sets.forEach(s=>{if(s.done||s.type==='w')return;if(pg.kind==='kg')s.kg=String(pg.to);else s.reps=String(pg.to)});liveSave();renderLive();toast(pg.kind==='kg'?'Cargué '+fmtN(pg.to)+' kg en las series que faltan':'Cargué '+pg.to+' reps en las series que faltan')}
   else if(act==='addset'){const sets=live.exercises[ei].sets;sets.push(newSet());liveSave();renderLive()}
@@ -5270,14 +5346,14 @@ function wkSlides(wid,back){const w=state.workouts[wid];if(!w)return;const r=wkR
   const prs=[];r.exs.forEach(x=>x.m.filter(z=>z.pr).forEach(z=>prs.push({n:x.e.name||x.ex.name,k:z.k,v:z.v,first:x.first})));
   const s4=r.recs?`<div class="wk-s"><span class="wk-s-k">Récords</span><b class="wk-s-big">⭐ ${r.recs} ${r.recs===1?'récord nuevo':'récords nuevos'}</b><div class="wk-prl">${prs.slice(0,8).map(p=>`<div class="wk-pr"><span><b>${esc(p.n)}</b><small>${esc(p.k)}${p.first?' · primera vez':''}</small></span><b>${esc(p.v)}</b></div>`).join('')}${prs.length>8?`<span class="wk-s-sub">y ${prs.length-8} más en el resumen</span>`:''}</div></div>`:'';
   const sl=[s1,s2,s3,s4].filter(Boolean);
-  openSheet(`<div class="sheet-head"><h2>¡Buen entrenamiento!</h2>${closeBtn}</div><div class="wk-sl" id="wk-sl">${sl.join('')}</div><div class="wk-dots">${sl.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')}</div>`+
+  openSheet(`<div class="sheet-head"><h2>¡Buen entrenamiento!</h2>${closeBtn}</div><div class="wk-sl" id="wk-sl">${sl.join('')}</div><div class="wk-dots">${sl.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')}</div><button class="btn wk-rtbtn" type="button" id="wk-rt">${w.routineId&&state.routines[w.routineId]?'Guardar rutina (actualizar o nueva)':'Guardar como rutina'}</button>`+
     `<div class="actions"><button class="btn" type="button" id="wk-sum">Ver resumen completo</button><div class="right"><button class="btn btn-primary" type="button" id="wk-next">Siguiente</button></div></div>`);
   const sh=root.querySelector('.sheet');sh.classList.add('wk-sheet');sheetBack=back||null;const box=sh.querySelector('#wk-sl'),dots=[...sh.querySelectorAll('.wk-dots i')],nx=sh.querySelector('#wk-next');
   const cur=()=>Math.round(box.scrollLeft/Math.max(1,box.clientWidth));
   const upd=()=>{const c=cur();dots.forEach((d,i)=>d.classList.toggle('on',i===c));nx.textContent=c>=sl.length-1?'Listo':'Siguiente'};
   box.addEventListener('scroll',()=>{clearTimeout(box._t);box._t=setTimeout(upd,60)});
   nx.addEventListener('click',()=>{const c=cur();if(c>=sl.length-1){closeSheet();return}box.scrollTo({left:(c+1)*box.clientWidth,behavior:'smooth'})});
-  sh.querySelector('#wk-sum').addEventListener('click',()=>openWorkout(wid,true))}
+  sh.querySelector('#wk-sum').addEventListener('click',()=>openWorkout(wid,true));sh.querySelector('#wk-rt').addEventListener('click',()=>openSaveRoutine(wid,()=>wkSlides(wid,back)))}
 /* ajustar el tiempo de una sesión en vivo (si te olvidaste de darle play) */
 function openTimeAdjust(start,label,cb){const st=new Date(start);const mins=Math.max(0,Math.round((Date.now()-start)/60000));
   openSheet(`<div class="sheet-head"><h2>Ajustar el tiempo</h2>${closeBtn}</div><p class="welcome-lead">Si empezaste antes de darle play, corregilo acá. ${esc(label)}</p>`+
@@ -5296,10 +5372,10 @@ function showWorkoutSummary(wid){wkSlides(wid)}
 function openWorkout(id,fresh){const w=state.workouts[id];if(!w)return;const rt=w.routineId&&state.routines[w.routineId];
   openSheet(`<div class="sheet-head"><h2>${fresh?'¡Buen entrenamiento!':esc(w.name)}</h2>${closeBtn}</div><p class="welcome-lead">${fresh?esc(w.name)+' · ':''}${esc(longDate(w.date))}${w.start?' · '+new Date(w.start).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):''}</p>`+
     wkStatsHtml(w)+
-    `<div class="wk-rt">${rt?`<span class="s">Rutina: <b>${esc(rt.name)}</b></span>`:''}<span class="hc-btns"><button class="btn" type="button" id="wo-sl">Ver logros</button><button class="btn" type="button" id="wo-rt">${rt?'Guardar como otra rutina':'Guardar como rutina'}</button></span></div>`+
+    `<div class="wk-rt">${rt?`<span class="s">Rutina: <b>${esc(rt.name)}</b></span>`:''}<span class="hc-btns"><button class="btn" type="button" id="wo-sl">Ver logros</button><button class="btn" type="button" id="wo-rt">Guardar como rutina</button></span></div>`+
     `<div class="actions"><button class="btn btn-danger" type="button" id="wo-del">Eliminar</button><div class="right"><button class="btn" type="button" id="wo-edit">Editar</button>${fresh?'<button class="btn btn-primary" type="button" data-close>Listo</button>':'<button class="btn" type="button" id="wo-again">Repetir</button>'}</div></div>`);
   const sh=root.querySelector('.sheet');sh.querySelector('#wo-edit').addEventListener('click',()=>editWorkout(id));const ag=sh.querySelector('#wo-again');if(ag)ag.addEventListener('click',()=>{closeSheet();startLive(null,w)});
-  sh.querySelector('#wo-rt').addEventListener('click',()=>wkToRoutine(w));sh.querySelector('#wo-sl').addEventListener('click',()=>wkSlides(id,()=>openWorkout(id,fresh)));
+  sh.querySelector('#wo-rt').addEventListener('click',()=>openSaveRoutine(id,()=>openWorkout(id,fresh)));sh.querySelector('#wo-sl').addEventListener('click',()=>wkSlides(id,()=>openWorkout(id,fresh)));
   const del=sh.querySelector('#wo-del');del.addEventListener('click',()=>{if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Tocá de nuevo para eliminar';return}remove('workouts',id);closeSheet();toast('Entrenamiento eliminado')})}
 
 /* ---------- editar entrenamientos guardados ---------- */
